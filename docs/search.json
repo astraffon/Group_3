@@ -1,0 +1,37 @@
+[
+  {
+    "objectID": "HW2_A.html",
+    "href": "HW2_A.html",
+    "title": "Homework 2 - Member A",
+    "section": "",
+    "text": "# create vector with pre measurements using combine function\npre_bp &lt;- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)\n\n# create vector with post measurements using combine function\npost_bp &lt;- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)\n\n\n\n\n\n# create names for the 20 subjects using a character vector\nnames(pre_bp) &lt;- paste(\"Subject\", 1:20, sep = \"_\")\nnames(post_bp) &lt;- paste(\"Subject\", 1:20, sep = \"_\")\n\npre_bp\n\n Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 \n       130        128        116        124        133        134        118 \n Subject_8  Subject_9 Subject_10 Subject_11 Subject_12 Subject_13 Subject_14 \n       126        114        127        141        138        128        140 \nSubject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20 \n       137        131        120        128        139        135 \n\npost_bp\n\n Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 \n       114         98        113         99        107        116        113 \n Subject_8  Subject_9 Subject_10 Subject_11 Subject_12 Subject_13 Subject_14 \n       111        119        117        101        119        130        122 \nSubject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20 \n       106        106        124        102        117        113"
+  },
+  {
+    "objectID": "HW2_A.html#task-1-basic-vector-practice",
+    "href": "HW2_A.html#task-1-basic-vector-practice",
+    "title": "Homework 2 - Member A",
+    "section": "",
+    "text": "# create vector with pre measurements using combine function\npre_bp &lt;- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)\n\n# create vector with post measurements using combine function\npost_bp &lt;- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)\n\n\n\n\n\n# create names for the 20 subjects using a character vector\nnames(pre_bp) &lt;- paste(\"Subject\", 1:20, sep = \"_\")\nnames(post_bp) &lt;- paste(\"Subject\", 1:20, sep = \"_\")\n\npre_bp\n\n Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 \n       130        128        116        124        133        134        118 \n Subject_8  Subject_9 Subject_10 Subject_11 Subject_12 Subject_13 Subject_14 \n       126        114        127        141        138        128        140 \nSubject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20 \n       137        131        120        128        139        135 \n\npost_bp\n\n Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 \n       114         98        113         99        107        116        113 \n Subject_8  Subject_9 Subject_10 Subject_11 Subject_12 Subject_13 Subject_14 \n       111        119        117        101        119        130        122 \nSubject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20 \n       106        106        124        102        117        113"
+  },
+  {
+    "objectID": "HW2_A.html#task-2-basic-data-frame-practice",
+    "href": "HW2_A.html#task-2-basic-data-frame-practice",
+    "title": "Homework 2 - Member A",
+    "section": "Task 2: Basic Data Frame Practice",
+    "text": "Task 2: Basic Data Frame Practice"
+  },
+  {
+    "objectID": "HW2_A.html#task-3-list-practice",
+    "href": "HW2_A.html#task-3-list-practice",
+    "title": "Homework 2 - Member A",
+    "section": "Task 3: List Practice",
+    "text": "Task 3: List Practice"
+  },
+  {
+    "objectID": "HW2_A.html#task-4-control-flow-practice",
+    "href": "HW2_A.html#task-4-control-flow-practice",
+    "title": "Homework 2 - Member A",
+    "section": "Task 4: Control Flow Practice",
+    "text": "Task 4: Control Flow Practice"
+  }
+]

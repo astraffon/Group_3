@@ -1,0 +1,38 @@
+---
+title: "Homework 2 - Member A"
+author: "Alfonso Straffon"
+format: html
+editor: visual
+---
+
+
+## Task 1: Basic Vector Practice
+
+### 1) Create two vectors using the `c()` function
+
+```{r}
+# create vector with pre measurements using combine function
+pre_bp <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
+
+# create vector with post measurements using combine function
+post_bp <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+
+```
+
+### 2) Assign names to the vector elements using the `paste()` function 
+
+```{r}
+
+# create names for the 20 subjects using a character vector
+names(pre_bp) <- paste("Subject", 1:20, sep = "_")
+names(post_bp) <- paste("Subject", 1:20, sep = "_")
+
+pre_bp
+post_bp
+
+```
+## Task 2: Basic Data Frame Practice
+
+## Task 3: List Practice
+
+## Task 4: Control Flow Practice
