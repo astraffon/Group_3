@@ -5,7 +5,6 @@ format: html
 editor: visual
 ---
 
-
 ## Task 1: Basic Vector Practice
 
 ### 1) Create two vectors using the `c()` function
@@ -19,7 +18,7 @@ post_bp <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122,
 
 ```
 
-### 2) Assign names to the vector elements using the `paste()` function 
+### 2) Assign names to the vector elements using the `paste()` function
 
 ```{r}
 
@@ -31,6 +30,7 @@ pre_bp
 post_bp
 
 ```
+
 ### 3) Calculate change in blood pressure
 
 ```{r}
@@ -39,9 +39,8 @@ diff_bp <- (pre_bp - post_bp)
 diff_bp
 
 ```
-This shows that two numeric vectors of equal length can be subtracted directly, and 
-R performs the operation element by element. Of the 20 subjects, all but three showed 
-decreases in blood pressure. 
+
+This shows that two numeric vectors of equal length can be subtracted directly, and R performs the operation element by element. Of the 20 subjects, all but three showed decreases in blood pressure.
 
 ### 4) Calculate average change in blood pressure
 
@@ -49,6 +48,7 @@ decreases in blood pressure.
 
 mean(diff_bp)
 ```
+
 The average decrease in blood pressure was 17.
 
 ### 5) Identify which subjects showed a decrease in blood pressure
@@ -58,6 +58,7 @@ The average decrease in blood pressure was 17.
 which(diff_bp > 0)
 
 ```
+
 The output gives the indices and names associated with positive changes.
 
 ### 6) Subset the vector of differences for only positive differences
@@ -70,7 +71,8 @@ pos_indice <- which(diff_bp > 0)
 diff_bp[pos_indice]
 
 ```
-We use `[]` in R to subset or select certain elements from an object. 
+
+We use `[]` in R to subset or select certain elements from an object.
 
 ### 7) Calculate average change in blood pressure for positive differences
 
@@ -78,10 +80,61 @@ We use `[]` in R to subset or select certain elements from an object.
 
 mean(diff_bp[pos_indice])
 ```
+
 The average decrease in blood pressure was 20.65.
 
 ## Task 2: Basic Data Frame Practice
 
+### 1) Create a data frame with four columns
+
+```{r}
+# create a separate character vector for the subject names
+patient <- names(pre_bp)
+
+#create data frame using `data.frame()` function
+bp_df <- data.frame(patient, pre_bp, post_bp, diff_bp)
+bp_df
+```
+The big teaching here is that the subject names, up until this step, were stored as 
+the `names` attribute of the vectors and not as a separate column. In order to use
+them as the `patient` column in the data frame we first extracted them into their own 
+character vector. We also note that vector names can automatically become data frame 
+row names, but that row names are not the same thing as a data frame column.
+
+### 2) Return data frame rows where `diff_bp` column is negative
+
+```{r}
+
+#from the data frame, keep rows where `bp_diff` is negative
+bp_df[bp_df$diff_bp < 0, ]
+```
+This confirms that of the 20 subjects, three of them saw negative differences between
+the pre and post treatments.
+
+### 3) Add a new column using a condition
+
+```{r}
+# identify in data frame where post_bp is less than 120 
+bp_df$post_bp < 120 # this creates a logical vector
+
+#create a new column with the logical vector
+bp_df$less_120 <- bp_df$post_bp < 120
+```
+The key teaching here is that the comparison `bp_df$post_bp < 120`produced a logical
+vector, but it did not need to be stored as a separate vector object in order to assign
+it directly to the data frame column. Alternatively, we could have saved the logical 
+vector as a separate vector object and then assigned it to the data frame, but this 
+would have introduced an extra step.
+
+### 4) Print the data frame in document
+
+```{r}
+ knitr::kable(bp_df)
+```
+
+
 ## Task 3: List Practice
+
+
 
 ## Task 4: Control Flow Practice
