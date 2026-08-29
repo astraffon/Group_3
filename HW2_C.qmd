@@ -59,6 +59,60 @@ mean(improvers)
 
 ```{r}
 patient_name <- names(pre_bp)
-my_data <- data.frame(patient_name, pre_bp, post_bp, diff_bp )
-my_data
+bp_df <- data.frame(patient_name, pre_bp, post_bp, diff_bp )
+#Meh, I don't love the double naming here. Thoughts?
+bp_df
 ```
+
+2. Return only rows with negative BP:
+
+```{r}
+subset(bp_df, diff_bp < 0)
+
+```
+
+3. Add new col to df with TRUE if the post_bp is below 120.
+
+```{r}
+bp_df$low_bp <- ifelse(bp_df$post_bp < 120, TRUE, "") #Should we list BPs >= 119 as FALSE?
+bp_df
+```
+
+4. Print the whole data frame.
+
+```{r}
+knitr::kable(bp_df)
+```
+
+#Task 3: List practice
+
+1. 
+
+```{r}
+c(138, 135, 147, 117, 152, 134, 114, 121, 131, 130)
+c(105, 136, 123, 130, 134, 143, 135, 139, 120, 124)
+```
+
+2. 
+
+```{r}
+
+```
+
+3. 
+
+```{r}
+
+```
+
+4. 
+
+```{r}
+
+```
+
+
+
+
+
+#Task 4: Control Flow Practice
