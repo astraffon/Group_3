@@ -31,6 +31,55 @@ pre_bp
 post_bp
 
 ```
+### 3) Calculate change in blood pressure
+
+```{r}
+#subtract the post treatment level from pre treatment level for each subject and store as vector
+diff_bp <- (pre_bp - post_bp)
+diff_bp
+
+```
+This shows that two numeric vectors of equal length can be subtracted directly, and 
+R performs the operation element by element. Of the 20 subjects, all but three showed 
+decreases in blood pressure. 
+
+### 4) Calculate average change in blood pressure
+
+```{r}
+
+mean(diff_bp)
+```
+The average decrease in blood pressure was 17.
+
+### 5) Identify which subjects showed a decrease in blood pressure
+
+```{r}
+# we use a logical operator to determine positive values
+which(diff_bp > 0)
+
+```
+The output gives the indices and names associated with positive changes.
+
+### 6) Subset the vector of differences for only positive differences
+
+```{r}
+#one way of doing this is to create a position vector of positive differences
+pos_indice <- which(diff_bp > 0)
+
+# returns the elements of the positions listed in pos_indice
+diff_bp[pos_indice]
+
+```
+We use `[]` in R to subset or select certain elements from an object. 
+
+### 7) Calculate average change in blood pressure for positive differences
+
+```{r}
+
+mean(diff_bp[pos_indice])
+```
+The average decrease in blood pressure was 20.65.
+
 ## Task 2: Basic Data Frame Practice
 
 ## Task 3: List Practice

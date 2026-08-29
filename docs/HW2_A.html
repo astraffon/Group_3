@@ -184,6 +184,78 @@ Subject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20
 </div>
 </div>
 </section>
+<section id="calculate-change-in-blood-pressure" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-change-in-blood-pressure">3) Calculate change in blood pressure</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#subtract the post treatment level from pre treatment level for each subject and store as vector</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>diff_bp <span class="ot">&lt;-</span> (pre_bp <span class="sc">-</span> post_bp)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>diff_bp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
+        16         30          3         25         26         18          5 
+ Subject_8  Subject_9 Subject_10 Subject_11 Subject_12 Subject_13 Subject_14 
+        15         -5         10         40         19         -2         18 
+Subject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20 
+        31         25         -4         26         22         22 </code></pre>
+</div>
+</div>
+<p>This shows that two numeric vectors of equal length can be subtracted directly, and R performs the operation element by element. Of the 20 subjects, all but three showed decreases in blood pressure.</p>
+</section>
+<section id="calculate-average-change-in-blood-pressure" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-average-change-in-blood-pressure">4) Calculate average change in blood pressure</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(diff_bp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 17</code></pre>
+</div>
+</div>
+<p>The average decrease in blood pressure was 17.</p>
+</section>
+<section id="identify-which-subjects-showed-a-decrease-in-blood-pressure" class="level3">
+<h3 class="anchored" data-anchor-id="identify-which-subjects-showed-a-decrease-in-blood-pressure">5) Identify which subjects showed a decrease in blood pressure</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># we use a logical operator to determine positive values</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span>(diff_bp <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
+         1          2          3          4          5          6          7 
+ Subject_8 Subject_10 Subject_11 Subject_12 Subject_14 Subject_15 Subject_16 
+         8         10         11         12         14         15         16 
+Subject_18 Subject_19 Subject_20 
+        18         19         20 </code></pre>
+</div>
+</div>
+<p>The output gives the indices and names associated with positive changes.</p>
+</section>
+<section id="subset-the-vector-of-differences-for-only-positive-differences" class="level3">
+<h3 class="anchored" data-anchor-id="subset-the-vector-of-differences-for-only-positive-differences">6) Subset the vector of differences for only positive differences</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#one way of doing this is to create a position vector of positive differences</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>pos_indice <span class="ot">&lt;-</span> <span class="fu">which</span>(diff_bp <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># returns the elements of the positions listed in pos_indice</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>diff_bp[pos_indice]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
+        16         30          3         25         26         18          5 
+ Subject_8 Subject_10 Subject_11 Subject_12 Subject_14 Subject_15 Subject_16 
+        15         10         40         19         18         31         25 
+Subject_18 Subject_19 Subject_20 
+        26         22         22 </code></pre>
+</div>
+</div>
+<p>We use <code>[]</code> in R to subset or select certain elements from an object.</p>
+</section>
+<section id="calculate-average-change-in-blood-pressure-for-positive-differences" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-average-change-in-blood-pressure-for-positive-differences">7) Calculate average change in blood pressure for positive differences</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(diff_bp[pos_indice])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 20.64706</code></pre>
+</div>
+</div>
+<p>The average decrease in blood pressure was 20.65.</p>
+</section>
 </section>
 <section id="task-2-basic-data-frame-practice" class="level2">
 <h2 class="anchored" data-anchor-id="task-2-basic-data-frame-practice">Task 2: Basic Data Frame Practice</h2>
