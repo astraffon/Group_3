@@ -1,0 +1,64 @@
+---
+title: "Homework #2"
+author: "Michael Costello"
+format: html
+editor: visual
+---
+
+#Task 1: Basic Vector Practice
+
+1.  Create two vectors of the pre- and post-measurements:
+
+```{r}
+pre_bp <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
+
+post_bp <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+```
+
+2.  Assign names to the vector elements:
+
+```{r}
+names(pre_bp)  <- paste("Subject", 1:20, sep = "_")
+names(post_bp) <- paste("Subject", 1:20, sep = "_")
+```
+
+3.  Calculate the change (decrease?) in blood pressure accross all patients:
+
+```{r}
+diff_bp <- pre_bp - post_bp
+diff_bp
+```
+
+4.  Find the average decrease in BP across all patients:
+
+```{r}
+mean(diff_bp)
+```
+
+5.  Patients who experienced a deceased in BP after treatment:
+
+```{r}
+improved_bp <- which(diff_bp > 0, useNames = TRUE)
+```
+
+6.  Create a new vector object with only improvers and their BPs:
+
+```{r}
+improvers <- diff_bp[improved_bp]
+```
+
+7.  Find the mean of the improvers BPs:
+
+```{r}
+mean(improvers)
+```
+
+#Task 2: Basic Data Frame Practice
+
+1.  Create a frame object with four columns using the 4 vectors from Task 1:
+
+```{r}
+patient_name <- names(pre_bp)
+my_data <- data.frame(patient_name, pre_bp, post_bp, diff_bp )
+my_data
+```
