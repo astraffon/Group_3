@@ -156,9 +156,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create two vectors of pre-measurements and post-measurements using c() function</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pre_bp <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">130</span>, <span class="dv">128</span>, <span class="dv">116</span>, <span class="dv">124</span>, <span class="dv">133</span>, <span class="dv">134</span>, <span class="dv">118</span>, <span class="dv">126</span>, <span class="dv">114</span>, <span class="dv">127</span>, <span class="dv">141</span>, <span class="dv">138</span>, <span class="dv">128</span>, <span class="dv">140</span>, <span class="dv">137</span>, <span class="dv">131</span>, <span class="dv">120</span>, <span class="dv">128</span>, <span class="dv">139</span>, <span class="dv">135</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pre_bp1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">130</span>, <span class="dv">128</span>, <span class="dv">116</span>, <span class="dv">124</span>, <span class="dv">133</span>, <span class="dv">134</span>, <span class="dv">118</span>, <span class="dv">126</span>, <span class="dv">114</span>, <span class="dv">127</span>, <span class="dv">141</span>, <span class="dv">138</span>, <span class="dv">128</span>, <span class="dv">140</span>, <span class="dv">137</span>, <span class="dv">131</span>, <span class="dv">120</span>, <span class="dv">128</span>, <span class="dv">139</span>, <span class="dv">135</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>post_bp <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">114</span>, <span class="dv">98</span>, <span class="dv">113</span>, <span class="dv">99</span>, <span class="dv">107</span>, <span class="dv">116</span>, <span class="dv">113</span>, <span class="dv">111</span>, <span class="dv">119</span>, <span class="dv">117</span>, <span class="dv">101</span>, <span class="dv">119</span>, <span class="dv">130</span>, <span class="dv">122</span>, <span class="dv">106</span>, <span class="dv">106</span>, <span class="dv">124</span>, <span class="dv">102</span>, <span class="dv">117</span>, <span class="dv">113</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>post_bp1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">114</span>, <span class="dv">98</span>, <span class="dv">113</span>, <span class="dv">99</span>, <span class="dv">107</span>, <span class="dv">116</span>, <span class="dv">113</span>, <span class="dv">111</span>, <span class="dv">119</span>, <span class="dv">117</span>, <span class="dv">101</span>, <span class="dv">119</span>, <span class="dv">130</span>, <span class="dv">122</span>, <span class="dv">106</span>, <span class="dv">106</span>, <span class="dv">124</span>, <span class="dv">102</span>, <span class="dv">117</span>, <span class="dv">113</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <ol start="2" type="1">
 <li>Assign <code>names</code> to the vector elements using <code>paste()</code> function</li>
@@ -166,11 +166,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># give a name to each vector element using paste() function</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(pre_bp) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Subject"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(pre_bp1) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Subject"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(post_bp) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Subject"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(post_bp1) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Subject"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>pre_bp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>pre_bp1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
        130        128        116        124        133        134        118 
@@ -179,7 +179,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 Subject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20 
        137        131        120        128        139        135 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>post_bp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>post_bp1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
        114         98        113         99        107        116        113 
@@ -197,8 +197,8 @@ Subject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># a positive value is a decrease in blood pressure </span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># save calculation as a new object</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>diff_bp <span class="ot">&lt;-</span> pre_bp <span class="sc">-</span> post_bp</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>diff_bp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>diff_bp1 <span class="ot">&lt;-</span> pre_bp1 <span class="sc">-</span> post_bp1</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>diff_bp1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
         16         30          3         25         26         18          5 
@@ -213,7 +213,7 @@ Subject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20
 </ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate average decrease in blood pressure </span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(diff_bp)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(diff_bp1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 17</code></pre>
 </div>
@@ -225,7 +225,7 @@ Subject_15 Subject_16 Subject_17 Subject_18 Subject_19 Subject_20
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use which() function to determine which subjects had a </span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># decrease in blood pressure after treatment</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span>(diff_bp <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span>(diff_bp1 <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
          1          2          3          4          5          6          7 
@@ -242,8 +242,8 @@ Subject_18 Subject_19 Subject_20
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># subset diff_meas vector to only return vector of elements </span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># with a positive change (decrease in blood pressure)</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># create object containing positive changes </span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>bp_decrease <span class="ot">&lt;-</span> diff_bp[diff_bp <span class="sc">&gt;</span> <span class="dv">0</span>]</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>bp_decrease</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>bp_decrease1 <span class="ot">&lt;-</span> diff_bp1[diff_bp1 <span class="sc">&gt;</span> <span class="dv">0</span>]</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>bp_decrease1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
         16         30          3         25         26         18          5 
@@ -258,7 +258,7 @@ Subject_18 Subject_19 Subject_20
 </ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate average decrease in blood pressure </span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(bp_decrease)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(bp_decrease1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 20.64706</code></pre>
 </div>
@@ -267,37 +267,37 @@ Subject_18 Subject_19 Subject_20
 <section id="task-2-basic-data-frame-practice" class="level2">
 <h2 class="anchored" data-anchor-id="task-2-basic-data-frame-practice">Task 2: Basic Data Frame Practice</h2>
 <ol type="1">
-<li>Create a data frame object with four columns: patients, pre_bp, post_bp, and diff_bp</li>
+<li>Create a data frame object with four columns: <strong>patients</strong>, <strong>pre_bp</strong>, <strong>post_bp</strong>, and <strong>diff_bp</strong></li>
 </ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create vector for patients</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>patients <span class="ot">&lt;-</span> <span class="fu">names</span>(pre_bp)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>patients1 <span class="ot">&lt;-</span> <span class="fu">names</span>(pre_bp1)</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create data frame with four columns using data.frame() function </span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>bp_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(patients, pre_bp, post_bp, diff_bp)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>bp_df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>bp_df1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(patients1, pre_bp1, post_bp1, diff_bp1)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>bp_df1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             patients pre_bp post_bp diff_bp
-Subject_1   Subject_1    130     114      16
-Subject_2   Subject_2    128      98      30
-Subject_3   Subject_3    116     113       3
-Subject_4   Subject_4    124      99      25
-Subject_5   Subject_5    133     107      26
-Subject_6   Subject_6    134     116      18
-Subject_7   Subject_7    118     113       5
-Subject_8   Subject_8    126     111      15
-Subject_9   Subject_9    114     119      -5
-Subject_10 Subject_10    127     117      10
-Subject_11 Subject_11    141     101      40
-Subject_12 Subject_12    138     119      19
-Subject_13 Subject_13    128     130      -2
-Subject_14 Subject_14    140     122      18
-Subject_15 Subject_15    137     106      31
-Subject_16 Subject_16    131     106      25
-Subject_17 Subject_17    120     124      -4
-Subject_18 Subject_18    128     102      26
-Subject_19 Subject_19    139     117      22
-Subject_20 Subject_20    135     113      22</code></pre>
+<pre><code>            patients1 pre_bp1 post_bp1 diff_bp1
+Subject_1   Subject_1     130      114       16
+Subject_2   Subject_2     128       98       30
+Subject_3   Subject_3     116      113        3
+Subject_4   Subject_4     124       99       25
+Subject_5   Subject_5     133      107       26
+Subject_6   Subject_6     134      116       18
+Subject_7   Subject_7     118      113        5
+Subject_8   Subject_8     126      111       15
+Subject_9   Subject_9     114      119       -5
+Subject_10 Subject_10     127      117       10
+Subject_11 Subject_11     141      101       40
+Subject_12 Subject_12     138      119       19
+Subject_13 Subject_13     128      130       -2
+Subject_14 Subject_14     140      122       18
+Subject_15 Subject_15     137      106       31
+Subject_16 Subject_16     131      106       25
+Subject_17 Subject_17     120      124       -4
+Subject_18 Subject_18     128      102       26
+Subject_19 Subject_19     139      117       22
+Subject_20 Subject_20     135      113       22</code></pre>
 </div>
 </div>
 <ol start="2" type="1">
@@ -306,20 +306,20 @@ Subject_20 Subject_20    135     113      22</code></pre>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># only show rows with a negative blood pressure difference using subset() function </span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># means blood pressure increased </span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">subset</span>(bp_df, diff_bp <span class="sc">&lt;</span> <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">subset</span>(bp_df1, diff_bp1 <span class="sc">&lt;</span> <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             patients pre_bp post_bp diff_bp
-Subject_9   Subject_9    114     119      -5
-Subject_13 Subject_13    128     130      -2
-Subject_17 Subject_17    120     124      -4</code></pre>
+<pre><code>            patients1 pre_bp1 post_bp1 diff_bp1
+Subject_9   Subject_9     114      119       -5
+Subject_13 Subject_13     128      130       -2
+Subject_17 Subject_17     120      124       -4</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># or can use brackets []</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>bp_df[bp_df<span class="sc">$</span>diff_bp <span class="sc">&lt;</span> <span class="dv">0</span>, ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>bp_df1[bp_df1<span class="sc">$</span>diff_bp1 <span class="sc">&lt;</span> <span class="dv">0</span>, ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             patients pre_bp post_bp diff_bp
-Subject_9   Subject_9    114     119      -5
-Subject_13 Subject_13    128     130      -2
-Subject_17 Subject_17    120     124      -4</code></pre>
+<pre><code>            patients1 pre_bp1 post_bp1 diff_bp1
+Subject_9   Subject_9     114      119       -5
+Subject_13 Subject_13     128      130       -2
+Subject_17 Subject_17     120      124       -4</code></pre>
 </div>
 </div>
 <ol start="3" type="1">
@@ -327,49 +327,49 @@ Subject_17 Subject_17    120     124      -4</code></pre>
 </ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add a new column where post_bp is less than 120</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>bp_df<span class="sc">$</span>post_less_120 <span class="ot">&lt;-</span> bp_df<span class="sc">$</span>post_bp <span class="sc">&lt;</span> <span class="dv">120</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>bp_df1<span class="sc">$</span>post_less_120_1 <span class="ot">&lt;-</span> bp_df1<span class="sc">$</span>post_bp1 <span class="sc">&lt;</span> <span class="dv">120</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># check that the column is added and shows correctly</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>bp_df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>bp_df1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             patients pre_bp post_bp diff_bp post_less_120
-Subject_1   Subject_1    130     114      16          TRUE
-Subject_2   Subject_2    128      98      30          TRUE
-Subject_3   Subject_3    116     113       3          TRUE
-Subject_4   Subject_4    124      99      25          TRUE
-Subject_5   Subject_5    133     107      26          TRUE
-Subject_6   Subject_6    134     116      18          TRUE
-Subject_7   Subject_7    118     113       5          TRUE
-Subject_8   Subject_8    126     111      15          TRUE
-Subject_9   Subject_9    114     119      -5          TRUE
-Subject_10 Subject_10    127     117      10          TRUE
-Subject_11 Subject_11    141     101      40          TRUE
-Subject_12 Subject_12    138     119      19          TRUE
-Subject_13 Subject_13    128     130      -2         FALSE
-Subject_14 Subject_14    140     122      18         FALSE
-Subject_15 Subject_15    137     106      31          TRUE
-Subject_16 Subject_16    131     106      25          TRUE
-Subject_17 Subject_17    120     124      -4         FALSE
-Subject_18 Subject_18    128     102      26          TRUE
-Subject_19 Subject_19    139     117      22          TRUE
-Subject_20 Subject_20    135     113      22          TRUE</code></pre>
+<pre><code>            patients1 pre_bp1 post_bp1 diff_bp1 post_less_120_1
+Subject_1   Subject_1     130      114       16            TRUE
+Subject_2   Subject_2     128       98       30            TRUE
+Subject_3   Subject_3     116      113        3            TRUE
+Subject_4   Subject_4     124       99       25            TRUE
+Subject_5   Subject_5     133      107       26            TRUE
+Subject_6   Subject_6     134      116       18            TRUE
+Subject_7   Subject_7     118      113        5            TRUE
+Subject_8   Subject_8     126      111       15            TRUE
+Subject_9   Subject_9     114      119       -5            TRUE
+Subject_10 Subject_10     127      117       10            TRUE
+Subject_11 Subject_11     141      101       40            TRUE
+Subject_12 Subject_12     138      119       19            TRUE
+Subject_13 Subject_13     128      130       -2           FALSE
+Subject_14 Subject_14     140      122       18           FALSE
+Subject_15 Subject_15     137      106       31            TRUE
+Subject_16 Subject_16     131      106       25            TRUE
+Subject_17 Subject_17     120      124       -4           FALSE
+Subject_18 Subject_18     128      102       26            TRUE
+Subject_19 Subject_19     139      117       22            TRUE
+Subject_20 Subject_20     135      113       22            TRUE</code></pre>
 </div>
 </div>
 <ol start="4" type="1">
 <li>Print the data frame out nicely</li>
 </ol>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(bp_df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(bp_df1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;"></th>
-<th style="text-align: left;">patients</th>
-<th style="text-align: right;">pre_bp</th>
-<th style="text-align: right;">post_bp</th>
-<th style="text-align: right;">diff_bp</th>
-<th style="text-align: left;">post_less_120</th>
+<th style="text-align: left;">patients1</th>
+<th style="text-align: right;">pre_bp1</th>
+<th style="text-align: right;">post_bp1</th>
+<th style="text-align: right;">diff_bp1</th>
+<th style="text-align: left;">post_less_120_1</th>
 </tr>
 </thead>
 <tbody>
@@ -535,6 +535,358 @@ Subject_20 Subject_20    135     113      22          TRUE</code></pre>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+</section>
+<section id="task-3-list-practice" class="level2">
+<h2 class="anchored" data-anchor-id="task-3-list-practice">Task 3: List Practice</h2>
+<ol type="1">
+<li>Create a new data frame with new data that is similar to the previous data frame.</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a similar data frame to the first one (Task 2)</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co"># repeating steps from Task 1 and 2</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create two new vectors of pre-measurements and post-measurements of the second experiment </span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>pre_bp2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">138</span>, <span class="dv">135</span>, <span class="dv">147</span>, <span class="dv">117</span>, <span class="dv">152</span>, <span class="dv">134</span>, <span class="dv">114</span>, <span class="dv">121</span>, <span class="dv">131</span>, <span class="dv">130</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>post_bp2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">105</span>, <span class="dv">136</span>, <span class="dv">123</span>, <span class="dv">130</span>, <span class="dv">134</span>, <span class="dv">143</span>, <span class="dv">135</span>, <span class="dv">139</span>, <span class="dv">120</span>, <span class="dv">124</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co"># create pre_bp2 and post_bp2 objects</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(pre_bp2) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Subject"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(post_bp2) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Subject"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>pre_bp2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
+       138        135        147        117        152        134        114 
+ Subject_8  Subject_9 Subject_10 
+       121        131        130 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>post_bp2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
+       105        136        123        130        134        143        135 
+ Subject_8  Subject_9 Subject_10 
+       139        120        124 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create diff_bp2 object</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>diff_bp2 <span class="ot">&lt;-</span> pre_bp2 <span class="sc">-</span> post_bp2</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>diff_bp2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
+        33         -1         24        -13         18         -9        -21 
+ Subject_8  Subject_9 Subject_10 
+       -18         11          6 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create post_less_120_2 object</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>post_less_120_2 <span class="ot">&lt;-</span> post_bp2 <span class="sc">&lt;</span> <span class="dv">120</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>post_less_120_2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Subject_1  Subject_2  Subject_3  Subject_4  Subject_5  Subject_6  Subject_7 
+      TRUE      FALSE      FALSE      FALSE      FALSE      FALSE      FALSE 
+ Subject_8  Subject_9 Subject_10 
+     FALSE      FALSE      FALSE </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create patients2 object</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>patients2 <span class="ot">&lt;-</span> <span class="fu">names</span>(pre_bp2)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>patients2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Subject_1"  "Subject_2"  "Subject_3"  "Subject_4"  "Subject_5" 
+ [6] "Subject_6"  "Subject_7"  "Subject_8"  "Subject_9"  "Subject_10"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create second data frame that is similar to the previous</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>bp_df2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">patients =</span> patients2,</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">pre_bp =</span> pre_bp2,</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">post_bp =</span> post_bp2,</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">diff_bp =</span> diff_bp2,</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">post_under_120 =</span> post_less_120_2</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>bp_df2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             patients pre_bp post_bp diff_bp post_under_120
+Subject_1   Subject_1    138     105      33           TRUE
+Subject_2   Subject_2    135     136      -1          FALSE
+Subject_3   Subject_3    147     123      24          FALSE
+Subject_4   Subject_4    117     130     -13          FALSE
+Subject_5   Subject_5    152     134      18          FALSE
+Subject_6   Subject_6    134     143      -9          FALSE
+Subject_7   Subject_7    114     135     -21          FALSE
+Subject_8   Subject_8    121     139     -18          FALSE
+Subject_9   Subject_9    131     120      11          FALSE
+Subject_10 Subject_10    130     124       6          FALSE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># print data frame nicely</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(bp_df2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">patients</th>
+<th style="text-align: right;">pre_bp</th>
+<th style="text-align: right;">post_bp</th>
+<th style="text-align: right;">diff_bp</th>
+<th style="text-align: left;">post_under_120</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Subject_1</td>
+<td style="text-align: left;">Subject_1</td>
+<td style="text-align: right;">138</td>
+<td style="text-align: right;">105</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: left;">TRUE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Subject_2</td>
+<td style="text-align: left;">Subject_2</td>
+<td style="text-align: right;">135</td>
+<td style="text-align: right;">136</td>
+<td style="text-align: right;">-1</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Subject_3</td>
+<td style="text-align: left;">Subject_3</td>
+<td style="text-align: right;">147</td>
+<td style="text-align: right;">123</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Subject_4</td>
+<td style="text-align: left;">Subject_4</td>
+<td style="text-align: right;">117</td>
+<td style="text-align: right;">130</td>
+<td style="text-align: right;">-13</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Subject_5</td>
+<td style="text-align: left;">Subject_5</td>
+<td style="text-align: right;">152</td>
+<td style="text-align: right;">134</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Subject_6</td>
+<td style="text-align: left;">Subject_6</td>
+<td style="text-align: right;">134</td>
+<td style="text-align: right;">143</td>
+<td style="text-align: right;">-9</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Subject_7</td>
+<td style="text-align: left;">Subject_7</td>
+<td style="text-align: right;">114</td>
+<td style="text-align: right;">135</td>
+<td style="text-align: right;">-21</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Subject_8</td>
+<td style="text-align: left;">Subject_8</td>
+<td style="text-align: right;">121</td>
+<td style="text-align: right;">139</td>
+<td style="text-align: right;">-18</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Subject_9</td>
+<td style="text-align: left;">Subject_9</td>
+<td style="text-align: right;">131</td>
+<td style="text-align: right;">120</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Subject_10</td>
+<td style="text-align: left;">Subject_10</td>
+<td style="text-align: right;">130</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">FALSE</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<ol start="2" type="1">
+<li>Create and store a list with two elements:</li>
+</ol>
+<ul>
+<li>1st element named <strong>treatment</strong> and contains the first data frame</li>
+<li>2nd element named <strong>placebo</strong> and contains the second data frame</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create treatment and placebo objects for each corresponding dataframe</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>treatment <span class="ot">&lt;-</span> bp_df1</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>placebo <span class="ot">&lt;-</span> bp_df2</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co"># create list with treatment and placebo using list()</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>bp_exp <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">treatment =</span> treatment, <span class="at">placebo =</span> placebo)</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>bp_exp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$treatment
+            patients1 pre_bp1 post_bp1 diff_bp1 post_less_120_1
+Subject_1   Subject_1     130      114       16            TRUE
+Subject_2   Subject_2     128       98       30            TRUE
+Subject_3   Subject_3     116      113        3            TRUE
+Subject_4   Subject_4     124       99       25            TRUE
+Subject_5   Subject_5     133      107       26            TRUE
+Subject_6   Subject_6     134      116       18            TRUE
+Subject_7   Subject_7     118      113        5            TRUE
+Subject_8   Subject_8     126      111       15            TRUE
+Subject_9   Subject_9     114      119       -5            TRUE
+Subject_10 Subject_10     127      117       10            TRUE
+Subject_11 Subject_11     141      101       40            TRUE
+Subject_12 Subject_12     138      119       19            TRUE
+Subject_13 Subject_13     128      130       -2           FALSE
+Subject_14 Subject_14     140      122       18           FALSE
+Subject_15 Subject_15     137      106       31            TRUE
+Subject_16 Subject_16     131      106       25            TRUE
+Subject_17 Subject_17     120      124       -4           FALSE
+Subject_18 Subject_18     128      102       26            TRUE
+Subject_19 Subject_19     139      117       22            TRUE
+Subject_20 Subject_20     135      113       22            TRUE
+
+$placebo
+             patients pre_bp post_bp diff_bp post_under_120
+Subject_1   Subject_1    138     105      33           TRUE
+Subject_2   Subject_2    135     136      -1          FALSE
+Subject_3   Subject_3    147     123      24          FALSE
+Subject_4   Subject_4    117     130     -13          FALSE
+Subject_5   Subject_5    152     134      18          FALSE
+Subject_6   Subject_6    134     143      -9          FALSE
+Subject_7   Subject_7    114     135     -21          FALSE
+Subject_8   Subject_8    121     139     -18          FALSE
+Subject_9   Subject_9    131     120      11          FALSE
+Subject_10 Subject_10    130     124       6          FALSE</code></pre>
+</div>
+</div>
+<ol start="3" type="1">
+<li>Access the first list element using three different types of syntax.</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first access using brackets [], returns a list containing the named element</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>bp_exp[<span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$treatment
+            patients1 pre_bp1 post_bp1 diff_bp1 post_less_120_1
+Subject_1   Subject_1     130      114       16            TRUE
+Subject_2   Subject_2     128       98       30            TRUE
+Subject_3   Subject_3     116      113        3            TRUE
+Subject_4   Subject_4     124       99       25            TRUE
+Subject_5   Subject_5     133      107       26            TRUE
+Subject_6   Subject_6     134      116       18            TRUE
+Subject_7   Subject_7     118      113        5            TRUE
+Subject_8   Subject_8     126      111       15            TRUE
+Subject_9   Subject_9     114      119       -5            TRUE
+Subject_10 Subject_10     127      117       10            TRUE
+Subject_11 Subject_11     141      101       40            TRUE
+Subject_12 Subject_12     138      119       19            TRUE
+Subject_13 Subject_13     128      130       -2           FALSE
+Subject_14 Subject_14     140      122       18           FALSE
+Subject_15 Subject_15     137      106       31            TRUE
+Subject_16 Subject_16     131      106       25            TRUE
+Subject_17 Subject_17     120      124       -4           FALSE
+Subject_18 Subject_18     128      102       26            TRUE
+Subject_19 Subject_19     139      117       22            TRUE
+Subject_20 Subject_20     135      113       22            TRUE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># second access using double brackets [[]], returns the actual data frame </span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>bp_exp[[<span class="dv">1</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            patients1 pre_bp1 post_bp1 diff_bp1 post_less_120_1
+Subject_1   Subject_1     130      114       16            TRUE
+Subject_2   Subject_2     128       98       30            TRUE
+Subject_3   Subject_3     116      113        3            TRUE
+Subject_4   Subject_4     124       99       25            TRUE
+Subject_5   Subject_5     133      107       26            TRUE
+Subject_6   Subject_6     134      116       18            TRUE
+Subject_7   Subject_7     118      113        5            TRUE
+Subject_8   Subject_8     126      111       15            TRUE
+Subject_9   Subject_9     114      119       -5            TRUE
+Subject_10 Subject_10     127      117       10            TRUE
+Subject_11 Subject_11     141      101       40            TRUE
+Subject_12 Subject_12     138      119       19            TRUE
+Subject_13 Subject_13     128      130       -2           FALSE
+Subject_14 Subject_14     140      122       18           FALSE
+Subject_15 Subject_15     137      106       31            TRUE
+Subject_16 Subject_16     131      106       25            TRUE
+Subject_17 Subject_17     120      124       -4           FALSE
+Subject_18 Subject_18     128      102       26            TRUE
+Subject_19 Subject_19     139      117       22            TRUE
+Subject_20 Subject_20     135      113       22            TRUE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># third access using $, also returns just the data frame itself</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>bp_exp<span class="sc">$</span>treatment</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            patients1 pre_bp1 post_bp1 diff_bp1 post_less_120_1
+Subject_1   Subject_1     130      114       16            TRUE
+Subject_2   Subject_2     128       98       30            TRUE
+Subject_3   Subject_3     116      113        3            TRUE
+Subject_4   Subject_4     124       99       25            TRUE
+Subject_5   Subject_5     133      107       26            TRUE
+Subject_6   Subject_6     134      116       18            TRUE
+Subject_7   Subject_7     118      113        5            TRUE
+Subject_8   Subject_8     126      111       15            TRUE
+Subject_9   Subject_9     114      119       -5            TRUE
+Subject_10 Subject_10     127      117       10            TRUE
+Subject_11 Subject_11     141      101       40            TRUE
+Subject_12 Subject_12     138      119       19            TRUE
+Subject_13 Subject_13     128      130       -2           FALSE
+Subject_14 Subject_14     140      122       18           FALSE
+Subject_15 Subject_15     137      106       31            TRUE
+Subject_16 Subject_16     131      106       25            TRUE
+Subject_17 Subject_17     120      124       -4           FALSE
+Subject_18 Subject_18     128      102       26            TRUE
+Subject_19 Subject_19     139      117       22            TRUE
+Subject_20 Subject_20     135      113       22            TRUE</code></pre>
+</div>
+</div>
+<ol start="4" type="1">
+<li>In one line, access the <code>placebo</code> data frame, <code>pre_bp2</code> column.</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use [] and [[]] to access the pre_bp2 column as a data frame</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>bp_exp[[<span class="dv">2</span>]] [<span class="dv">2</span><span class="sc">:</span><span class="dv">2</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           pre_bp
+Subject_1     138
+Subject_2     135
+Subject_3     147
+Subject_4     117
+Subject_5     152
+Subject_6     134
+Subject_7     114
+Subject_8     121
+Subject_9     131
+Subject_10    130</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># or use $ and [] to do the same </span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>bp_exp<span class="sc">$</span>placebo[<span class="dv">2</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           pre_bp
+Subject_1     138
+Subject_2     135
+Subject_3     147
+Subject_4     117
+Subject_5     152
+Subject_6     134
+Subject_7     114
+Subject_8     121
+Subject_9     131
+Subject_10    130</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># or use just $ to return the vector only</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>bp_exp<span class="sc">$</span>placebo<span class="sc">$</span>pre_bp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 138 135 147 117 152 134 114 121 131 130</code></pre>
 </div>
 </div>
 
