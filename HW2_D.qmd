@@ -200,3 +200,62 @@ bp_exp$placebo[2]
 bp_exp$placebo$pre_bp
 ```
 
+## Task 4: Control Flow Practice
+
+Characterize the post-treatment/placebo blood pressure as **optimal (<= 120)**, **borderline (120 < bp <= 130)**, and **high (> 130)**.  
+
+1. Create a new column in each data frame called **status**. 
+
+```{r}
+# create a new "status" column in each data frame
+bp_exp$treatment$status <- character(20)
+bp_exp$placebo$status <- character(10)
+
+# check that the new columns are added
+bp_exp
+```
+
+2. For the non-placebo data frame (within the list), create a `for loop` and use `if/then/else` logic to create the status column's values.
+
+```{r}
+# use a for loop and if/then/else logic to create characterizations for the blood pressure measurements 
+
+for(i in 1:20){
+  if (bp_exp$treatment$post_bp[i] <= 120) {
+    bp_exp$treatment$status[i] <- "optimal"
+    
+  } else if (bp_exp$treatment$post_bp[i] <= 130) {
+    bp_exp$treatment$status[i] <- "borderline"
+    
+  } else {
+    bp_exp$treatment$status[i] <- "high"
+  }
+}
+
+# check
+bp_exp$treatment
+```
+
+3. Repeat for the placebo data frame (within the lsit). 
+
+```{r}
+# repeat as before but with the placebo data frame
+
+for(i in 1:10){
+  if (bp_exp$placebo$post_bp[i] <= 120) {
+    bp_exp$placebo$status[i] <- "optimal"
+    
+  } else if (bp_exp$placebo$post_bp[i] <= 130) {
+    bp_exp$placebo$status[i] <- "borderline"
+    
+  } else {
+    bp_exp$placebo$status[i] <- "high"
+  }
+}
+
+# check
+bp_exp$placebo
+
+# check that they both show up on the list
+bp_exp
+```
