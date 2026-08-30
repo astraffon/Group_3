@@ -5,16 +5,16 @@ format: html
 editor: visual
 ---
 
-# Task 1: Basic Vector Practice
+## Task 1: Basic Vector Practice
 
 1. Create two vectors of pre- and post-measurements from a medical experiment on blood pressure 
 
 ```{r}
 # create two vectors of pre-measurements and post-measurements using c() function
 
-pre_meas <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
+pre_bp <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
 
-post_meas <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+post_bp <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
 ```
 
 2. Assign `names` to the vector elements using `paste()` function
@@ -22,12 +22,12 @@ post_meas <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 12
 ```{r}
 # give a name to each vector element using paste() function
 
-names(pre_meas) <- paste("Subject", 1:20, sep = "_")
+names(pre_bp) <- paste("Subject", 1:20, sep = "_")
 
-names(post_meas) <- paste("Subject", 1:20, sep = "_")
+names(post_bp) <- paste("Subject", 1:20, sep = "_")
 
-pre_meas
-post_meas
+pre_bp
+post_bp
 ```
 
 3. Calculate the change in blood pressure for each patient
@@ -37,15 +37,15 @@ post_meas
 # a positive value is a decrease in blood pressure 
 # save calculation as a new object
 
-diff_meas <- pre_meas - post_meas
-diff_meas
+diff_bp <- pre_bp - post_bp
+diff_bp
 ```
 
 4. Calculate the average decrease in blood pressure across all patients
 
 ```{r}
 # calculate average decrease in blood pressure 
-mean(diff_meas)
+mean(diff_bp)
 ```
 
 5. Determine which patients experienced a decrease in blood pressure after treatment. 
@@ -54,7 +54,7 @@ mean(diff_meas)
 # use which() function to determine which subjects had a 
 # decrease in blood pressure after treatment
 
-which(diff_meas > 0)
+which(diff_bp > 0)
 ```
 
 6. Subset the vector of differences to only return those that have a positive change. 
@@ -63,7 +63,7 @@ which(diff_meas > 0)
 # subset diff_meas vector to only return vector of elements 
 # with a positive change (decrease in blood pressure)
 # create object containing positive changes 
-bp_decrease <- diff_meas[diff_meas > 0]
+bp_decrease <- diff_bp[diff_bp > 0]
 bp_decrease
 ```
 
@@ -72,5 +72,46 @@ bp_decrease
 ```{r}
 # calculate average decrease in blood pressure 
 mean(bp_decrease)
+```
+
+
+## Task 2: Basic Data Frame Practice
+
+1. Create a data frame object with four columns: patients, pre_bp, post_bp, and diff_bp
+
+```{r}
+# create vector for patients
+patients <- names(pre_bp)
+
+# create data frame with four columns using data.frame() function 
+bp_df <- data.frame(patients, pre_bp, post_bp, diff_bp)
+bp_df
+```
+ 
+2. Return only rows where the `diff_bp` column is negative. 
+
+```{r}
+# only show rows with a negative blood pressure difference using subset() function 
+# means blood pressure increased 
+subset(bp_df, diff_bp < 0)
+
+# or can use brackets []
+bp_df[bp_df$diff_bp < 0, ]
+```
+
+3. Add a new column to the data frame corresponding to `TRUE` if the `post_bp` is less than 120.
+
+```{r}
+# add a new column where post_bp is less than 120
+bp_df$post_less_120 <- bp_df$post_bp < 120
+
+# check that the column is added and shows correctly
+bp_df
+```
+
+4. Print the data frame out nicely 
+
+```{r}
+knitr::kable(bp_df)
 ```
 
