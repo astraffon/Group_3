@@ -1,6 +1,5 @@
 ---
-title: "HW2_B"
-author: "Daria Smyslova"
+title: "HW2_Group3"
 format: html
 editor: visual
 ---
