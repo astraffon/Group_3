@@ -89,11 +89,11 @@ knitr::kable(bp_df)
 1.  Create a new df similar to the one from Task 1.
 
 ```{r}
-# I'm not sure what he means by "(including the new column)"
 pre_bp_control <- c(138, 135, 147, 117, 152, 134, 114, 121, 131, 130)
 post_bp_control   <- c(105, 136, 123, 130, 134, 143, 135, 139, 120, 124)
 diff_bp_control <- pre_bp_control - post_bp_control
 bp_df_control <- data.frame(pre_bp_control, post_bp_control, diff_bp_control)
+bp_df_control
 ```
 
 2.  Create a list with two elements (treatment (the first df), and placebo (the second df))
@@ -119,7 +119,7 @@ my_list$placebo$pre_bp_control
 
 #Task 4: Control Flow Practice
 
-1. Create a variable called "status" in each of the two data frames.
+1.  Create a variable called "status" in each of the two data frames.
 
 ```{r}
 my_list$treatment$status <- character(20)
@@ -127,7 +127,7 @@ my_list$placebo$status   <- character(10)
 
 ```
 
-2. Create categories for BP in the status variable, for the treatment data frame.
+2.  Create categories for BP in the status variable, for the treatment data frame.
 
 ```{r}
 		for(i in 1:20){
@@ -140,9 +140,10 @@ my_list$placebo$status   <- character(10)
   		  my_list$treatment$status[i] = "optimal"
   		}
 		}
+my_list$treatment
 ```
 
-3. Repeat for the placebo data frame.
+3.  Repeat for the placebo data frame.
 
 ```{r}
 		for(i in 1:10){
