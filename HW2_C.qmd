@@ -1,0 +1,159 @@
+---
+title: "Homework #2"
+author: "Michael Costello"
+format: html
+editor: visual
+---
+
+#Task 1: Basic Vector Practice
+
+1.  Create two vectors of the pre- and post-measurements:
+
+```{r}
+pre_bp <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
+
+post_bp <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+```
+
+2.  Assign names to the vector elements:
+
+```{r}
+names(pre_bp)  <- paste("Subject", 1:20, sep = "_")
+names(post_bp) <- paste("Subject", 1:20, sep = "_")
+```
+
+3.  Calculate the change (decrease?) in blood pressure accross all patients:
+
+```{r}
+diff_bp <- pre_bp - post_bp
+diff_bp
+```
+
+4.  Find the average decrease in BP across all patients:
+
+```{r}
+mean(diff_bp)
+```
+
+5.  Patients who experienced a deceased in BP after treatment:
+
+```{r}
+improved_bp <- which(diff_bp > 0, useNames = TRUE)
+```
+
+6.  Create a new vector object with only improvers and their BPs:
+
+```{r}
+improvers <- diff_bp[improved_bp]
+```
+
+7.  Find the mean of the improvers BPs:
+
+```{r}
+mean(improvers)
+```
+
+#Task 2: Basic Data Frame Practice
+
+1.  Create a frame object with four columns using the 4 vectors from Task 1:
+
+```{r}
+patient_name <- names(pre_bp)
+bp_df <- data.frame(patient_name, pre_bp, post_bp, diff_bp )
+#Meh, I don't love the double naming here. Thoughts?
+bp_df
+```
+
+2.  Return only rows with negative BP:
+
+```{r}
+subset(bp_df, diff_bp < 0)
+
+```
+
+3.  Add new col to df with TRUE if the post_bp is below 120.
+
+```{r}
+bp_df$low_bp <- ifelse(bp_df$post_bp < 120, TRUE, "") #Should we list BPs >= 119 as FALSE?
+bp_df
+```
+
+4.  Print the whole data frame.
+
+```{r}
+knitr::kable(bp_df)
+```
+
+#Task 3: List practice
+
+1.  Create a new df similar to the one from Task 1.
+
+```{r}
+# I'm not sure what he means by "(including the new column)"
+pre_bp_control <- c(138, 135, 147, 117, 152, 134, 114, 121, 131, 130)
+post_bp_control   <- c(105, 136, 123, 130, 134, 143, 135, 139, 120, 124)
+diff_bp_control <- pre_bp_control - post_bp_control
+bp_df_control <- data.frame(pre_bp_control, post_bp_control, diff_bp_control)
+```
+
+2.  Create a list with two elements (treatment (the first df), and placebo (the second df))
+
+```{r}
+my_list <- list(treatment = bp_df, placebo = bp_df_control)
+my_list
+```
+
+3.  Access the first list 3 different ways.
+
+```{r}
+my_list[1]
+my_list[[1]]
+my_list$treatment
+```
+
+4.  Call the Placebo's pre-treatment BP in a single function.
+
+```{r}
+my_list$placebo$pre_bp_control
+```
+
+#Task 4: Control Flow Practice
+
+1. Create a variable called "status" in each of the two data frames.
+
+```{r}
+my_list$treatment$status <- character(20)
+my_list$placebo$status   <- character(10)
+
+```
+
+2. Create categories for BP in the status variable, for the treatment data frame.
+
+```{r}
+		for(i in 1:20){
+  		  if (my_list$treatment$post_bp[i] > 130) {
+  		  my_list$treatment$status[i] = "high"
+  		  #starting at 130+ and then working my way down because higher numbers won't see the 2nd and 3rd else statements.
+  		} else if (my_list$treatment$post_bp[i] > 120) {
+  		  my_list$treatment$status[i] = "borderline"
+  		} else {
+  		  my_list$treatment$status[i] = "optimal"
+  		}
+		}
+```
+
+3. Repeat for the placebo data frame.
+
+```{r}
+		for(i in 1:10){
+  		  if (my_list$placebo$post_bp[i] > 130) {
+  		  my_list$placebo$status[i] = "high"
+  		  #starting at 130+ and then working my way down because higher numbers won't see the 2nd and 3rd else statements.
+  		} else if (my_list$placebo$post_bp[i] > 120) {
+  		  my_list$placebo$status[i] = "borderline"
+  		} else {
+  		  my_list$placebo$status[i] = "optimal"
+  		}
+		}
+my_list$placebo
+```
