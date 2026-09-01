@@ -4,6 +4,16 @@ format: html
 editor: visual
 ---
 
+**Group solution note**
+
+**Task 1: Basic Vector Practice:** Members A, B, C and D used the same general approach for creating and naming the vectors and calculating the blood pressure differences. Some solutions differed in whether intermediate objects were created before subsetting. For the final version, we retained the pos object created with which(diff_bp \> 0) because it makes the connection between identifying positive differences in Question 5 and using those positions for subsetting in Questions 6 and 7 explicit.
+
+**Task 2: Basic Data Frame Practice:** Members A, B, C and D used slightly different approaches to constructing and manipulating the data frame. One difference was whether logical conditions were first stored as separate vectors or assigned directly to a data frame column. For the final version, we used `bp_df1$less_120 <- bp_df1$post_bp < 120` because the comparison already produces a logical vector of the appropriate length, so creating a separate intermediate object is unnecessary. We also used bracket subsetting for the negative differences to practice accessing a column directly from the data frame, as requested in the assignment.
+
+**Task 3: List Practice:** Members B and D had some differences in how intermediate objects were created when constructing the placebo data frame. For the final version, we retained the more explicit construction with separate vectors before combining them into the data frame because it parallels the workflow used in Tasks 1 and 2 and makes each step easier to follow. For accessing elements of the list, both members used multiple valid forms of Base R syntax. We kept `[ ]`, `[[ ]]`, and `$` in the final solution because the task specifically asks for three different methods and they demonstrate an important distinction: `[ ]` returns a sub-list, whereas `[[ ]]` and `$` extract the element itself. For accessing the placebo `pre_bp` column, several valid approaches were identified. We retained `bp_exp$placebo$pre_bp` as the clearest final answer because it directly extracts the requested column as a vector in one line.
+
+**Task 4: Control Flow Practice:** Members B and D followed the same general control-flow logic, with minor differences in how the loops and conditions were written. For the final version, we used an `if` / `else if` / `else` structure that checks the thresholds in ascending order. Once values at or below 120 are classified as `"optimal"`, the next condition only needs to check whether the value is at or below 130; any remaining value must therefore be `"high"`. This keeps the conditions concise while matching the blood pressure categories specified in the assignment. We also retained separate loops for the treatment and placebo data frames rather than combining the process because the assignment specifically asks for the procedure to be repeated for the placebo data.
+
 ### Task 1: Basic Vector Practice
 
 #### 1) Create two vectors using the `c()` function
@@ -93,7 +103,7 @@ The big teaching here is that the subject names, up until this step, were stored
 
 ```{r}
 #from the data frame, keep rows where `diff` is negative
-bp_df1[bp_df1$diff < 0, ]
+bp_df1[bp_df1$diff_bp < 0, ]
 ```
 
 This confirms that of the 20 subjects, three of them saw negative differences between the pre and post treatments.
@@ -108,7 +118,7 @@ bp_df1$post < 120 # this creates a logical vector
 bp_df1$less_120 <- bp_df1$post < 120
 ```
 
-The key teaching here is that the comparison `bp_df$post_bp < 120`produced a logical vector, but it did not need to be stored as a separate vector object in order to assign it directly to the data frame column. Alternatively, we could have saved the logical vector as a separate vector object and then assigned it to the data frame, but this would have introduced an extra step.
+The key teaching here is that the comparison `bp_df1$post_bp < 120`produced a logical vector, but it did not need to be stored as a separate vector object in order to assign it directly to the data frame column. Alternatively, we could have saved the logical vector as a separate vector object and then assigned it to the data frame, but this would have introduced an extra step.
 
 #### 4) Print the data frame out nicely
 
