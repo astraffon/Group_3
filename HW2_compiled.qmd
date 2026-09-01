@@ -3,9 +3,7 @@ title: "HW2_Group3"
 format: html
 editor: visual
 ---
-
 **Group solution note**
-
 **Task 1: Basic Vector Practice:** Members A, B, C and D used the same general approach for creating and naming the vectors and calculating the blood pressure differences. Some solutions differed in whether intermediate objects were created before subsetting. For the final version, we retained the pos object created with which(diff_bp \> 0) because it makes the connection between identifying positive differences in Question 5 and using those positions for subsetting in Questions 6 and 7 explicit.
 
 **Task 2: Basic Data Frame Practice:** Members A, B, C and D used slightly different approaches to constructing and manipulating the data frame. One difference was whether logical conditions were first stored as separate vectors or assigned directly to a data frame column. For the final version, we used `bp_df1$less_120 <- bp_df1$post_bp < 120` because the comparison already produces a logical vector of the appropriate length, so creating a separate intermediate object is unnecessary. We also used bracket subsetting for the negative differences to practice accessing a column directly from the data frame, as requested in the assignment.
