@@ -5,7 +5,7 @@ format: html
 editor: visual
 ---
 
-#Task 1: Basic Vector Practice
+# Task 1: Basic Vector Practice
 
 1.  Create two vectors of the pre- and post-measurements:
 
@@ -53,7 +53,7 @@ improvers <- diff_bp[improved_bp]
 mean(improvers)
 ```
 
-#Task 2: Basic Data Frame Practice
+# Task 2: Basic Data Frame Practice
 
 1.  Create a frame object with four columns using the 4 vectors from Task 1:
 
@@ -84,7 +84,7 @@ bp_df
 knitr::kable(bp_df)
 ```
 
-#Task 3: List practice
+# Task 3: List practice
 
 1.  Create a new df similar to the one from Task 1.
 
@@ -117,7 +117,7 @@ my_list$treatment
 my_list$placebo$pre_bp_control
 ```
 
-#Task 4: Control Flow Practice
+# Task 4: Control Flow Practice
 
 1.  Create a variable called "status" in each of the two data frames.
 
