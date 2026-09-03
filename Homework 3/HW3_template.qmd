@@ -1,6 +1,5 @@
 ---
-title: "HW3_C"
-author: "Michael Costello"
+title: "Untitled"
 format: html
 editor: visual
 ---
@@ -9,19 +8,19 @@ editor: visual
 
 #### 1) If your working directory is myfolder/homework/, what relative path would you specify to get the file located at myfolder/MyData.csv?
 
-I would likely have used a command to set my working directory, such as:
 
-$setwd("myfolder/homework/")$
-
-In order to access the .csv file one level up from that folder, I would use:
-
-$read.csv(../MyData.csv)$
 
 #### 2) What are the major benefits of using R projects?
 
+
+
 #### 3) What is Git and what is GitHub?
 
+
+
 #### 4) What are the two main differences between a tibble and a data.frame?
+
+
 
 ### Task 2 Reading Delimited Data
 
