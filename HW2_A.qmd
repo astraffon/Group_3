@@ -9,6 +9,7 @@ editor: visual
 
 ### 1) Create two vectors using the `c()` function
 
+The combine or `c()` function creates vectors by aggregating individual elements.
 ```{r}
 # create vector with pre measurements using combine function
 pre_bp <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
@@ -20,8 +21,9 @@ post_bp <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122,
 
 ### 2) Assign names to the vector elements using the `paste()` function
 
+The `names()` function can be used to assign a character vector of names to the 
+elements of a vector.
 ```{r}
-
 # create names for the 20 subjects using a character vector
 names(pre_bp) <- paste("Subject", 1:20, sep = "_")
 names(post_bp) <- paste("Subject", 1:20, sep = "_")
@@ -33,6 +35,7 @@ post_bp
 
 ### 3) Calculate change in blood pressure
 
+Here we are creating a new vector by subtracting two vectors of the same length.
 ```{r}
 #subtract the post treatment level from pre treatment level for each subject and store as vector
 diff_bp <- (pre_bp - post_bp)
@@ -40,12 +43,15 @@ diff_bp
 
 ```
 
-This shows that two numeric vectors of equal length can be subtracted directly, and R performs the operation element by element. Of the 20 subjects, all but three showed decreases in blood pressure.
+This shows that two numeric vectors of equal length can be subtracted directly, and 
+R performs the operation element by element. Of the 20 subjects, all but three showed 
+decreases in blood pressure.
 
-### 4) Calculate average change in blood pressure
+### 4) Calculate average change in blood pressure using `mean()` function
 
+We use the `mean()` function to compute the average
 ```{r}
-
+# 4) Calculate average
 mean(diff_bp)
 ```
 
@@ -53,13 +59,15 @@ The average decrease in blood pressure was 17.
 
 ### 5) Identify which subjects showed a decrease in blood pressure
 
+The comparison `diff_bp > 0` creates a logical vector, and the `which()` function 
+returns the positions where that logical vector is `TRUE`.
 ```{r}
 # we use a logical operator to determine positive values
 which(diff_bp > 0)
 
 ```
+In this case, the output gives the indices and names associated with positive changes.
 
-The output gives the indices and names associated with positive changes.
 
 ### 6) Subset the vector of differences for only positive differences
 
@@ -77,7 +85,7 @@ We use `[]` in R to subset or select certain elements from an object.
 ### 7) Calculate average change in blood pressure for positive differences
 
 ```{r}
-
+#use `mean()` function again
 mean(diff_bp[pos_indice])
 ```
 
@@ -95,21 +103,18 @@ patient <- names(pre_bp)
 bp_df <- data.frame(patient, pre_bp, post_bp, diff_bp)
 bp_df
 ```
-The big teaching here is that the subject names, up until this step, were stored as 
-the `names` attribute of the vectors and not as a separate column. In order to use
-them as the `patient` column in the data frame we first extracted them into their own 
-character vector. We also note that vector names can automatically become data frame 
-row names, but that row names are not the same thing as a data frame column.
+
+The big teaching here is that the subject names, up until this step, were stored as the `names` attribute of the vectors and not as a separate column. In order to use them as the `patient` column in the data frame we first extracted them into their own character vector. We also note that vector names can automatically become data frame row names, but that row names are not the same thing as a data frame column.
 
 ### 2) Return data frame rows where `diff_bp` column is negative
 
 ```{r}
 
-#from the data frame, keep rows where `bp_diff` is negative
+#from the data frame, keep rows where `diff_bp` is negative
 bp_df[bp_df$diff_bp < 0, ]
 ```
-This confirms that of the 20 subjects, three of them saw negative differences between
-the pre and post treatments.
+
+This confirms that of the 20 subjects, three of them saw negative differences between the pre and post treatments.
 
 ### 3) Add a new column using a condition
 
@@ -120,21 +125,175 @@ bp_df$post_bp < 120 # this creates a logical vector
 #create a new column with the logical vector
 bp_df$less_120 <- bp_df$post_bp < 120
 ```
-The key teaching here is that the comparison `bp_df$post_bp < 120`produced a logical
-vector, but it did not need to be stored as a separate vector object in order to assign
-it directly to the data frame column. Alternatively, we could have saved the logical 
-vector as a separate vector object and then assigned it to the data frame, but this 
-would have introduced an extra step.
+
+Worth noting that the comparison `bp_df$post_bp < 120`produced a logical vector, but 
+it did not need to be stored as a separate vector object in order to assign it directly 
+to the data frame column. Alternatively, we could have saved the logical vector as a 
+separate vector object and then assigned it to the data frame, but this would have 
+introduced an extra step.
 
 ### 4) Print the data frame in document
 
 ```{r}
- knitr::kable(bp_df)
-```
+#| warning:  false #this suppresses warning messages when rendering
+#| message:  false #this suppresses package messages when rendering 
 
+#print new data frame in document
+knitr::kable(bp_df)
+```
 
 ## Task 3: List Practice
 
+### 1) Create a new data frame with placebo experiment
+
+The code chunk that follows has most of the steps as in Task 1 and Task 2 above for 
+placebo experiment.
+```{r}
+#| warning:  false #this suppresses warning messages when rendering
+#| message:  false #this suppresses package messages when rendering 
+
+#From Task 1
+# 1) create vector with pre measurements using combine function
+pre_bp_plc <- c(138, 135, 147, 117, 152, 134, 114, 121, 131, 130)
+
+# 1) create vector with post measurements using combine function
+post_bp_plc <- c(105, 136, 123, 130, 134, 143, 135, 139, 120, 124)
+
+# 2) create names for the 10 subjects using a character vector
+names(pre_bp_plc) <- paste("Subject", 1:10, sep = "_")
+names(post_bp_plc) <- paste("Subject", 1:10, sep = "_")
+
+pre_bp_plc
+post_bp_plc
+
+# 3) subtract the post treatment level from pre treatment level for each subject and store as vector
+diff_bp_plc <- (pre_bp_plc - post_bp_plc)
+diff_bp_plc
+
+#From Task 2
+# 1) create a separate character vector for the subject names
+patient_plc <- names(pre_bp_plc)
+
+# 1) create data frame using `data.frame()` function and use same column names as
+# in treatment data frame
+bp_df_plc <- data.frame(
+  patient = patient_plc, 
+  pre_bp = pre_bp_plc, 
+  post_bp = post_bp_plc, 
+  diff_bp = diff_bp_plc
+)
+
+bp_df_plc
+
+# 3) create a new column with the logical vector
+bp_df_plc$less_120 <- bp_df_plc$post_bp < 120
+
+# 4) print new data frame in document
+knitr::kable(bp_df_plc)
+
+```
+
+### 2) Create and store a list with two elements
+It is worth noting a key difference between a vector and a list: A vector contains 
+individual values of the same basic type, whereas a list can contain entire R objects 
+as its elements, and those objects may or may not be the same type.
+
+```{r}
+#use the `list()` function to create a list and rename elements
+bp_list <- list(treatment = bp_df, placebo = bp_df_plc)
+
+#inspect structure of list_bp
+str(bp_list)
+
+```
+### 3) Access the first list element using three different types of syntax
+
+We covered three methods to access list elements.
+```{r}
+#single square brackets syntax
+bp_list[1] # returns a list containing the first element
+
+#double square brackets syntax 
+bp_list[[1]] # returns the first element itself
+
+#using the $ operator syntax
+bp_list$treatment
 
 
+```
+### 4) Access the `placebo` data frame, `pre_bp` column
+
+We can use the $ operator syntax in chain form to access a specific column in a 
+given list and/or data frame.
+
+```{r}
+#Using a single line of code to access the pre_bp column in the `placebo` data frame
+bp_list$placebo$pre_bp
+
+```
 ## Task 4: Control Flow Practice
+
+### 1) Creating an empty column in each of the data frames 
+
+We create an empty column in the data frames called `status`. It is important to 
+note the columns are being created in the list data frames, and do not carry backwards 
+to the original data frames. 
+
+```{r}
+# create empty character status columns in both data frames stored in the list
+bp_list$treatment$status <- character(20)
+bp_list$placebo$status <- character(10)
+
+```
+### 2) Characterizing the post blood pressure measurements for the treatment study
+
+First we establish the following criteria for the post blood pressure measurements:
+
+- optimal (≤ 120)
+- borderline (120 < bp ≤ 130)
+- high (> 130)
+
+We then use for loop and if/then/else logic to populate the `status` column
+values in the treatment data frame.
+
+```{r}
+for (i in 1:20) {
+  
+  if (bp_list$treatment$post_bp[i] <= 120) {
+    bp_list$treatment$status[i] = "optimal"
+    
+  } else if (bp_list$treatment$post_bp[i] <= 130) {
+    bp_list$treatment$status[i] = "borderline"
+    
+  } else {bp_list$treatment$status[i] = "high"
+    
+  }
+}
+
+#inspect list data frame
+bp_list$treatment
+```
+
+### 3) Characterizing the post blood pressure measurements for the placebo study
+
+We repeat the above for loop and if/then/else logic step to populate the `status`
+column for the placebo data frame.
+
+```{r}
+for (i in 1:10) {
+  
+  if (bp_list$placebo$post_bp[i] <= 120) {
+    bp_list$placebo$status[i] = "optimal"
+    
+  } else if (bp_list$placebo$post_bp[i] <= 130) {
+    bp_list$placebo$status[i] = "borderline"
+    
+  } else {
+    bp_list$placebo$status[i] = "high"
+  }
+}
+
+#inspect list data frame
+bp_list$placebo
+```
+-END-
