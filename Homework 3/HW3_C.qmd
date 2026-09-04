@@ -64,61 +64,67 @@ yeast_data
 ##### • Import the data from the first sheet using the readxl package
 
 ```{r}
-
+library(readxl)
+wine_data <- read_excel("white-wine.xlsx")
 ```
 
 ##### • Print out the tibble (just call the object name)
 
 ```{r}
-
+wine_data
 ```
 
 #### 4) Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.
 
 ```{r}
-
 ```
 
 ##### • Grab that column and overwrite the current column names (colnames()) of your white wine tibble. Note that colnames(object) allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
 
 ```{r}
-
+wine_data_lab <- read_excel("white-wine.xlsx", sheet = excel_sheets("white-wine.xlsx")[2])
+wine_data_lab #Should this vector be two values shorter than the # of variables in the dataset?
+names(wine_data) <- c("wine_data_lab")  #yeah, that's not working.
+wine_data_lab
 ```
 
 #### 5) Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the \$ operator or, if you know it already, the mutate() function from dplyr.
 
 ```{r}
-
+wine_data <- wine_data |> mutate(type = "White")
+wine_data
 ```
 
 #### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
 
 ```{r}
+wine_data2 <- read_csv2("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", local(decimal_mark = ".") , col_types = cols(.default   = col_double()))
+wine_data2 #Miserable failure. Everything is coming in NA.
 
+#Second try:
+wine_data2 <- read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", delim = ">", col_types = cols(.default   = col_double()))
+#Still no.
 ```
 
 ##### • You should replace the variable names as done above
 
 ```{r}
-
+#TBD
 ```
 
 ##### • You should append a column denoting the type as “red”
 
 ```{r}
-
+wine_data2 <- wine_data2 |> mutate(type = "Red")
+wine_data2
 ```
 
 #### 7) Combine these two data sets into one data set. They both have the exact same columns so this is an easy append task!
 
-```{r}
-
-```
-
 ##### • Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.
 
 ```{r}
-
+dplyr::bind_rows(wine_data, wine_data2)
 ```
 
 ### Task 4: Writing a Function
