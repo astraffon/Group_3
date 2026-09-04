@@ -9,26 +9,35 @@ editor: visual
 
 #### 1) If your working directory is myfolder/homework/, what relative path would you specify to get the file located at myfolder/MyData.csv?
 
-I would likely have used a command to set my working directory, such as:
+If I'm not using a projects environment, I would likely have used a command to set my working directory, such as:
 
 $setwd("myfolder/homework/")$
 
-In order to access the .csv file one level up from that folder, I would use:
+Regardless of projects vs. lose scripts, in order to access the .csv file one level up from the folder I'm currently in, I would use:
 
 $read.csv(../MyData.csv)$
 
 #### 2) What are the major benefits of using R projects?
 
+Using projects saves your workspace state, and makes it possible to skip setting up a working directory. That also makes it more portable to other devices (second computers, etc.).
+
 #### 3) What is Git and what is GitHub?
 
+Git is a version control system to track changes in text files, such as code. GitHub is an online repository of these text files and backups, allowing for easy working between multiple computers and across teams. It can also help track and resolve version control conflicts, such as when two team members are editing the same files.
+
 #### 4) What are the two main differences between a tibble and a data.frame?
+
+Tibbles only print the header, instead of the whole data frame, making the output cleaner. Also, similar to other applications (Stata, SAS, SPSS),  modifying a tibble returns a tibble, whereas modifying a data frame usually returns a vector (single variable) that has changed while leaving the rest of the data set behind.
 
 ### Task 2 Reading Delimited Data
 
 #### 1) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
 
 ```{r}
-
+#install.packages("tidyverse")
+library(tidyverse)
+glass_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data")
+class(glass_data)
 ```
 
 #### 2) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
