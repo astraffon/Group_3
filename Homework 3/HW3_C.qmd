@@ -124,7 +124,8 @@ wine_data2
 ##### • Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.
 
 ```{r}
-dplyr::bind_rows(wine_data, wine_data2)
+wine_data_final <- dplyr::bind_rows(wine_data, wine_data2)
+wine_data_final
 ```
 
 ### Task 4: Writing a Function
