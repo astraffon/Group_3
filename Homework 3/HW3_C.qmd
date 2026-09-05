@@ -32,7 +32,7 @@ Git is a version control system to track changes in text files, such as code. Gi
 
 #### 4) What are the two main differences between a tibble and a data.frame?
 
-Tibbles only print the header, instead of the whole data frame, making the output cleaner. Also, similar to other applications (Stata, SAS, SPSS),  modifying a tibble returns a tibble, whereas modifying a data frame usually returns a vector (single variable) that has changed while leaving the rest of the data set behind.
+Tibbles only print the header, instead of the whole data frame, making the output cleaner. Also, similar to other applications (Stata, SAS, SPSS), modifying a tibble returns a tibble, whereas modifying a data frame usually returns a vector (single variable) that has changed while leaving the rest of the data set behind.
 
 ### Task 2 Reading Delimited Data
 
@@ -59,7 +59,7 @@ yeast_data
 
 ### Task 3: Combining Excel and Delimited Data
 
-#### 3) There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/white-wine.xlsx.
+#### 3) There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/~online/datasets/white-wine.xlsx.
 
 ##### • Import the data from the first sheet using the readxl package
 
@@ -83,7 +83,6 @@ wine_data
 
 ```{r}
 wine_data_lab <- read_excel("white-wine.xlsx", sheet = excel_sheets("white-wine.xlsx")[2])
-wine_data_lab #Should this vector be two values shorter than the # of variables in the dataset?
 names(wine_data) <- c("wine_data_lab")  #yeah, that's not working.
 wine_data_lab
 ```
@@ -95,14 +94,14 @@ wine_data <- wine_data |> mutate(type = "White")
 wine_data
 ```
 
-#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
+#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
 
 ```{r}
-wine_data2 <- read_csv2("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", local(decimal_mark = ".") , col_types = cols(.default   = col_double()))
+wine_data2 <- read_csv2("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",  col_types = cols(.default   = col_double()))
 wine_data2 #Miserable failure. Everything is coming in NA.
 
 #Second try:
-wine_data2 <- read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", delim = ">", col_types = cols(.default   = col_double()))
+wine_data2 <- read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", delim = ">", locale = locale(decimal_mark = ".", grouping_mark = ",") ,col_types = cols(.default   = col_double()))
 #Still no.
 ```
 
@@ -133,41 +132,71 @@ wine_data_final
 #### 8) Write a basic function (call it getIQR) that takes in a vector of numbers and returns the interquartile range (75th percentile - 25th percentile). You can use the quantile function. Remove the name on the returned vector (i.e. make sure the returned item doesn’t have a name like 75% or something like that). Allow your function to pass unnamed arguments to the quantile function.
 
 ```{r}
-
+getIQR <- function(vector) {
+  setNames(quantile(vector, 0.75) - quantile(vector, 0.25), "IQR of `vector'")
+  #I'd love to know how to pass arguments into this text though, like "IQR of `vector'"
+}
 ```
 
 #### 9) Take the object from question 7 and apply the getIRQ() function to the fixed_acidity and citric_acid columns (two function calls).
 
 ```{r}
-
+#summary(wine_data$`fixed acidity`) #QC my next line
+getIQR(wine_data$`fixed acidity`)
+getIQR(wine_data$`citric acid`)
 ```
 
 #### 10) Write another function (call it getCoefVar) that returns the sample coefficient of variation, defined as the sample standard deviation divided by the absolute value of the sample mean. Allow the function to pass unnamed arguments to sd and mean.
 
 ```{r}
-
+getCoefVar <- function(vector) {
+  #stDev <- sd(vector)
+  #Vmean <- mean(vector)
+  #Amean <- abs(mean(vector))
+  #Coef <- setNames(sd(vector) / abs(mean(vector)), "Coefficient of Variation of `vector'")
+  #return(list(stDev, Vmean, Amean, Coef))
+  setNames(sd(vector) / abs(mean(vector)), "Coefficient of Variation of `vector'")
+}
 ```
 
 #### 11) Repeat question 9 using the getCoefVar() function.
 
 ```{r}
-
+install.packages("skimr")
+library(skimr)
+skim(wine_data$`fixed acidity`) #QC my next line
+getCoefVar(wine_data$`fixed acidity`)
+getCoefVar(wine_data$`citric acid`)
 ```
 
 #### 12) Create a function (call it getSummaries) that takes in a vector and returns both the IQR and the coefficient of variation. Do not rewrite your above two functions, call them. When returning your values, give them appropriate names. (This would be called a wrapper function.)
 
 ```{r}
-
+getSummaries <- function(vector) {
+  #returnIQR <- getIQR(vector)
+  #returnCoefVar <- getCoefVar(vector)
+  return(list(getIQR(vector), getCoefVar(vector)))
+}
 ```
 
 #### 13) Repeat question 2 with the getSummaries() function.
 
 ```{r}
-
+getSummaries(wine_data$`fixed acidity`)
+getSummaries(wine_data$`citric acid`)
 ```
 
 #### 14) Write your own infix function that can be used in replace of the cbind function (feel free to call the cbind function in your function :) Check that the function works on the two data frames below (df1 & df2) and then all three objects (df1, df2, vec1)!
 
 ```{r}
+bindup <- function(input1, input2, ...) {
+  boundup <- cbind(input1, input2, ...)#I don't think this is what he means by "feel free to call the cbind function in your function" solution.
+  boundup
+}
 
+
+df1 <- data.frame(unif = runif(10), norm = rnorm(10))
+df2 <- data.frame(gamma = rgamma(10, shape = 1), beta = rbeta(10, shape1 = 5, shape2 = 1))
+vec1 <- rnorm(10, mean = 10)
+bindup(df1, df2, vec1)
 ```
