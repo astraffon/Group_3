@@ -1,0 +1,177 @@
+---
+title: "Homework 2 - Member A"
+author: "Alfonso Straffon"
+format: html
+editor: visual
+---
+
+### Task 1: Conceptual Questions
+
+#### 1) If your working directory is myfolder/homework/, what relative path would you specify to get the file located at myfolder/MyData.csv?
+`../MyData.csv`
+
+#### 2) What are the major benefits of using R projects?
+As noted in Week 1, R projects make it easier to work on a project by organizing it 
+in its own working directory, workspace, history, and files. The use of relative 
+file paths makes it easier to share and collaborate with others, while also tracking 
+changes through version control software.
+
+#### 3) What is Git and what is GitHub?
+*Git* is the version control software that we use to track changes in R Projects, 
+whereas *GitHub* is an online hosting service that allows for collaborative work 
+on Git-based projects.  
+
+#### 4) What are the two main differences between a tibble and a data.frame?
+1) A *tibble* is a special version of a data frame and is the main tabular object 
+used in the `tidyverse`, whereas a `data.frame` is the standard base R structure for 
+tabular data.
+2) A *tibble* is designed to be a little more user-friendly because it prints a 
+cleaner summary of the data and is more consistent when subsetting columns and rows.
+
+### Task 2 Reading Delimited Data
+
+#### 1) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
+The raw glass.data file has *comma-delimited values* and so we use the `read_csv()` 
+function from the `tidyverse` package to read in said data; we are also able to 
+confirm the lack of headers, and therefore use the `col_names` argument in order 
+to add names to the columns in the table.
+
+```{r}
+#From the `tidyverse` we use the `readr` package and the `read_csv()` function
+#to read in the data. We also use the `col_names` argument to name the columns.
+
+glass <- readr::read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+  col_names = c("Id", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe", "Type")
+)
+
+#prints tibble
+glass
+```
+
+#### 2) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
+The raw yeast.data file has *space-delimited values* and so we use the `read_table()` 
+function from the `tidyverse` package to read in said data; we are also able to 
+confirm the lack of headers, and therefore use the `col_names` argument in order 
+to add names to the columns in the table.
+
+```{r}
+#From the `tidyverse` we use the `readr` package and the `read_table()` function
+#to read in the data. We also use the `col_names` argument to name the columns.
+
+yeast <- readr::read_table(
+  "https://www4.stat.ncsu.edu/~online/datasets/yeast.data",
+  col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class")
+)
+
+#prints tibble
+glass
+```
+
+### Task 3: Combining Excel and Delimited Data
+
+#### 3) There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/white-wine.xlsx.
+
+##### • Import the data from the first sheet using the readxl package
+
+```{r}
+
+```
+
+##### • Print out the tibble (just call the object name)
+
+```{r}
+
+```
+
+#### 4) Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.
+
+```{r}
+
+```
+
+##### • Grab that column and overwrite the current column names (colnames()) of your white wine tibble. Note that colnames(object) allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
+
+```{r}
+
+```
+
+#### 5) Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the \$ operator or, if you know it already, the mutate() function from dplyr.
+
+```{r}
+
+```
+
+#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
+
+```{r}
+
+```
+
+##### • You should replace the variable names as done above
+
+```{r}
+
+```
+
+##### • You should append a column denoting the type as “red”
+
+```{r}
+
+```
+
+#### 7) Combine these two data sets into one data set. They both have the exact same columns so this is an easy append task!
+
+```{r}
+
+```
+
+##### • Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.
+
+```{r}
+
+```
+
+### Task 4: Writing a Function
+
+#### 8) Write a basic function (call it getIQR) that takes in a vector of numbers and returns the interquartile range (75th percentile - 25th percentile). You can use the quantile function. Remove the name on the returned vector (i.e. make sure the returned item doesn’t have a name like 75% or something like that). Allow your function to pass unnamed arguments to the quantile function.
+
+```{r}
+
+```
+
+#### 9) Take the object from question 7 and apply the getIRQ() function to the fixed_acidity and citric_acid columns (two function calls).
+
+```{r}
+
+```
+
+#### 10) Write another function (call it getCoefVar) that returns the sample coefficient of variation, defined as the sample standard deviation divided by the absolute value of the sample mean. Allow the function to pass unnamed arguments to sd and mean.
+
+```{r}
+
+```
+
+#### 11) Repeat question 9 using the getCoefVar() function.
+
+```{r}
+
+```
+
+#### 12) Create a function (call it getSummaries) that takes in a vector and returns both the IQR and the coefficient of variation. Do not rewrite your above two functions, call them. When returning your values, give them appropriate names. (This would be called a wrapper function.)
+
+```{r}
+
+```
+
+#### 13) Repeat question 2 with the getSummaries() function.
+
+```{r}
+
+```
+
+#### 14) Write your own infix function that can be used in replace of the cbind function (feel free to call the cbind function in your function :) Check that the function works on the two data frames below (df1 & df2) and then all three objects (df1, df2, vec1)!
+
+```{r}
+
+```
