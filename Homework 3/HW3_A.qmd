@@ -1,5 +1,5 @@
 ---
-title: "Homework 2 - Member A"
+title: "Homework 3 - Member A"
 author: "Alfonso Straffon"
 format: html
 editor: visual
@@ -8,33 +8,27 @@ editor: visual
 ### Task 1: Conceptual Questions
 
 #### 1) If your working directory is myfolder/homework/, what relative path would you specify to get the file located at myfolder/MyData.csv?
+
 `../MyData.csv`
 
 #### 2) What are the major benefits of using R projects?
-As noted in Week 1, R projects make it easier to work on a project by organizing it 
-in its own working directory, workspace, history, and files. The use of relative 
-file paths makes it easier to share and collaborate with others, while also tracking 
-changes through version control software.
+
+As noted in Week 1, R projects make it easier to work on a project by organizing it in its own working directory, workspace, history, and files. The use of relative file paths makes it easier to share and collaborate with others, while also tracking changes through version control software.
 
 #### 3) What is Git and what is GitHub?
-*Git* is the version control software that we use to track changes in R Projects, 
-whereas *GitHub* is an online hosting service that allows for collaborative work 
-on Git-based projects.  
+
+*Git* is the version control software that we use to track changes in R Projects, whereas *GitHub* is an online hosting service that allows for collaborative work on Git-based projects.
 
 #### 4) What are the two main differences between a tibble and a data.frame?
-1) A *tibble* is a special version of a data frame and is the main tabular object 
-used in the `tidyverse`, whereas a `data.frame` is the standard base R structure for 
-tabular data.
-2) A *tibble* is designed to be a little more user-friendly because it prints a 
-cleaner summary of the data and is more consistent when subsetting columns and rows.
 
-### Task 2 Reading Delimited Data
+1)  A *tibble* is a special version of a data frame and is the main tabular object used in the `tidyverse`, whereas a `data.frame` is the standard base R structure for tabular data.
+2)  A *tibble* is designed to be a little more user-friendly because it prints a cleaner summary of the data and is more consistent when subsetting columns and rows.
+
+### Task 2: Reading Delimited Data
 
 #### 1) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
-The raw glass.data file has *comma-delimited values* and so we use the `read_csv()` 
-function from the `tidyverse` package to read in said data; we are also able to 
-confirm the lack of headers, and therefore use the `col_names` argument in order 
-to add names to the columns in the table.
+
+The raw glass.data file has *comma-delimited values* and so we use the `read_csv()` function from the `tidyverse` package to read in said data; we are also able to confirm the lack of headers, and therefore use the `col_names` argument in order to add names to the columns in the table.
 
 ```{r}
 #From the `tidyverse` we use the `readr` package and the `read_csv()` function
@@ -50,22 +44,19 @@ glass
 ```
 
 #### 2) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
-The raw yeast.data file has *space-delimited values* and so we use the `read_table()` 
-function from the `tidyverse` package to read in said data; we are also able to 
-confirm the lack of headers, and therefore use the `col_names` argument in order 
-to add names to the columns in the table.
+
+The raw yeast.data file has *space-delimited values* and so we use the `read_table()` function from the `tidyverse` package to read in said data; we are also able to confirm the lack of headers, and therefore use the `col_names` argument in order to add names to the columns in the table.
 
 ```{r}
 #From the `tidyverse` we use the `readr` package and the `read_table()` function
 #to read in the data. We also use the `col_names` argument to name the columns.
-
 yeast <- readr::read_table(
   "https://www4.stat.ncsu.edu/~online/datasets/yeast.data",
   col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class")
 )
 
 #prints tibble
-glass
+yeast
 ```
 
 ### Task 3: Combining Excel and Delimited Data
@@ -75,61 +66,99 @@ glass
 ##### • Import the data from the first sheet using the readxl package
 
 ```{r}
+#By default the `read_excel()` function imports the first sheet
+white_wine <- readxl::read_excel("white-wine.xlsx", sheet = 1)
 
+white_wine
 ```
 
 ##### • Print out the tibble (just call the object name)
 
 ```{r}
-
+white_wine
 ```
 
-#### 4) Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.
+#### 4) Renaming of variables
+
+##### • Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.
 
 ```{r}
+#By default the `read_excel()` function imports the first sheet, but we could also
+#introduce the `sheet` argument to be more specific.
+white_wine_2 <- readxl::read_excel("white-wine.xlsx", sheet = 2)
 
+white_wine_2
 ```
 
 ##### • Grab that column and overwrite the current column names (colnames()) of your white wine tibble. Note that colnames(object) allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
 
 ```{r}
+#original column names
+colnames(white_wine)
 
+#replace the column names with name vector extracted with double brackets
+colnames(white_wine) <- white_wine_2[[1]]
+
+#inspect new names
+colnames(white_wine)
 ```
 
 #### 5) Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the \$ operator or, if you know it already, the mutate() function from dplyr.
 
 ```{r}
+#By default the $ operator adds the variable as a last column
+white_wine$type <- "white"
 
+#inspect tibble
+white_wine
 ```
 
-#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
+#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/red-wine.csv. 
+
+##### • Read this in using the readr package. Be careful that the columns are read in as the correct type!
 
 ```{r}
+# The read_delim() function is a better choice when dataa has decimal points because 
+# the read_csv2() can misinterpret values containing `.` and infer wrong column type
+red_wine <- readr::read_delim(
+  "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",
+  delim = ";"
+  )
 
+#prints tibble
+red_wine
 ```
 
 ##### • You should replace the variable names as done above
 
 ```{r}
+#original column names
+colnames(red_wine)
 
+#replace the column names with name vector extracted with double brackets
+colnames(red_wine) <- white_wine_2[[1]]
+
+#inspect new names
+colnames(red_wine)
 ```
-
 ##### • You should append a column denoting the type as “red”
 
 ```{r}
+#By default the $ operator adds the variable as a last column
+red_wine$type <- "red"
 
+#inspect tibble
+red_wine
 ```
 
 #### 7) Combine these two data sets into one data set. They both have the exact same columns so this is an easy append task!
 
-```{r}
-
-```
-
 ##### • Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.
 
 ```{r}
+wine <- dplyr::bind_rows(white_wine, red_wine)
 
+wine
 ```
 
 ### Task 4: Writing a Function
