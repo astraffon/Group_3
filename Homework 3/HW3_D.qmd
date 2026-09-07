@@ -27,44 +27,43 @@ A `data.frame` is the standard `Base R` object. When printed, it shows the entir
 
 ## Task 2 Reading Delimited Data
 
-1)  Read the `glass.data` into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the `tibble` (just call the object name).
+1)  Read the `glass.data` into R directly from the URL using functions from the tidyverse. Add column names. Print out the `tibble` (just call the object name).
 
 ```{r}
 # install tidyverse package
+# import data
 library(tidyverse)
 glass_data <- read_csv("https://www4.stat.ncsu.edu/online/datasets/glass.data", 
                        col_names = c("Id", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", 
                                      "Ba", "Fe", "Type_of_Glass"))
 
-# check tibble
+# print tibble
 glass_data
 ```
 
-2)  Read the `yeast.data` into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
+2)  Read the `yeast.data` into R directly from the URL using functions from the tidyverse. Add column names. Print out the `tibble` (just call the object name).
 
 ```{r}
+# import data
 yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", 
                          col_names = c("seq_name", "mcg", "gvh", "alm", "mit", 
                                        "erl", "pox", "vac", "nuc", "class"))
 
-# check tibble
+# print tibble
 yeast_data
 ```
 
 ## Task 3: Combining Excel and Delimited Data
 
-3)  There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/white-wine.xlsx.
-
-- Import the data from the first sheet using the readxl package
+3)  Import the `white-wine` data from the first sheet using the readxl package and print out the tibble (just call the object name).
 
 ```{r}
+# import data
+library(readxl)
+wine_data <- read_excel("white-wine.xlsx", sheet = 1)
 
-```
-
-- Print out the tibble (just call the object name)
-
-```{r}
-
+# print tibble
+wine_data
 ```
 
 4)  Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.
