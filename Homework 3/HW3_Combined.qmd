@@ -1,6 +1,6 @@
 ---
 title: "HW3_C"
-author: "Michael Costello"
+author: "Alfonso Straffon, Daria Smyslova, Michael Costello & Maya Szymborski"
 format: html
 editor: source
 ---
