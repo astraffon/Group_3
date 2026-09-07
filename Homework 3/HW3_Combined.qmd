@@ -47,9 +47,7 @@ glass_data
 #### 2) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
 
 ```{r}
-yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", 
-  col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class")
-)
+yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class"))
 yeast_data
 ```
 
@@ -172,7 +170,7 @@ getCoefVar <- function(vector) {
   
   #AS:
   s <- sd(x, ...)
-  xbar <- mean(x, ...
+  xbar <- mean(x, ...)
   cv <- s / abs(xbar)
   return(cv)
 }
