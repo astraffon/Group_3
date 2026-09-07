@@ -49,6 +49,7 @@ yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data
 
 # check tibble
 yeast_data
+
 ```
 
 ## Task 3: Combining Excel and Delimited Data
