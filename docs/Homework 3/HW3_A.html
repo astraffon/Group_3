@@ -402,7 +402,7 @@ cols(
 <section id="read-this-in-using-the-readr-package.-be-careful-that-the-columns-are-read-in-as-the-correct-type" class="level5">
 <h5 class="anchored" data-anchor-id="read-this-in-using-the-readr-package.-be-careful-that-the-columns-are-read-in-as-the-correct-type">• Read this in using the readr package. Be careful that the columns are read in as the correct type!</h5>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The read_delim() function is a better choice when dataa has decimal points because </span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The read_delim() function is a better choice when data has decimal points because </span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the read_csv2() can misinterpret values containing `.` and infer wrong column type</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>red_wine <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_delim</span>(</span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv"</span>,</span>
@@ -499,7 +499,28 @@ dbl (12): fixed acidity, volatile acidity, citric acid, residual sugar, chlo...
 <section id="use-the-dplyrbind_rows-function-see-the-help-to-create-one-tibble-containing-all-of-the-wine-data." class="level5">
 <h5 class="anchored" data-anchor-id="use-the-dplyrbind_rows-function-see-the-help-to-create-one-tibble-containing-all-of-the-wine-data.">• Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.</h5>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>wine <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(white_wine, red_wine)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>wine <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(white_wine, red_wine)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>wine</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6,497 × 13
+   fixed_acidity volatile_acidity citric_acid residual_sugar chlorides
+           &lt;dbl&gt;            &lt;dbl&gt;       &lt;dbl&gt;          &lt;dbl&gt;     &lt;dbl&gt;
+ 1           7               0.27        0.36           20.7     0.045
+ 2           6.3             0.3         0.34            1.6     0.049
+ 3           8.1             0.28        0.4             6.9     0.05 
+ 4           7.2             0.23        0.32            8.5     0.058
+ 5           7.2             0.23        0.32            8.5     0.058
+ 6           8.1             0.28        0.4             6.9     0.05 
+ 7           6.2             0.32        0.16            7       0.045
+ 8           7               0.27        0.36           20.7     0.045
+ 9           6.3             0.3         0.34            1.6     0.049
+10           8.1             0.22        0.43            1.5     0.044
+# ℹ 6,487 more rows
+# ℹ 8 more variables: free_sulfur_dioxide &lt;dbl&gt;, total_sulfur_dioxide &lt;dbl&gt;,
+#   density &lt;dbl&gt;, pH &lt;dbl&gt;, sulphates &lt;dbl&gt;, alcohol &lt;dbl&gt;, quality &lt;dbl&gt;,
+#   type &lt;chr&gt;</code></pre>
+</div>
 </div>
 </section>
 </section>
@@ -508,24 +529,127 @@ dbl (12): fixed acidity, volatile acidity, citric acid, residual sugar, chlo...
 <h3 class="anchored" data-anchor-id="task-4-writing-a-function">Task 4: Writing a Function</h3>
 <section id="write-a-basic-function-call-it-getiqr-that-takes-in-a-vector-of-numbers-and-returns-the-interquartile-range-75th-percentile---25th-percentile.-you-can-use-the-quantile-function.-remove-the-name-on-the-returned-vector-i.e.-make-sure-the-returned-item-doesnt-have-a-name-like-75-or-something-like-that.-allow-your-function-to-pass-unnamed-arguments-to-the-quantile-function." class="level4">
 <h4 class="anchored" data-anchor-id="write-a-basic-function-call-it-getiqr-that-takes-in-a-vector-of-numbers-and-returns-the-interquartile-range-75th-percentile---25th-percentile.-you-can-use-the-quantile-function.-remove-the-name-on-the-returned-vector-i.e.-make-sure-the-returned-item-doesnt-have-a-name-like-75-or-something-like-that.-allow-your-function-to-pass-unnamed-arguments-to-the-quantile-function.">8) Write a basic function (call it getIQR) that takes in a vector of numbers and returns the interquartile range (75th percentile - 25th percentile). You can use the quantile function. Remove the name on the returned vector (i.e.&nbsp;make sure the returned item doesn’t have a name like 75% or something like that). Allow your function to pass unnamed arguments to the quantile function.</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>getIQR <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  q <span class="ot">&lt;-</span> <span class="fu">quantile</span>(x, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>), ...)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  iqr <span class="ot">&lt;-</span> q[<span class="dv">2</span>] <span class="sc">-</span> q[<span class="dv">1</span>]</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">unname</span>(iqr))</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 <section id="take-the-object-from-question-7-and-apply-the-getirq-function-to-the-fixed_acidity-and-citric_acid-columns-two-function-calls." class="level4">
 <h4 class="anchored" data-anchor-id="take-the-object-from-question-7-and-apply-the-getirq-function-to-the-fixed_acidity-and-citric_acid-columns-two-function-calls.">9) Take the object from question 7 and apply the getIRQ() function to the fixed_acidity and citric_acid columns (two function calls).</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getIQR</span>(wine<span class="sc">$</span>fixed_acidity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.3</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getIQR</span>(wine<span class="sc">$</span>citric_acid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.14</code></pre>
+</div>
+</div>
 </section>
 <section id="write-another-function-call-it-getcoefvar-that-returns-the-sample-coefficient-of-variation-defined-as-the-sample-standard-deviation-divided-by-the-absolute-value-of-the-sample-mean.-allow-the-function-to-pass-unnamed-arguments-to-sd-and-mean." class="level4">
 <h4 class="anchored" data-anchor-id="write-another-function-call-it-getcoefvar-that-returns-the-sample-coefficient-of-variation-defined-as-the-sample-standard-deviation-divided-by-the-absolute-value-of-the-sample-mean.-allow-the-function-to-pass-unnamed-arguments-to-sd-and-mean.">10) Write another function (call it getCoefVar) that returns the sample coefficient of variation, defined as the sample standard deviation divided by the absolute value of the sample mean. Allow the function to pass unnamed arguments to sd and mean.</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>getCoefVar <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  s <span class="ot">&lt;-</span> <span class="fu">sd</span>(x, ...)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  xbar <span class="ot">&lt;-</span> <span class="fu">mean</span>(x, ...)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  cv <span class="ot">&lt;-</span> s <span class="sc">/</span> <span class="fu">abs</span>(xbar)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(cv)</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 <section id="repeat-question-9-using-the-getcoefvar-function." class="level4">
 <h4 class="anchored" data-anchor-id="repeat-question-9-using-the-getcoefvar-function.">11) Repeat question 9 using the getCoefVar() function.</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getCoefVar</span>(wine<span class="sc">$</span>fixed_acidity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1796783</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getCoefVar</span>(wine<span class="sc">$</span>citric_acid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.4560663</code></pre>
+</div>
+</div>
 </section>
 <section id="create-a-function-call-it-getsummaries-that-takes-in-a-vector-and-returns-both-the-iqr-and-the-coefficient-of-variation.-do-not-rewrite-your-above-two-functions-call-them.-when-returning-your-values-give-them-appropriate-names.-this-would-be-called-a-wrapper-function." class="level4">
 <h4 class="anchored" data-anchor-id="create-a-function-call-it-getsummaries-that-takes-in-a-vector-and-returns-both-the-iqr-and-the-coefficient-of-variation.-do-not-rewrite-your-above-two-functions-call-them.-when-returning-your-values-give-them-appropriate-names.-this-would-be-called-a-wrapper-function.">12) Create a function (call it getSummaries) that takes in a vector and returns both the IQR and the coefficient of variation. Do not rewrite your above two functions, call them. When returning your values, give them appropriate names. (This would be called a wrapper function.)</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>getSummaries <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  iqr <span class="ot">&lt;-</span> <span class="fu">getIQR</span>(x, ...)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  cv <span class="ot">&lt;-</span> <span class="fu">getCoefVar</span>(x, ...)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">c</span>(<span class="at">IQR =</span> iqr, <span class="at">CV =</span> cv))</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 <section id="repeat-question-2-with-the-getsummaries-function." class="level4">
 <h4 class="anchored" data-anchor-id="repeat-question-2-with-the-getsummaries-function.">13) Repeat question 2 with the getSummaries() function.</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getSummaries</span>(wine<span class="sc">$</span>fixed_acidity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      IQR        CV 
+1.3000000 0.1796783 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getSummaries</span>(wine<span class="sc">$</span>citric_acid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      IQR        CV 
+0.1400000 0.4560663 </code></pre>
+</div>
+</div>
 </section>
 <section id="write-your-own-infix-function-that-can-be-used-in-replace-of-the-cbind-function-feel-free-to-call-the-cbind-function-in-your-function-check-that-the-function-works-on-the-two-data-frames-below-df1-df2-and-then-all-three-objects-df1-df2-vec1" class="level4">
 <h4 class="anchored" data-anchor-id="write-your-own-infix-function-that-can-be-used-in-replace-of-the-cbind-function-feel-free-to-call-the-cbind-function-in-your-function-check-that-the-function-works-on-the-two-data-frames-below-df1-df2-and-then-all-three-objects-df1-df2-vec1">14) Write your own infix function that can be used in replace of the cbind function (feel free to call the cbind function in your function :) Check that the function works on the two data frames below (df1 &amp; df2) and then all three objects (df1, df2, vec1)!</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="st">`</span><span class="at">%cbind%</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="cf">function</span>(a, b) {</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(a, b)</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>df1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">unif =</span> <span class="fu">runif</span>(<span class="dv">10</span>),</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">norm =</span> <span class="fu">rnorm</span>(<span class="dv">10</span>)</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">gamma =</span> <span class="fu">rgamma</span>(<span class="dv">10</span>, <span class="at">shape =</span> <span class="dv">1</span>),</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">beta =</span> <span class="fu">rbeta</span>(<span class="dv">10</span>, <span class="at">shape1 =</span> <span class="dv">5</span>, <span class="at">shape2 =</span> <span class="dv">1</span>)</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>vec1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="at">mean =</span> <span class="dv">10</span>)</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>df1 <span class="sc">%cbind%</span> df2 <span class="co">#means same thing as `cbind(df1, df2)`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        unif       norm      gamma      beta
+1  0.2875775  1.7150650 2.56180304 0.7570742
+2  0.7883051  0.4609162 0.91399722 0.9564736
+3  0.4089769 -1.2650612 0.25221723 0.9552066
+4  0.8830174 -0.6868529 0.29122256 0.9507686
+5  0.9404673 -0.4456620 0.11741668 0.9388923
+6  0.0455565  1.2240818 1.54358770 0.9245410
+7  0.5281055  0.3598138 0.40247606 0.8191536
+8  0.8924190  0.4007715 0.61433200 0.7538238
+9  0.5514350  0.1106827 0.01905458 0.7307227
+10 0.4566147 -0.5558411 0.29929496 0.6169212</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>df1 <span class="sc">%cbind%</span> df2 <span class="sc">%cbind%</span> vec1 <span class="co">#checks if function works with all three objects</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        unif       norm      gamma      beta         b
+1  0.2875775  1.7150650 2.56180304 0.7570742  9.792083
+2  0.7883051  0.4609162 0.91399722 0.9564736  8.734604
+3  0.4089769 -1.2650612 0.25221723 0.9552066 12.168956
+4  0.8830174 -0.6868529 0.29122256 0.9507686 11.207962
+5  0.9404673 -0.4456620 0.11741668 0.9388923  8.876891
+6  0.0455565  1.2240818 1.54358770 0.9245410  9.597115
+7  0.5281055  0.3598138 0.40247606 0.8191536  9.533345
+8  0.8924190  0.4007715 0.61433200 0.7538238 10.779965
+9  0.5514350  0.1106827 0.01905458 0.7307227  9.916631
+10 0.4566147 -0.5558411 0.29929496 0.6169212 10.253319</code></pre>
+</div>
+</div>
 
 
 </section>
