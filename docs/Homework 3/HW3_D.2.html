@@ -259,7 +259,7 @@ cols(
 <section id="task-3-combining-excel-and-delimited-data" class="level2">
 <h2 class="anchored" data-anchor-id="task-3-combining-excel-and-delimited-data">Task 3: Combining Excel and Delimited Data</h2>
 <ol start="3" type="1">
-<li>Import the <code>white-wine</code> data from the first sheet using the <code>readxl</code> package and print out the <code>tibble</code> (just call the object name).</li>
+<li>Import the <code>white-wine</code> data from the first sheet using the readxl package and print out the tibble (just call the object name).</li>
 </ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># import data</span></span>
@@ -291,85 +291,12 @@ cols(
 <ol start="4" type="1">
 <li>Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.</li>
 </ol>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># import data</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>wine_data_2 <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"white-wine.xlsx"</span>, <span class="at">sheet =</span> <span class="dv">2</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># print tibble</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>wine_data_2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 12 × 1
-   Variables           
-   &lt;chr&gt;               
- 1 fixed_acidity       
- 2 volatile_acidity    
- 3 citric_acid         
- 4 residual_sugar      
- 5 chlorides           
- 6 free_sulfur_dioxide 
- 7 total_sulfur_dioxide
- 8 density             
- 9 pH                  
-10 sulphates           
-11 alcohol             
-12 quality             </code></pre>
-</div>
-</div>
 <ul>
-<li>Grab that column and overwrite the current column names (<code>colnames())</code> of your white wine <code>tibble</code>. Note that <code>colnames(object)</code> allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) &lt;- c(…)</li>
+<li>Grab that column and overwrite the current column names (colnames()) of your white wine tibble. Note that colnames(object) allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) &lt;- c(…)</li>
 </ul>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># take the column from wine_data_2 and use as column names for wine_data</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># check column names of wine_data first</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(wine_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] "fixed acidity"        "volatile acidity"     "citric acid"         
- [4] "residual sugar"       "chlorides"            "free sulfur dioxide" 
- [7] "total sulfur dioxide" "density"              "pH"                  
-[10] "sulphates"            "alcohol"              "quality"             </code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># overwrite those column names</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(wine_data) <span class="ot">&lt;-</span> wine_data_2[[<span class="dv">1</span>]]</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># check new names</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(wine_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] "fixed_acidity"        "volatile_acidity"     "citric_acid"         
- [4] "residual_sugar"       "chlorides"            "free_sulfur_dioxide" 
- [7] "total_sulfur_dioxide" "density"              "pH"                  
-[10] "sulphates"            "alcohol"              "quality"             </code></pre>
-</div>
-</div>
 <ol start="5" type="1">
-<li>Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the <code>$</code> operator or, if you know it already, the <code>mutate()</code> function from <code>dplyr</code>.</li>
+<li>Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the $ operator or, if you know it already, the mutate() function from dplyr.</li>
 </ol>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add 'type' column using `$` operator</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>wine_data<span class="sc">$</span>type <span class="ot">&lt;-</span> <span class="st">"white"</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># check tibble</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>wine_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4,898 × 13
-   fixed_acidity volatile_acidity citric_acid residual_sugar chlorides
-           &lt;dbl&gt;            &lt;dbl&gt;       &lt;dbl&gt;          &lt;dbl&gt;     &lt;dbl&gt;
- 1           7               0.27        0.36           20.7     0.045
- 2           6.3             0.3         0.34            1.6     0.049
- 3           8.1             0.28        0.4             6.9     0.05 
- 4           7.2             0.23        0.32            8.5     0.058
- 5           7.2             0.23        0.32            8.5     0.058
- 6           8.1             0.28        0.4             6.9     0.05 
- 7           6.2             0.32        0.16            7       0.045
- 8           7               0.27        0.36           20.7     0.045
- 9           6.3             0.3         0.34            1.6     0.049
-10           8.1             0.22        0.43            1.5     0.044
-# ℹ 4,888 more rows
-# ℹ 8 more variables: free_sulfur_dioxide &lt;dbl&gt;, total_sulfur_dioxide &lt;dbl&gt;,
-#   density &lt;dbl&gt;, pH &lt;dbl&gt;, sulphates &lt;dbl&gt;, alcohol &lt;dbl&gt;, quality &lt;dbl&gt;,
-#   type &lt;chr&gt;</code></pre>
-</div>
-</div>
 <ol start="6" type="1">
 <li>There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!</li>
 </ol>

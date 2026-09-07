@@ -55,7 +55,7 @@ yeast_data
 
 ## Task 3: Combining Excel and Delimited Data
 
-3)  Import the `white-wine` data from the first sheet using the readxl package and print out the tibble (just call the object name).
+3)  Import the `white-wine` data from the first sheet using the `readxl` package and print out the `tibble` (just call the object name).
 
 ```{r}
 # import data
@@ -69,19 +69,36 @@ wine_data
 4)  Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.
 
 ```{r}
+# import data
+wine_data_2 <- read_excel("white-wine.xlsx", sheet = 2)
 
+# print tibble
+wine_data_2
 ```
 
-- Grab that column and overwrite the current column names (colnames()) of your white wine tibble. Note that colnames(object) allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
+- Grab that column and overwrite the current column names (`colnames())` of your white wine `tibble`. Note that `colnames(object)` allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
 
 ```{r}
+# take the column from wine_data_2 and use as column names for wine_data
 
+# check column names of wine_data first
+colnames(wine_data)
+
+# overwrite those column names
+colnames(wine_data) <- wine_data_2[[1]]
+
+# check new names
+colnames(wine_data)
 ```
 
-5)  Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the \$ operator or, if you know it already, the mutate() function from dplyr.
+5)  Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the `$` operator or, if you know it already, the `mutate()` function from `dplyr`.
 
 ```{r}
+# add 'type' column using `$` operator
+wine_data$type <- "white"
 
+# check tibble
+wine_data
 ```
 
 6)  There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
