@@ -2,7 +2,7 @@
 title: "HW3_C"
 author: "Michael Costello"
 format: html
-editor: visual
+editor: source
 ---
 
 ### Task 1: Conceptual Questions
