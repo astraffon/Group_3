@@ -150,44 +150,90 @@ table(wine_data$type)
 
 ## Task 4: Writing a Function
 
-8)  Write a basic function (call it getIQR) that takes in a vector of numbers and returns the interquartile range (75th percentile - 25th percentile). You can use the quantile function. Remove the name on the returned vector (i.e. make sure the returned item doesn’t have a name like 75% or something like that). Allow your function to pass unnamed arguments to the quantile function.
+8)  Write a basic function (call it `getIQR`) that takes in a vector of numbers and returns the interquartile range (75th percentile - 25th percentile). You can use the `quantile` function. Remove the name on the returned vector (i.e. make sure the returned item doesn’t have a name like 75% or something like that). Allow your function to pass unnamed arguments to the `quantile` function.
 
 ```{r}
+# the IQR is Q3 - Q1
 
+getIQR <- function(x, ...) {
+  q <- quantile(x, probs = c(0.25, 0.75), ...)
+  IQR <- q[2] - q[1]
+  names(IQR) <- NULL
+  return(IQR)
+}
+
+# 'x' is the vector of numbers
+# '...' allows unnamed arguments to pass through quantile()
+# names(IQR) <- NULL removes names 
 ```
 
-9)  Take the object from question 7 and apply the getIRQ() function to the fixed_acidity and citric_acid columns (two function calls).
+9)  Take the object from question 7 and apply the `getIRQ()` function to the `fixed_acidity` and `citric_acid` columns (two function calls).
 
 ```{r}
-
+getIQR(wine_data$fixed_acidity)
+getIQR(wine_data$citric_acid)
 ```
 
-10) Write another function (call it getCoefVar) that returns the sample coefficient of variation, defined as the sample standard deviation divided by the absolute value of the sample mean. Allow the function to pass unnamed arguments to sd and mean.
+10) Write another function (call it `getCoefVar`) that returns the sample coefficient of variation, defined as the sample standard deviation divided by the absolute value of the sample mean. Allow the function to pass unnamed arguments to sd and mean.
 
 ```{r}
-
+getCoefVar <- function(x, ...) {
+  sd <- sd(x, ...)
+  mean <- mean(x, ...)
+  cv <- sd/abs(mean)
+  return(cv)
+}
 ```
 
-11) Repeat question 9 using the getCoefVar() function.
+11) Repeat question 9 using the `getCoefVar()` function.
 
 ```{r}
-
+getCoefVar(wine_data$fixed_acidity)
+getCoefVar(wine_data$citric_acid)
 ```
 
-12) Create a function (call it getSummaries) that takes in a vector and returns both the IQR and the coefficient of variation. Do not rewrite your above two functions, call them. When returning your values, give them appropriate names. (This would be called a wrapper function.)
+12) Create a function (call it `getSummaries`) that takes in a vector and returns both the IQR and the coefficient of variation. Do not rewrite your above two functions, call them. When returning your values, give them appropriate names. (This would be called a `wrapper` function.)
 
 ```{r}
+# use getIQR() and getCoefVar() inside this function
 
+getSummaries <- function(x, ...) {
+  IQR <- getIQR(x, ...)
+  CV <- getCoefVar(x, ...)
+  return(c(IQR = IQR, CoefVar = CV)) # gives appropriate names
+}
 ```
 
-13) Repeat question 2 with the getSummaries() function.
+13) Repeat question 2 with the `getSummaries()` function.
 
 ```{r}
-
+getSummaries(wine_data$fixed_acidity)
+getSummaries(wine_data$citric_acid)
 ```
 
-14) Write your own infix function that can be used in replace of the cbind function (feel free to call the cbind function in your function :) Check that the function works on the two data frames below (df1 & df2) and then all three objects (df1, df2, vec1)!
+14) Write your own `infix` function that can be used in replace of the `cbind` function (feel free to call the cbind function in your function :) Check that the function works on the two data frames below (`df1` & `df2`) and then all three objects (`df1`, `df2`, `vec1`)!
 
 ```{r}
+# an infix funciton goes between arguments 
+# and uses symbols on both sides (%symbol%)
 
+# create infix function, using `` to define it
+`%cbind%` <- function(x, y) {
+  cbind(x, y)
+}
+
+# %cbind% operator takes object on left as 'x' and object on right as 'y'
+
+df1 <- data.frame(unif = runif(10), norm = rnorm(10))
+
+df2 <- data.frame(gamma = rgamma(10, shape = 1), 
+                  beta = rbeta(10, shape1 = 5, shape2 = 1))
+
+vec1 <- rnorm(10, mean = 10)
+
+# check on data frames and vector
+
+df1 %cbind% df2 # same as saying cbind(x, y)
+
+df1 %cbind% df2 %cbind% vec1
 ```
