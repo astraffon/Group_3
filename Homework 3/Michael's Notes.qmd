@@ -1,0 +1,33 @@
+---
+title: "HW 3 Differences"
+author: "Michael Costello"
+format: html
+editor: source
+---
+
+##Major differences:
+
+T1, Q1: The final variable, type (of glass), comes in as a number. Justin gave us a the values of that label and so Michael included code to apply labels to the values of that numeric variable. The tibble reads with the labels now, but the computer still understands they are numbers underneath. This probably wasn't required, but why not.
+
+```{r}
+glass_data$TypeOfGlass <- factor(glass_data$TypeOfGlass,
+  levels = c(1,2,3,4,5,6,7),
+  labels = c("building_windows_float_processed", "building_
+  windows_non_float_processed", "vehicle_windows_float_processed", "vehicle_windows_non_float_processed", "containers,", "tableware,", "headlamps")
+)
+```
+
+T4, Q 8, 10, 12, 14: Alfonso seems to write in a syle that uses more individual calculation, whereas Michael does everything in one line. For example:
+
+Michael:
+```{r}
+	setNames(quantile(vector, 0.75) - quantile(vector, 0.25), "IQR of vector")  #the setNames renames the output vector to the quoted values at the end. 
+```	
+Alfonso:
+```{r}
+  q <- quantile(x, probs = c(0.25, 0.75), ...)
+  iqr <- q[2] - q[1]
+  return(unname(iqr))
+```
+
+Michael also renamed the vector, though that wasn't required.

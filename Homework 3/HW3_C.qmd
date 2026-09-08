@@ -1,0 +1,202 @@
+---
+title: "HW3_C"
+author: "Michael Costello"
+format: html
+editor: visual
+---
+
+### Task 1: Conceptual Questions
+
+#### 1) If your working directory is myfolder/homework/, what relative path would you specify to get the file located at myfolder/MyData.csv?
+
+If I'm not using a projects environment, I would likely have used a command to set my working directory, such as:
+
+```{r}
+setwd("myfolder/homework/")
+```
+
+Regardless of projects vs. lose scripts, in order to access the .csv file one level up from the folder I'm currently in, I would use:
+
+```{r}
+read.csv(../MyData.csv)  
+# This tells R to go backwards one directory ("../"), then find the MyData.csv file.
+```
+
+#### 2) What are the major benefits of using R projects?
+
+Using projects saves your workspace state, and makes it possible to skip setting up a working directory. That also makes it more portable to other devices (second computers, etc.).
+
+#### 3) What is Git and what is GitHub?
+
+Git is a version control system to track changes in text files, such as code. GitHub is an online repository of these text files and backups, allowing for easy working between multiple computers and across teams. It can also help track and resolve version control conflicts, such as when two team members are editing the same files.
+
+#### 4) What are the two main differences between a tibble and a data.frame?
+
+Tibbles only print the header, instead of the whole data frame, making the output cleaner. Also, similar to other applications (Stata, SAS, SPSS), modifying a tibble returns a tibble, whereas modifying a data frame usually returns a vector (single variable) that has changed while leaving the rest of the data set behind.
+
+### Task 2 Reading Delimited Data
+
+#### 1) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+glass_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data", col_names = c("Id", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe", "TypeOfGlass"))
+
+glass_data$TypeOfGlass <- factor(glass_data$TypeOfGlass,
+levels = c(1,2,3,4,5,6,7),
+labels = c("building_windows_float_processed", "building_
+windows_non_float_processed", "vehicle_windows_float_processed", "vehicle_windows_non_float_processed", "containers,", "tableware,", "headlamps"))
+glass_data
+```
+
+#### 2) Read this data into R directly from the URL using functions from the tidyverse. Notice that the data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just call the object name).
+
+```{r}
+yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class"))  #Doesn't seem like I need to specify col widths to get this one to work. Yay!
+yeast_data
+```
+
+### Task 3: Combining Excel and Delimited Data
+
+#### 3) There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/~online/datasets/white-wine.xlsx.
+
+##### • Import the data from the first sheet using the readxl package
+
+```{r}
+library(readxl)
+wine_data <- read_excel("white-wine.xlsx")
+```
+
+##### • Print out the tibble (just call the object name)
+
+```{r}
+wine_data
+```
+
+#### 4) Read in the data from the 2nd sheet. This should return a data frame with one column containing alternative versions of the variable names.
+
+```{r}
+```
+
+##### • Grab that column and overwrite the current column names (colnames()) of your white wine tibble. Note that colnames(object) allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
+
+```{r}
+wine_data_lab <- read_excel("white-wine.xlsx", sheet = excel_sheets("white-wine.xlsx")[2])
+names(wine_data) <- c("wine_data_lab")  #yeah, that's not working.
+wine_data_lab
+```
+
+#### 5) Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has values of ‘white’ for every observation. You can do this via the \$ operator or, if you know it already, the mutate() function from dplyr.
+
+```{r}
+wine_data <- wine_data |> mutate(type = "White")
+wine_data
+```
+
+#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
+
+```{r}
+wine_data2 <- read_csv2("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",  col_types = cols(.default   = col_double()))
+wine_data2 #Miserable failure. Everything is coming in NA.
+
+#Second try:
+wine_data2 <- read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", delim = ">", locale = locale(decimal_mark = ".", grouping_mark = ",") ,col_types = cols(.default   = col_double()))
+#Still no.
+```
+
+##### • You should replace the variable names as done above
+
+```{r}
+#TBD
+```
+
+##### • You should append a column denoting the type as “red”
+
+```{r}
+wine_data2 <- wine_data2 |> mutate(type = "Red")
+wine_data2
+```
+
+#### 7) Combine these two data sets into one data set. They both have the exact same columns so this is an easy append task!
+
+##### • Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.
+
+```{r}
+wine_data_final <- dplyr::bind_rows(wine_data, wine_data2)
+wine_data_final
+```
+
+### Task 4: Writing a Function
+
+#### 8) Write a basic function (call it getIQR) that takes in a vector of numbers and returns the interquartile range (75th percentile - 25th percentile). You can use the quantile function. Remove the name on the returned vector (i.e. make sure the returned item doesn’t have a name like 75% or something like that). Allow your function to pass unnamed arguments to the quantile function.
+
+```{r}
+getIQR <- function(vector) {
+  setNames(quantile(vector, 0.75) - quantile(vector, 0.25), "IQR of `vector'")
+  #I'd love to know how to pass arguments into this text though, like "IQR of `vector'"
+}
+```
+
+#### 9) Take the object from question 7 and apply the getIRQ() function to the fixed_acidity and citric_acid columns (two function calls).
+
+```{r}
+#summary(wine_data$`fixed acidity`) #QC my next line
+getIQR(wine_data$`fixed acidity`)
+getIQR(wine_data$`citric acid`)
+```
+
+#### 10) Write another function (call it getCoefVar) that returns the sample coefficient of variation, defined as the sample standard deviation divided by the absolute value of the sample mean. Allow the function to pass unnamed arguments to sd and mean.
+
+```{r}
+getCoefVar <- function(vector) {
+  #stDev <- sd(vector)
+  #Vmean <- mean(vector)
+  #Amean <- abs(mean(vector))
+  #Coef <- setNames(sd(vector) / abs(mean(vector)), "Coefficient of Variation of `vector'")
+  #return(list(stDev, Vmean, Amean, Coef))
+  setNames(sd(vector) / abs(mean(vector)), "Coefficient of Variation of `vector'")
+}
+```
+
+#### 11) Repeat question 9 using the getCoefVar() function.
+
+```{r}
+install.packages("skimr")
+library(skimr)
+skim(wine_data$`fixed acidity`) #QC my next line
+getCoefVar(wine_data$`fixed acidity`)
+getCoefVar(wine_data$`citric acid`)
+```
+
+#### 12) Create a function (call it getSummaries) that takes in a vector and returns both the IQR and the coefficient of variation. Do not rewrite your above two functions, call them. When returning your values, give them appropriate names. (This would be called a wrapper function.)
+
+```{r}
+getSummaries <- function(vector) {
+  #returnIQR <- getIQR(vector)
+  #returnCoefVar <- getCoefVar(vector)
+  return(list(getIQR(vector), getCoefVar(vector)))
+}
+```
+
+#### 13) Repeat question 2 with the getSummaries() function.
+
+```{r}
+getSummaries(wine_data$`fixed acidity`)
+getSummaries(wine_data$`citric acid`)
+```
+
+#### 14) Write your own infix function that can be used in replace of the cbind function (feel free to call the cbind function in your function :) Check that the function works on the two data frames below (df1 & df2) and then all three objects (df1, df2, vec1)!
+
+```{r}
+bindup <- function(input1, input2, ...) {
+  boundup <- cbind(input1, input2, ...)#I don't think this is what he means by "feel free to call the cbind function in your function" solution.
+  boundup
+}
+
+
+df1 <- data.frame(unif = runif(10), norm = rnorm(10))
+df2 <- data.frame(gamma = rgamma(10, shape = 1), beta = rbeta(10, shape1 = 5, shape2 = 1))
+vec1 <- rnorm(10, mean = 10)
+bindup(df1, df2, vec1)
+```
