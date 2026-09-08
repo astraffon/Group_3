@@ -76,7 +76,7 @@ wine_data_2 <- read_excel("white-wine.xlsx", sheet = 2)
 wine_data_2
 ```
 
-- Grab that column and overwrite the current column names (`colnames())` of your white wine `tibble`. Note that `colnames(object)` allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
+-   Grab that column and overwrite the current column names (`colnames())` of your white wine `tibble`. Note that `colnames(object)` allows for ‘left hand side assignment’. That is, you can call it on the left and store an object in it to overwrite it. Similar to names(object) \<- c(...)
 
 ```{r}
 # take the column from wine_data_2 and use as column names for wine_data
@@ -107,13 +107,13 @@ wine_data
 
 ```
 
-- You should replace the variable names as done above
+-   You should replace the variable names as done above
 
 ```{r}
 
 ```
 
-- You should append a column denoting the type as “red”
+-   You should append a column denoting the type as “red”
 
 ```{r}
 
@@ -125,7 +125,7 @@ wine_data
 
 ```
 
-- Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.
+-   Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the wine data.
 
 ```{r}
 

@@ -59,7 +59,7 @@ yeast_data
 
 ### Task 3: Combining Excel and Delimited Data
 
-#### 3) There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/~online/datasets/white-wine.xlsx.
+#### 3) There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/white-wine.xlsx.
 
 ##### • Import the data from the first sheet using the readxl package
 
@@ -94,7 +94,7 @@ wine_data <- wine_data |> mutate(type = "White")
 wine_data
 ```
 
-#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
+#### 6) There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.edu/\~online/datasets/red-wine.csv. Read this in using the readr package. Be careful that the columns are read in as the correct type!
 
 ```{r}
 wine_data2 <- read_csv2("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",  col_types = cols(.default   = col_double()))
