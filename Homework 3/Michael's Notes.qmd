@@ -17,13 +17,16 @@ glass_data$TypeOfGlass <- factor(glass_data$TypeOfGlass,
 )
 ```
 
-T4, Q 8, 10, 12, 14: Alfonso seems to write in a syle that uses more individual calculation, whereas Michael does everything in one line. For example:
+T4, Qs 8, 10, 12, 14: Alfonso seems to write in a syle that uses more individual calculation, whereas Michael does everything in one line. For example:
 
 Michael:
+
 ```{r}
 	setNames(quantile(vector, 0.75) - quantile(vector, 0.25), "IQR of vector")  #the setNames renames the output vector to the quoted values at the end. 
-```	
+```
+
 Alfonso:
+
 ```{r}
   q <- quantile(x, probs = c(0.25, 0.75), ...)
   iqr <- q[2] - q[1]

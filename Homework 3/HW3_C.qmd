@@ -12,13 +12,13 @@ editor: source
 If I'm not using a projects environment, I would likely have used a command to set my working directory, such as:
 
 ```{r}
-setwd("myfolder/homework/")
+#setwd("myfolder/homework/")
 ```
 
 Regardless of projects vs. lose scripts, in order to access the .csv file one level up from the folder I'm currently in, I would use:
 
 ```{r}
-read.csv(../MyData.csv)  
+#read.csv(../MyData.csv)  
 # This tells R to go backwards one directory ("../"), then find the MyData.csv file.
 ```
 
