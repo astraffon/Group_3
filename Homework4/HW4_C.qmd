@@ -1,6 +1,6 @@
 ---
 title: "Homework 4"
-author: "Your Name"
+author: "Michael Costello"
 format: html
 editor: source
 ---
@@ -20,7 +20,7 @@ arrange(filter(select(as_tibble(iris), starts_with("Petal"), Species), Petal.Len
 
 *Note: Use chaining where possible!*
 
-#### 3. **Glass data:** In HW 3 you read in the glass data from https://www4.stat.ncsu.edu/\~online/datasets/glass.data. Let’s reread that data (use your code from HW 3) that also names the columns. Recall the last variable being `Type of Glass` with values of:– 1 building_windows_float_processed, – 2 building_windows_non_float_processed, – 3 vehicle_windows_float_processed, – 4 vehicle_windows_non_float_processed (none in this database), – 5 containers, – 6 tableware, – 7 headlamps. Start a chain on your data object that overwrites the `Type_of_glass` variable using `mutate()`.
+#### 3. **Glass data:** In HW 3 you read in the glass data from https://www4.stat.ncsu.edu/~online/datasets/glass.data. Let’s reread that data (use your code from HW 3) that also names the columns. Recall the last variable being `Type of Glass` with values of:– 1 building_windows_float_processed, – 2 building_windows_non_float_processed, – 3 vehicle_windows_float_processed, – 4 vehicle_windows_non_float_processed (none in this database), – 5 containers, – 6 tableware, – 7 headlamps. Start a chain on your data object that overwrites the `Type_of_glass` variable using `mutate()`.
 
 • Create a `factor` version of the variable that replaces the numbers with string labels (that is, replace 1 with “building_windows_float_processed”, 2 with “building_win. . . ”, etc. - see the variable descriptions above to give meaningful values). 
 
@@ -51,6 +51,8 @@ arrange(filter(select(as_tibble(iris), starts_with("Petal"), Species), Petal.Len
 #### 8. Continue your chain to now sort the data from highest quality to lowest.
 
 #### 9. Continue your chain to select only the variables that contain `acid`, the `alcohol` variable, the `type` variable, and the `quality` variable.
+
+He means fixed_acidity, volatile_acidity, citric_acid
 
 #### 10. Continue your chain to add the mean and standard deviation of the `alcohol` variable to the data set for each setting of the `quality` variable.
 
