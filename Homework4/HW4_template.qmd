@@ -64,7 +64,7 @@ wine_data2 <- wine_data2 |> mutate(type = "red")
 #Combine the two dataset together
 wine_data_final <- dplyr::bind_rows(wine_data, wine_data2)
 
-#Read in and apply the Wine Labels
+#Read in and apply the Wine Labels (Which is missing "type", so we have to add that)
 wine_data_lab <- read_excel("data/white-wine.xlsx", sheet =2)
 wine_data_lab <- wine_data_lab |> add_row(Variables = "type")
 colnames(wine_data_final) <- wine_data_lab[[1]]
