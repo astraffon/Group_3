@@ -95,11 +95,11 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 ```
 
 #### 13. Repeat the above by using the `sql()` function within `tbl()` (here you have to write actual SQL!).
-* Note: Either use dplyr or write SQL queries for the rest of these questions!*
 
 ```{r}
 
 ```
+* Note: Either use dplyr or write SQL queries for the rest of these questions!*
 
 #### 14. Return all of the players in the hall of fame, the year they were voted into the hall of fame, and their category (only those three variables!). See the `HallOfFame` table, the inducted variable is important here.
 

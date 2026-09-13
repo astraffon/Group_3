@@ -125,57 +125,89 @@ library(RSQLite)
 
 library(DBI)
 con <- dbConnect(RSQLite::SQLite(), "data/lahman.db")
+dbListTables(con)
 ```
 
 #### 12. Use the `tbl()` function and `dplyr` to **return** all of the data from the `Teams` table for the year 2015.
 
 ```{r}
+teams <- tbl(con, "Teams") |>
+  collect()
 
+tbl(con, "Teams") |>
+  filter(yearID == 2015) |>
+  collect() 
+  #show_query()  # This wasn't working for me, sadly.
+  #Just in case that Mimo SQL course I took wants to come back into my brain.
 ```
 
 #### 13. Repeat the above by using the `sql()` function within `tbl()` (here you have to write actual SQL!).
-* Note: Either use dplyr or write SQL queries for the rest of these questions!*
 
 ```{r}
-
+tbl(con, sql(
+  "SELECT *
+  FROM `Teams`
+	WHERE (`yearID` = 2015.0)")
+)
+#Do we need to force it to check the length of the db?
 ```
+* Note: Either use dplyr or write SQL queries for the rest of these questions!*
 
 #### 14. Return all of the players in the hall of fame, the year they were voted into the hall of fame, and their category (only those three variables!). See the `HallOfFame` table, the inducted variable is important here.
 
 ```{r}
-
+hof <- tbl(con, "HallOfFame") |>
+  select(playerID, yearID, category) |>
+  #filter(inducted == "Y") |> #I don't know why this won't work, but it should!
+  collect() 
+  #show_query()
 ```
 
 #### 15. Combine the table from the previous question with the `People` table in order to have the `nameFirst` and `nameLast` names added to what was returned above.
 
 ```{r}
-
+#I've saved HoF as an object, so I only need to grab the People tbl, then join the two database based on playerID
+inner_join(tbl(con, "People") |>
+             select(playerID, nameFirst, nameLast),
+  tbl(con, "HallOfFame") |> 
+             select(playerID, yearID, category),
+           #|> filter(inducted == "Y"), 
+  by = "playerID") |>
+  collect()
 ```
 
 #### 16. Return only the `playerID` (manager ID in this case), `G`, `W`, and `L` columns from the `Managers` table. Use chaining to then: 
 
 • Determine the overall win/loss records (sum of wins and sum of losses) for each of these hall of fame managers. – We haven’t quite covered this so I’ll help out. We want to use `group_by(`) with `summarize()` rather than `mutate()`. Something like this:
 
-```{r}
-tbl(con, "Managers") |>
-select(...) |>
-group_by(playerID) |>
-summarize(G_managed = sum(G, na.rm = TRUE),
-		Total_W = sum(W, na.rm = TRUE),
-		Total_L = sum(L, na.rm = TRUE))
-```
-
 • Create a new variable that is the career win/loss percentage (`Total_W/G_managed`). (Note: I did this after `collect()` otherwise the column type has to be set. . . ) 
 
 • Sort the resulting data by the win/loss percentage variable (from largest to smallest).
 
 ```{r}
-
+tbl(con, "Managers") |>
+  select(playerID, G, W, L) |>
+  group_by(playerID) |>
+  summarize(G_managed = sum(G, na.rm = TRUE),
+		Total_W = sum(W, na.rm = TRUE),
+		Total_L = sum(L, na.rm = TRUE)) |>
+  collect() |>
+  mutate(Career_WL = Total_W / G_managed) |>
+  arrange(desc(Career_WL))
 ```
 
 #### 17. Use the results from the previous two questions to answer this one! Return information for only the people that managed a team and were inducted into the hall of fame (regardless of their `category` in the hall of fame - you want to return all people in the hall of fame that ever managed at all). (Just return all of the variables from both of the above two questions - 9 total columns)
 
 ```{r}
+#I think I'm doing this one wrong. He wants me to use the tables from above, which I'm happy to do, but since I didn't assign them as objects, if feels like going backwards to adjust them.
+inner_join(tbl(con, "Managers") |>
+    select(playerID, G, W, L), 
+  tbl(con, "HallOfFame") |>
+    select(playerID, yearID, category), 
+  by = "playerID") |> 
+  collect()
 
+
+#inner_join(managers, hof, by = "playerID") |> collect()
 ```
 
