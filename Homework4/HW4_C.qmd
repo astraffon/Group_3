@@ -89,8 +89,8 @@ wine_data_final <- dplyr::bind_rows(wine_data, wine_data2)
 
 #Read in and apply the Wine Labels
 wine_data_lab <- read_excel("data/white-wine.xlsx", sheet =2)
+wine_data_lab |> add_row(Variables = "type")
 colnames(wine_data_final) <- wine_data_lab[[1]]
-wine_data_final
 ```
 
 #### 8. Continue your chain to now sort the data from highest quality to lowest.
@@ -102,7 +102,9 @@ He means fixed_acidity, volatile_acidity, citric_acid
 #### 10. Continue your chain to add the mean and standard deviation of the `alcohol` variable to the data set for each setting of the `quality` variable.
 
 ```{r}
-
+#Filter the data to `quality` > 6.5) `alcohol` < 13.2).
+wine_data_final |> 
+  filter(quality > 6.5 & alcohol < 13.2)
 ```
 
 ### Task 3: Database Practice
