@@ -54,6 +54,7 @@ glass_data |>
 ```{r}
 yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class"))
 
+#I'd like to avoid writing this code 7 times, so I'm trying to build a function.
 CalcMeanAndMeadian <- function(df, x, ...) {
   df |> 
     group_by(class) |>
@@ -89,7 +90,7 @@ wine_data_final <- dplyr::bind_rows(wine_data, wine_data2)
 
 #Read in and apply the Wine Labels
 wine_data_lab <- read_excel("data/white-wine.xlsx", sheet =2)
-wine_data_lab |> add_row(Variables = "type")
+wine_data_lab <- wine_data_lab |> add_row(Variables = "type")
 colnames(wine_data_final) <- wine_data_lab[[1]]
 ```
 
@@ -97,14 +98,17 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 
 #### 9. Continue your chain to select only the variables that contain `acid`, the `alcohol` variable, the `type` variable, and the `quality` variable.
 
-He means fixed_acidity, volatile_acidity, citric_acid
-
 #### 10. Continue your chain to add the mean and standard deviation of the `alcohol` variable to the data set for each setting of the `quality` variable.
 
 ```{r}
-#Filter the data to `quality` > 6.5) `alcohol` < 13.2).
-wine_data_final |> 
-  filter(quality > 6.5 & alcohol < 13.2)
+#Filter the data to quality > 6.5 alcohol < 13.2.
+wine_data_final <- wine_data_final |> 
+  filter(quality > 6.5 & alcohol < 13.2) |>
+  arrange(desc(quality)) |>
+  select(fixed_acidity, volatile_acidity, citric_acid, alcohol, type, quality)|>
+  group_by(quality) |>
+  mutate(mean_alcohol = mean(alcohol, na.rm = TRUE), sd_alcohol = sd(alcohol, na.rm = TRUE))
+wine_data_final
 ```
 
 ### Task 3: Database Practice
