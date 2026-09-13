@@ -107,13 +107,12 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 
 ```{r}
 #Filter the data to quality > 6.5 alcohol < 13.2.
-wine_data_final <- wine_data_final |> 
+wine_data_final |> 
   filter(quality > 6.5 & alcohol < 13.2) |>
   arrange(desc(quality)) |>
   select(fixed_acidity, volatile_acidity, citric_acid, alcohol, type, quality)|>
   group_by(quality) |>
   mutate(mean_alcohol = mean(alcohol, na.rm = TRUE), sd_alcohol = sd(alcohol, na.rm = TRUE))
-wine_data_final
 ```
 
 ### Task 3: Database Practice
@@ -121,7 +120,11 @@ wine_data_final
 #### 11. Download the `Lahman.db` file associated with the *Connecting to Databases* notes/video. Connect to the database and then look at all of the tables in the database.
 
 ```{r}
+#install.packages("RSQLite")
+library(RSQLite)
 
+library(DBI)
+con <- dbConnect(RSQLite::SQLite(), "data/lahman.db")
 ```
 
 #### 12. Use the `tbl()` function and `dplyr` to **return** all of the data from the `Teams` table for the year 2015.
