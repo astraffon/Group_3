@@ -141,46 +141,123 @@ glass |>
 
 #### 5. **Yeast data** In HW 3 you read in the Yeast data from https://www4.stat.ncsu.edu/\~online/datasets/yeast.data. Read this data into `R` directly from the URL, adding column names as well. Start a chain that removes the `seq_name` and `nuc` columns.
 
+```{r}
+#From the `tidyverse` we use the `readr` package and the `read_table()` function
+#to read in the data. We also use the `col_names` argument to name the columns.
+yeast <- readr::read_table(
+  "https://www4.stat.ncsu.edu/~online/datasets/yeast.data",
+  col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class")
+)
+
+#prints tibble
+yeast
+
+#start chain to remove `seq_name` and `nuc` columns
+yeast |>
+  select(-seq_name, -nuc)
+
+```
 #### 6. Continue your chain to add columns corresponding to the mean and median of each numeric variable (`mcg`, `gvh`, `alm`, `mit`, `erl`, `pox`, and `vac`) at each `class` grouping (see the `across()` function as we did in the `dplyr` video!).
 
 ```{r}
-yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", col_names = c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class"))
+yeast |>
+  select(-seq_name, -nuc) |>
+  group_by(class) |>
+  mutate(
+    across( #note: `across()` combines original column name + "_" + function name
+      mcg:vac,
+      list(mean = mean, median = median)
+    )
+  )
 ```
 
 #### 7. **Wine Data** In HW 3 you read in two data sets on wine. Read those two in and combine them as was done there. Start a chain on your new combined data object to filter the data to only look at high-quality wines (`quality` \> 6.5) and wines that have a reasonable alcohol value (`alcohol` \< 13.2).
 
 ```{r}
-#Read in White wine data
-library(readxl)
-wine_data <- read_excel("data/white-wine.xlsx")
-#Add in type = White
-wine_data <- wine_data |> mutate(type = "white")
+# Read in white wine data
+white_wine <- readxl::read_excel("data/white-wine.xlsx", sheet = 1)
 
-#Read in the Red wine data
-wine_data2 <- 
-  read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", 
+# Read in alternate variable names
+white_wine_2 <- readxl::read_excel("data/white-wine.xlsx", sheet = 2)
+
+# Replace white wine column names
+colnames(white_wine) <- white_wine_2[[1]]
+
+# Add wine type
+white_wine$type <- "white"
+
+# Read in red wine data
+red_wine <- readr::read_delim(
+  "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",
   delim = ";"
 )
-#Add in type = Red
-wine_data2 <- wine_data2 |> mutate(type = "red")
 
-#Combine the two dataset together
-wine_data_final <- dplyr::bind_rows(wine_data, wine_data2)
+# Replace red wine column names
+colnames(red_wine) <- white_wine_2[[1]]
 
-#Read in and apply the Wine Labels
-wine_data_lab <- read_excel("data/white-wine.xlsx", sheet =2)
-wine_data_lab <- wine_data_lab |> add_row(Variables = "type")
-colnames(wine_data_final) <- wine_data_lab[[1]]
+# Add wine type
+red_wine$type <- "red"
+
+# Combine the two data sets
+wine <- dplyr::bind_rows(white_wine, red_wine)
+
+
+#now we filter to high-quality wines with alcohol less than 13.2
+wine |>
+  filter(
+    quality > 6.5,
+    alcohol < 13.2
+  )
 ```
 
 #### 8. Continue your chain to now sort the data from highest quality to lowest.
 
+```{r}
+wine |>
+  filter(
+    quality > 6.5,
+    alcohol < 13.2
+  ) |>
+  arrange(desc(quality))
+```
+
+
 #### 9. Continue your chain to select only the variables that contain `acid`, the `alcohol` variable, the `type` variable, and the `quality` variable.
+```{r}
+wine |>
+  filter(
+    quality > 6.5,
+    alcohol < 13.2
+  ) |>
+  arrange(desc(quality)) |>
+  select(
+    contains("acid"),
+    alcohol,
+    type,
+    quality
+  )
+```
 
 #### 10. Continue your chain to add the mean and standard deviation of the `alcohol` variable to the data set for each setting of the `quality` variable.
 
 ```{r}
-
+wine |>
+  filter(
+    quality > 6.5,
+    alcohol < 13.2
+  ) |>
+  arrange(desc(quality)) |>
+  select(
+    contains("acid"),
+    alcohol,
+    type,
+    quality
+  ) |>
+  group_by(quality) |>
+  mutate(
+    mean_alcohol = mean(alcohol), #unlike the yeast example we don't use `across()'
+    sd_alcohol = sd(alcohol)
+  )
 ```
 
 ### Task 3: Database Practice
@@ -188,12 +265,26 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 #### 11. Download the `Lahman.db` file associated with the *Connecting to Databases* notes/video. Connect to the database and then look at all of the tables in the database.
 
 ```{r}
+#this loads the database interface package
+library(DBI)
 
+#we create an object to store the database connection
+con <- dbConnect(
+  RSQLite::SQLite(),
+  "data/lahman.db"
+)
+
+# to look at all the tables in the database 
+dbListTables(con)
 ```
 
 #### 12. Use the `tbl()` function and `dplyr` to **return** all of the data from the `Teams` table for the year 2015.
 
 ```{r}
+library(dplyr)
+
+tbl(con, "Teams") |>
+  filter(yearID == 2015)
 
 ```
 
@@ -202,19 +293,50 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 - Note: Either use dplyr or write SQL queries for the rest of these questions!\*
 
 ```{r}
-
+tbl(
+  con,
+  sql("SELECT * FROM Teams WHERE yearID = 2015")
+)
 ```
 
 #### 14. Return all of the players in the hall of fame, the year they were voted into the hall of fame, and their category (only those three variables!). See the `HallOfFame` table, the inducted variable is important here.
 
 ```{r}
+#dplyr version
+tbl(con, "HallOfFame") |>
+  filter(inducted == "Y") |>
+  select(playerID, yearID, category)
 
+#alternative SQL version
+tbl(
+  con,
+  sql("
+    SELECT playerID, yearID, category
+    FROM HallOfFame
+    WHERE inducted = 'Y'
+  ")
+)
 ```
 
 #### 15. Combine the table from the previous question with the `People` table in order to have the `nameFirst` and `nameLast` names added to what was returned above.
 
 ```{r}
+# dplyr version
+# will create an object first
+hall_of_fame <- tbl(con, "HallOfFame") |>
+  filter(inducted == "Y") |>
+  select(playerID, yearID, category)
 
+people <- tbl(con, "People") |>
+  select(playerID, nameFirst, nameLast)
+
+#join tables
+hall_of_fame_names <- hall_of_fame |>
+  left_join(people, by = "playerID") |>
+  collect()
+
+#inspect
+hall_of_fame_names
 ```
 
 #### 16. Return only the `playerID` (manager ID in this case), `G`, `W`, and `L` columns from the `Managers` table. Use chaining to then:
@@ -222,12 +344,17 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 • Determine the overall win/loss records (sum of wins and sum of losses) for each of these hall of fame managers. – We haven’t quite covered this so I’ll help out. We want to use `group_by(`) with `summarize()` rather than `mutate()`. Something like this:
 
 ```{r}
-tbl(con, "Managers") |>
-select(...) |>
-group_by(playerID) |>
-summarize(G_managed = sum(G, na.rm = TRUE),
-		Total_W = sum(W, na.rm = TRUE),
-		Total_L = sum(L, na.rm = TRUE))
+# will create an object first
+managers <- tbl(con, "Managers") |>
+  select(playerID, G, W, L) |>
+  group_by(playerID) |>
+  summarize(
+    G_managed = sum(G, na.rm = TRUE),
+    Total_W = sum(W, na.rm = TRUE),
+    Total_L = sum(L, na.rm = TRUE)
+  )
+#inspect object
+managers
 ```
 
 • Create a new variable that is the career win/loss percentage (`Total_W/G_managed`). (Note: I did this after `collect()` otherwise the column type has to be set. . . )
@@ -235,11 +362,23 @@ summarize(G_managed = sum(G, na.rm = TRUE),
 • Sort the resulting data by the win/loss percentage variable (from largest to smallest).
 
 ```{r}
+# will create an object first
+manager_win_pct <- managers |>
+  collect() |>
+  mutate(
+    Win_Pct = Total_W / G_managed
+  ) |>
+  arrange(desc(Win_Pct))
 
+manager_win_pct
 ```
 
 #### 17. Use the results from the previous two questions to answer this one! Return information for only the people that managed a team and were inducted into the hall of fame (regardless of their `category` in the hall of fame - you want to return all people in the hall of fame that ever managed at all). (Just return all of the variables from both of the above two questions - 9 total columns)
 
 ```{r}
+hall_of_fame_managers <- hall_of_fame_names |>
+  inner_join(manager_win_pct, by = "playerID")
 
+hall_of_fame_managers
 ```
+
