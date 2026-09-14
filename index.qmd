@@ -7,5 +7,6 @@ format: html
 
 Links to Homeworks
 
-- [Homework 2] (/Homework2/HW2_compiled.qmd)
+- [Homework 2](/Homework2/HW2_compiled.qmd)
+
 
