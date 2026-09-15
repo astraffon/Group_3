@@ -116,7 +116,7 @@ yeast <- yeast |>
 yeast
 ```
 
-#### 7. **Wine Data** In HW 3 you read in two data sets on wine. Read those two in and combine them as was done there. Start a chain on your new combined data object to filter the data to only look at high-quality wines (`quality` \> 6.5) and wines that have a reasonable alcohol value (`alcohol` \< 13.2).
+#### 7. **Wine Data** In HW 3 you read in two data sets on wine. Read those two in and combine them as was done there. 
 
 ```{r}
 #Read in White wine data
@@ -142,6 +142,8 @@ wine_data_lab <- wine_data_lab |> add_row(Variables = "type")
 colnames(wine_data_final) <- wine_data_lab[[1]]
 ```
 
+#### Start a chain on your new combined data object to filter the data to only look at high-quality wines (`quality` \> 6.5) and wines that have a reasonable alcohol value (`alcohol` \< 13.2).
+
 #### 8. Continue your chain to now sort the data from highest quality to lowest.
 
 #### 9. Continue your chain to select only the variables that contain `acid`, the `alcohol` variable, the `type` variable, and the `quality` variable.
@@ -149,7 +151,25 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 #### 10. Continue your chain to add the mean and standard deviation of the `alcohol` variable to the data set for each setting of the `quality` variable.
 
 ```{r}
+wine_data_final <- wine_data_final |>
+  
+  # 7.Keep high-quality wines with alcohol less than 13.2
+  filter(quality > 6.5, alcohol < 13.2) |>
+  
+  # 8.Sort from highest to lowest quality
+  arrange(desc(quality)) |>
+  
+  # 9.Keep acid variables, alcohol, type, and quality
+  select(contains("acid"), alcohol, type, quality) |>
+  
+  # 10.Add mean and standard deviation of alcohol for each quality
+  group_by(quality) |>
+  mutate(
+    alcohol_mean = mean(alcohol),
+    alcohol_sd = sd(alcohol)
+  )
 
+wine_data_final
 ```
 
 ### Task 3: Database Practice
@@ -157,19 +177,32 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 #### 11. Download the `Lahman.db` file associated with the *Connecting to Databases* notes/video. Connect to the database and then look at all of the tables in the database.
 
 ```{r}
+library(DBI)
+library(RSQLite)
+library(dplyr)
 
+con <- dbConnect(
+  RSQLite::SQLite(),
+  "data/Lahman.db"
+)
+
+dbListTables(con)
 ```
 
 #### 12. Use the `tbl()` function and `dplyr` to **return** all of the data from the `Teams` table for the year 2015.
 
 ```{r}
-
+tbl(con, "Teams") |>
+  filter(yearID == 2015)
 ```
 
 #### 13. Repeat the above by using the `sql()` function within `tbl()` (here you have to write actual SQL!).
 
 ```{r}
-
+tbl(
+  con,
+  sql("SELECT * FROM Teams WHERE yearID = 2015")
+)
 ```
 
 -   Note: Either use dplyr or write SQL queries for the rest of these questions!\*
@@ -177,13 +210,24 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 #### 14. Return all of the players in the hall of fame, the year they were voted into the hall of fame, and their category (only those three variables!). See the `HallOfFame` table, the inducted variable is important here.
 
 ```{r}
+hall_fame <- tbl(con, "HallOfFame") |>
+  filter(inducted == "Y") |>
+  select(playerID, yearID, category)
 
+hall_fame
 ```
 
 #### 15. Combine the table from the previous question with the `People` table in order to have the `nameFirst` and `nameLast` names added to what was returned above.
 
 ```{r}
+hall_fame_names <- hall_fame |>
+  left_join(
+    tbl(con, "People") |>
+      select(playerID, nameFirst, nameLast),
+    by = "playerID"
+  )
 
+hall_fame_names
 ```
 
 #### 16. Return only the `playerID` (manager ID in this case), `G`, `W`, and `L` columns from the `Managers` table. Use chaining to then:
@@ -204,11 +248,26 @@ summarize(G_managed = sum(G, na.rm = TRUE),
 • Sort the resulting data by the win/loss percentage variable (from largest to smallest).
 
 ```{r}
+manager_records <- tbl(con, "Managers") |>
+  select(playerID, G, W, L) |>
+  group_by(playerID) |>
+  summarize(
+    G_managed = sum(G, na.rm = TRUE),
+    Total_W = sum(W, na.rm = TRUE),
+    Total_L = sum(L, na.rm = TRUE)
+  )
 
+manager_records
 ```
 
 #### 17. Use the results from the previous two questions to answer this one! Return information for only the people that managed a team and were inducted into the hall of fame (regardless of their `category` in the hall of fame - you want to return all people in the hall of fame that ever managed at all). (Just return all of the variables from both of the above two questions - 9 total columns)
 
 ```{r}
+hall_fame_managers <- hall_fame_names |>
+  inner_join(
+    manager_records,
+    by = "playerID"
+  )
 
+hall_fame_managers
 ```
