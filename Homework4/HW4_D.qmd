@@ -5,110 +5,468 @@ format: html
 editor: visual
 ---
 
+## Task 1: Conceptual Questions
 
-### Task 1: Conceptual Questions
-
-#### 1. Rewrite the following nested function call using baseR’s chaining operator:
+**1. Rewrite the following nested function call using baseR’s chaining operator:**
 
 ```{r}
+library(tidyverse)
+arrange(filter(select(as_tibble(iris), starts_with("Petal"), Species), Petal.Length <
+    1.55), Species)
+
+# Rewriting nested function call using baseR's chaining operator
+
+iris |>
+  as_tibble() |>
+  select(starts_with("Petal"), Species) |>
+  filter(Petal.Length < 1.55) |>
+  arrange(Species)
 
 ```
 
-#### 2. What is meant by long format data and wide format data? Which do we generally prefer for statistical analysis?
+**2. What is meant by long format data and wide format data? Which do we generally prefer for statistical analysis?**
 
-### Task 2:
+Long format data has many rows, where there is one observation per row. Wide format data has many columns, where each variable has its own column and each observation has one row. Long format data is preferred for statistical analysis.
+
+## Task 2:
 
 *Note: Use chaining where possible!*
 
-#### 3. **Glass data:** In HW 3 you read in the glass data from https://www4.stat.ncsu.edu/~online/datasets/glass.data. Let’s reread that data (use your code from HW 3) that also names the columns. Recall the last variable being `Type of Glass` with values of:– 1 building_windows_float_processed, – 2 building_windows_non_float_processed, – 3 vehicle_windows_float_processed, – 4 vehicle_windows_non_float_processed (none in this database), – 5 containers, – 6 tableware, – 7 headlamps. Start a chain on your data object that overwrites the `Type_of_glass` variable using `mutate()`.
+### Glass Data
 
-• Create a `factor` version of the variable that replaces the numbers with string labels (that is, replace 1 with “building_windows_float_processed”, 2 with “building_win. . . ”, etc. - see the variable descriptions above to give meaningful values). 
+In HW 3 you read in the glass data from https://www4.stat.ncsu.edu/\~online/datasets/glass.data. Let’s reread that data (use your code from HW 3) that also names the columns. Recall the last variable being `Type of Glass` with values of:– 1 building_windows_float_processed, – 2 building_windows_non_float_processed, – 3 vehicle_windows_float_processed, – 4 vehicle_windows_non_float_processed (none in this database), – 5 containers, – 6 tableware, – 7 headlamps.
+
+```{r}
+# use `read_csv()` to import data
+
+glass_data <- read_csv("https://www4.stat.ncsu.edu/online/datasets/glass.data", 
+                       col_names = c("Id", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", 
+                                     "Ba", "Fe", "Type_of_Glass"))
+
+# print tibble
+glass_data
+```
+
+**3. Start a chain on your data object that overwrites the `Type_of_glass` variable using `mutate()`.**
+
+• Create a `factor` version of the variable that replaces the numbers with string labels (that is, replace 1 with “building_windows_float_processed”, 2 with “building_win. . . ”, etc. - see the variable descriptions above to give meaningful values).
+
+```{r}
+# overwrite "Type_of_Glass" variable using `mutate()`
+# replace numbers with string labels using `factor()`
+
+glass_data <- glass_data |>
+  mutate(Type_of_Glass = factor(
+    Type_of_Glass,
+    levels = c(1,2,3,4,5,6,7),
+    labels = c(
+      "building_windows_float_processed",
+      "building_windows_non_float_processed",
+      "vehicle_windows_float_processed",
+      "vehicle_windows_non_float_processed",
+      "containers",
+      "tableware",
+      "headlamps"
+    )))
+
+# check 
+levels(glass_data$Type_of_Glass)
+
+```
 
 • This could also be done by first using an `ifelse()` type call and then converting to a factor. Either way is fine!
 
-#### 4. Continue your chain and keep only observations where the `Fe` variable is less than 0.2 and the `Type of Glass` is either “tableware” or “headlamp”.
-
 ```{r}
+# other approach is using `ifelse()` and then convert to a factor
+
+glass_data2 <- glass_data |> 
+  mutate(Type_of_glass = 
+           ifelse(Type_of_Glass == 1,
+            "building_windows_float_processed", 
+            ifelse(Type_of_Glass == 2, 
+            "building_windows_non_float_processed", 
+            ifelse(Type_of_Glass == 3, 
+            "vehicle_windows_float_processed", 
+            ifelse(Type_of_Glass == 4,
+            "vehicle_windows_non_float_processed", 
+            ifelse(Type_of_Glass == 5, 
+            "containers", 
+            ifelse(Type_of_Glass == 6, 
+            "tableware", 
+            ifelse(Type_of_Glass == 7, 
+            "headlamps", 
+            NA)))))))) |> 
+  mutate(Type_of_Glass = factor(Type_of_Glass))
 
 ```
 
-#### 5. **Yeast data** In HW 3 you read in the Yeast data from https://www4.stat.ncsu.edu/~online/datasets/yeast.data. Read this data into `R` directly from the URL, adding column names as well. Start a chain that removes the `seq_name` and `nuc` columns.
-
-#### 6. Continue your chain to add columns corresponding to the mean and median of each numeric variable (`mcg`, `gvh`, `alm`, `mit`, `erl`, `pox`, and `vac`) at each `class` grouping (see the `across()` function as we did in the `dplyr` video!).
+**4. Continue your chain and keep only observations where the `Fe` variable is less than 0.2 and the `Type of Glass` is either “tableware” or “headlamp”.**
 
 ```{r}
+# only keep observations where `Fe` < 0.2 and `Type_of_Glass` is either "tableware" or "headlamp" using `filter()`
 
+glass_data <- glass_data |>
+  filter(Fe < 0.2, Type_of_Glass == "tableware" | Type_of_Glass == "headlamps")
+
+# check
+glass_data
 ```
 
+**Full Chain**
 
-#### 7. **Wine Data** In HW 3 you read in two data sets on wine. Read those two in and combine them as was done there. Start a chain on your new combined data object to filter the data to only look at high-quality wines (`quality` > 6.5) and wines that have a reasonable alcohol value (`alcohol` < 13.2).
+```         
+glass_data <- glass_data |>
+  mutate(Type_of_Glass = factor(
+    Type_of_Glass,
+    levels = c(1,2,3,4,5,6,7),
+    labels = c(
+      "building_windows_float_processed",
+      "building_windows_non_float_processed",
+      "vehicle_windows_float_processed",
+      "vehicle_windows_non_float_processed",
+      "containers",
+      "tableware",
+      "headlamps"
+    ))) |>
+   filter(
+     Fe < 0.2, 
+     Type_of_Glass == "tableware" | 
+       Type_of_Glass == "headlamps"
+     )
+```
+
+### Yeast Data
+
+In HW 3 you read in the Yeast data from https://www4.stat.ncsu.edu/\~online/datasets/yeast.data. Read this data into `R` directly from the URL, adding column names as well.
 
 ```{r}
+# use `read_table` to import data
 
+yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", 
+                         col_names = c("seq_name", "mcg", "gvh", "alm", "mit", 
+                                       "erl", "pox", "vac", "nuc", "class"))
+
+# check tibble
+yeast_data
 ```
 
-#### 8. Continue your chain to now sort the data from highest quality to lowest.
-
-#### 9. Continue your chain to select only the variables that contain `acid`, the `alcohol` variable, the `type` variable, and the `quality` variable.
-
-#### 10. Continue your chain to add the mean and standard deviation of the `alcohol` variable to the data set for each setting of the `quality` variable.
+**5. Start a chain that removes the `seq_name` and `nuc` columns.**
 
 ```{r}
+# remove `seq_name` and `nuc` columns using `select(-x)` 
+# where x is the variable you want to remove
 
+yeast_data <- yeast_data |>
+  select(-seq_name, -nuc)
+  
+# check
+names(yeast_data)
 ```
 
-### Task 3: Database Practice
-
-#### 11. Download the `Lahman.db` file associated with the *Connecting to Databases* notes/video. Connect to the database and then look at all of the tables in the database.
+**6. Continue your chain to add columns corresponding to the mean and median of each numeric variable (`mcg`, `gvh`, `alm`, `mit`, `erl`, `pox`, and `vac`) at each `class` grouping (see the `across()` function as we did in the `dplyr` video!).**
 
 ```{r}
+# add mean and median columns corresponding to each numeric variable at 
+# each `class` grouping using `group_by()` and `across()`
 
+yeast_data <- yeast_data |>
+  group_by(class) |>
+  mutate(
+    across(
+      mcg:vac,
+      list(mean = mean, median = median))
+  )
+
+# check
+names(yeast_data)
 ```
 
-#### 12. Use the `tbl()` function and `dplyr` to **return** all of the data from the `Teams` table for the year 2015.
+**Full Chain**
+
+```         
+yeast_data <- yeast_data |>
+  select(-seq_name, -nuc) |>
+  group_by(class) |>
+  mutate(
+    across(
+      mcg:vac,
+      list(mean = mean, median = median))
+  )
+```
+
+### Wine Data
+
+In HW 3 you read in two data sets on wine. Read those two in and combine them as was done there.
 
 ```{r}
+# import white wine data
+white_wine_data <- readxl::read_excel("data/white-wine.xlsx", sheet = 1)
+white_wine_data_2 <- readxl::read_excel("data/white-wine.xlsx", sheet = 2)
 
+# replace column names
+colnames(white_wine_data) <- white_wine_data_2[[1]]
+
+# add wine type
+white_wine_data$type <- "white"
+
+# import red wine data
+red_wine_data <- readr::read_delim(
+  "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", 
+  delim = ";")
+
+# replace column names
+colnames(red_wine_data) <- white_wine_data_2[[1]] 
+
+# add wine type
+red_wine_data$type <- "red" 
+
+# combine the two data sets 
+wine_data <- bind_rows(white_wine_data, red_wine_data) 
+
+# check
+table(wine_data$type)
 ```
 
-#### 13. Repeat the above by using the `sql()` function within `tbl()` (here you have to write actual SQL!).
+**7. Start a chain on your new combined data object to filter the data to only look at high-quality wines (`quality` \> 6.5) and wines that have a reasonable alcohol value (`alcohol` \< 13.2).**
 
 ```{r}
+# filter data to only show wines with quality > 6.5 and alcohol < 13.2 using `filter()`
 
+wine_data <- wine_data |>
+  filter(quality > 6.5, alcohol < 13.2)
+
+# check
+wine_data
 ```
-* Note: Either use dplyr or write SQL queries for the rest of these questions!*
 
-#### 14. Return all of the players in the hall of fame, the year they were voted into the hall of fame, and their category (only those three variables!). See the `HallOfFame` table, the inducted variable is important here.
+**8. Continue your chain to now sort the data from highest quality to lowest.**
 
 ```{r}
+# sort data from highest quality to lowest using `arrange()`
 
+wine_data <- wine_data |>
+  arrange(desc(quality))
+
+# check
+wine_data
 ```
 
-#### 15. Combine the table from the previous question with the `People` table in order to have the `nameFirst` and `nameLast` names added to what was returned above.
+**9. Continue your chain to select only the variables that contain `acid`, the `alcohol` variable, the `type` variable, and the `quality` variable.**
 
 ```{r}
+# select only variables containing "acid" in name, 
+# as well as the `alcohol`, `type`, and  `quality` variables 
 
+wine_data <- wine_data |>
+  select(
+    contains("acid"),
+    alcohol, 
+    type,
+    quality
+  )
+
+# check
+wine_data
 ```
 
-#### 16. Return only the `playerID` (manager ID in this case), `G`, `W`, and `L` columns from the `Managers` table. Use chaining to then: 
-
-• Determine the overall win/loss records (sum of wins and sum of losses) for each of these hall of fame managers. – We haven’t quite covered this so I’ll help out. We want to use `group_by(`) with `summarize()` rather than `mutate()`. Something like this:
+**10. Continue your chain to add the mean and standard deviation of the `alcohol` variable to the data set for each setting of the `quality` variable.**
 
 ```{r}
+# add mean and standard deviation columns for the `alcohol` variable
+# group by `quality` variable 
 
+wine_data <- wine_data |>
+  group_by(quality) |>
+  mutate(
+    mean_alcohol = mean(alcohol),
+    sd_alcohol = sd(alcohol)
+  )
+
+# check 
+wine_data
 ```
 
-• Create a new variable that is the career win/loss percentage (`Total_W/G_managed`). (Note: I did this after `collect()` otherwise the column type has to be set. . . ) 
+**Full Chain**
+
+```         
+wine_data <- wine_data |>
+  filter(quality > 6.5, alcohol < 13.2) |>
+  arrange(desc(quality)) |>
+   select(
+    contains("acid"),
+    alcohol, 
+    type,
+    quality
+  ) |>
+  group_by(quality) |>
+  mutate(
+    mean_alcohol = mean(alcohol),
+    sd_alcohol = sd(alcohol)
+  )
+```
+
+## Task 3: Database Practice
+
+Download the `Lahman.db` file associated with the *Connecting to Databases* notes/video. 
+
+**11. Connect to the database and then look at all of the tables in the database.**
+
+```{r}
+# install.packages("RSQLite") in console
+library(RSQLite)
+library(DBI)
+
+# connect to database & store connection
+con <- dbConnect(
+  RSQLite::SQLite(), 
+  "data/lahman.db")
+
+# look at all tables in database
+dbListTables(con)
+```
+
+**12. Use the `tbl()` function and `dplyr` to *return* all of the data from the `Teams` table for the year 2015.**
+
+```{r}
+# install.packages("dplyr") in console
+library(dplyr)
+
+# use `tbl()` to return data from the `Teams` table for the year 2015
+
+teams_data <- tbl(con, "Teams") |>
+  filter(yearID == 2015)
+
+# check data frame
+teams_data
+```
+
+**13. Repeat the above by using the `sql()` function within `tbl()` (here you have to write actual SQL!).**
+
+```{r}
+# use `sql()` to return data from the `Teams` table for the year 2015
+
+teams_data2 <- tbl(con,
+  sql("SELECT * 
+      FROM Teams 
+      WHERE yearID = 2015")
+  )
+
+# check data frame
+teams_data2
+```
+
+- Note: Either use dplyr or write SQL queries for the rest of these questions!\*
+
+**14. Return all of the players in the hall of fame, the year they were voted into the hall of fame, and their category (only those three variables!). See the `HallOfFame` table, the inducted variable is important here.**
+
+```{r}
+# return all players from the `HallOfFame` table, 
+# plus the year they were voted in and their category
+# use `tbl()` from `dplyr` or `sql()`
+
+# dplyr
+HOF_players <- tbl(con, "HallOfFame") |>
+  filter(inducted == "Y") |>
+  select(playerID, yearID, category)
+
+# check data frame
+HOF_players
+
+# SQL query
+HOF_players2 <- tbl(con,
+  sql("SELECT playerID, yearID, category
+       FROM HallOfFame
+       WHERE inducted = 'Y'")
+       )
+
+# check data frame
+HOF_players2
+```
+
+**15. Combine the table from the previous question with the `People` table in order to have the `nameFirst` and `nameLast` names added to what was returned above.**
+
+```{r}
+# return first and last name of players from the `People` table
+
+player_names <- tbl(con, "People") |>
+  select(playerID, nameFirst, nameLast)
+
+# check data frame
+player_names
+
+# combine with `HOF_players` table using `left_join()`
+HOF_names <- HOF_players |>
+  left_join(player_names, by = "playerID") |>
+  collect()
+# `left_join()` keeps HallOfFame data and adds matching names from People
+
+# check tibble
+HOF_names
+```
+
+**16. Return only the `playerID` (manager ID in this case), `G`, `W`, and `L` columns from the `Managers` table.**
+
+• Use chaining to determine the overall win/loss records (sum of wins and sum of losses) for each of these hall of fame managers. – We haven’t quite covered this so I’ll help out. We want to use `group_by(`) with `summarize()` rather than `mutate()`. Something like this:
+
+```{r}
+# return `playerID`, `G`, `W`, and `L` from the `Managers` table
+# determine overall win/loss records for each manager 
+# using `group_by()` and `summarize()`
+
+managers <- tbl(con, "Managers") |>
+  select(playerID, G, W, L) |>
+  group_by(playerID) |>
+  summarize(G_managed = sum(G, na.rm = TRUE),
+            Total_W = sum(W, na.rm = TRUE),
+            Total_L = sum(L, na.rm = TRUE)
+  )
+
+# check
+managers
+```
+
+• Create a new variable that is the career win/loss percentage (`Total_W/G_managed`). (Note: I did this after `collect()` otherwise the column type has to be set. . . )
 
 • Sort the resulting data by the win/loss percentage variable (from largest to smallest).
 
 ```{r}
+# create new variable that is career win/loss percentage (WL_PCT)
+# sort data by win/loss percentage (WL_PCT) variable from largest to smallest
 
+managers <- managers |>
+  collect() |>
+  mutate(WL_PCT = Total_W / G_managed) |>
+  arrange(desc(WL_PCT))
+
+# check tibble
+managers
 ```
 
-#### 17. Use the results from the previous two questions to answer this one! Return information for only the people that managed a team and were inducted into the hall of fame (regardless of their `category` in the hall of fame - you want to return all people in the hall of fame that ever managed at all). (Just return all of the variables from both of the above two questions - 9 total columns)
+**Full Chain**
+
+```
+managers <- tbl(con, "Managers") |>
+  select(playerID, G, W, L) |>
+  group_by(playerID) |>
+  summarize(G_managed = sum(G, na.rm = TRUE),
+            Total_W = sum(W, na.rm = TRUE),
+            Total_L = sum(L, na.rm = TRUE)
+  ) |>
+  collect() |>
+  mutate(WL_PCT = Total_W / G_managed) |>
+  arrange(desc(WL_PCT))
+```
+
+**17. Use the results from the previous two questions to answer this one! Return information for only the people that managed a team and were inducted into the hall of fame (regardless of their `category` in the hall of fame - you want to return all people in the hall of fame that ever managed at all). (Just return all of the variables from both of the above two questions - 9 total columns)**
 
 ```{r}
+# return information for only people that managed a team 
+# AND were inducted into the Hall of Fame using `inner_join()`
 
+HOF_managers <- HOF_names |>
+  inner_join(managers, by = "playerID") 
+# keeps rows in both tables that have a matching playerID 
+
+# check
+HOF_managers
 ```
-
