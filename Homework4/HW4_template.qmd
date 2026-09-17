@@ -191,12 +191,7 @@ colnames(wine_data_final) <- wine_data_lab[[1]]
 • Determine the overall win/loss records (sum of wins and sum of losses) for each of these hall of fame managers. – We haven’t quite covered this so I’ll help out. We want to use `group_by(`) with `summarize()` rather than `mutate()`. Something like this:
 
 ```{r}
-tbl(con, "Managers") |>
-select(...) |>
-group_by(playerID) |>
-summarize(G_managed = sum(G, na.rm = TRUE),
-		Total_W = sum(W, na.rm = TRUE),
-		Total_L = sum(L, na.rm = TRUE))
+
 ```
 
 • Create a new variable that is the career win/loss percentage (`Total_W/G_managed`). (Note: I did this after `collect()` otherwise the column type has to be set. . . )

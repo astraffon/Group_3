@@ -286,7 +286,7 @@ dbl (11): Id, RI, Na, Mg, Al, Si, K, Ca, Ba, Fe, Type_of_Glass
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># other approach is using `ifelse()` and then convert to a factor</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>glass_data <span class="ot">&lt;-</span> glass_data <span class="sc">|&gt;</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>glass_data2 <span class="ot">&lt;-</span> glass_data <span class="sc">|&gt;</span> </span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Type_of_glass =</span> </span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>           <span class="fu">ifelse</span>(Type_of_Glass <span class="sc">==</span> <span class="dv">1</span>,</span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">"building_windows_float_processed"</span>, </span>
@@ -315,7 +315,7 @@ dbl (11): Id, RI, Na, Mg, Al, Si, K, Ca, Ba, Fe, Type_of_Glass
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"># check</span></span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>glass_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 38 × 12
+<pre><code># A tibble: 38 × 11
       Id    RI    Na    Mg    Al    Si     K    Ca    Ba    Fe Type_of_Glass
    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;        
  1   177  1.52  14    2.39  1.56  72.4  0     9.57  0        0 tableware    
@@ -328,8 +328,7 @@ dbl (11): Id, RI, Na, Mg, Al, Si, K, Ca, Ba, Fe, Type_of_Glass
  8   184  1.52  14.6  0     0.56  73.5  0    11.2   0        0 tableware    
  9   185  1.51  17.4  0     0.34  75.4  0     6.65  0        0 tableware    
 10   186  1.51  13.7  3.2   1.81  72.8  1.76  5.43  1.19     0 headlamps    
-# ℹ 28 more rows
-# ℹ 1 more variable: Type_of_glass &lt;lgl&gt;</code></pre>
+# ℹ 28 more rows</code></pre>
 </div>
 </div>
 <p><strong>Full Chain</strong></p>
@@ -413,7 +412,7 @@ cols(
 <p><strong>6. Continue your chain to add columns corresponding to the mean and median of each numeric variable (<code>mcg</code>, <code>gvh</code>, <code>alm</code>, <code>mit</code>, <code>erl</code>, <code>pox</code>, and <code>vac</code>) at each <code>class</code> grouping (see the <code>across()</code> function as we did in the <code>dplyr</code> video!).</strong></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add mean and median columns corresponding to each numeric variable at </span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co"># each `class` grouping using `groupby()` and `across()`</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co"># each `class` grouping using `group_by()` and `across()`</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>yeast_data <span class="ot">&lt;-</span> yeast_data <span class="sc">|&gt;</span></span>
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(class) <span class="sc">|&gt;</span></span>
@@ -819,9 +818,10 @@ dbl (12): fixed acidity, volatile acidity, citric acid, residual sugar, chlo...
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>HOF_names <span class="ot">&lt;-</span> HOF_players <span class="sc">|&gt;</span></span>
 <span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(player_names, <span class="at">by =</span> <span class="st">"playerID"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect</span>()</span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a><span class="co"># check tibble</span></span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>HOF_names</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="co"># `left_join()` keeps HallOfFame data and adds matching names from People</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a><span class="co"># check tibble</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>HOF_names</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 340 × 5
    playerID  yearID category          nameFirst nameLast 
@@ -921,10 +921,11 @@ dbl (12): fixed acidity, volatile acidity, citric acid, residual sugar, chlo...
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="co"># AND were inducted into the Hall of Fame using `inner_join()`</span></span>
 <span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>HOF_managers <span class="ot">&lt;-</span> HOF_names <span class="sc">|&gt;</span></span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(managers, <span class="at">by =</span> <span class="st">"playerID"</span>) <span class="co"># keeps rows in both tables that have a matching playerID </span></span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a><span class="co"># check</span></span>
-<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>HOF_managers</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(managers, <span class="at">by =</span> <span class="st">"playerID"</span>) </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a><span class="co"># keeps rows in both tables that have a matching playerID </span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a><span class="co"># check</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>HOF_managers</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 97 × 9
    playerID  yearID category nameFirst nameLast G_managed Total_W Total_L WL_PCT
