@@ -2,7 +2,7 @@
 title: "Homework 4"
 author: "Maya Szymborski"
 format: html
-editor: visual
+editor: source
 ---
 
 ## Task 1: Conceptual Questions
