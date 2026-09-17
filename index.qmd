@@ -11,4 +11,5 @@ Links to Homeworks
 
 - [Homework 3](/Homework 3/HW3_Combined.qmd)
 
-- [Homework 4]
+- [Homework 4](/Homework4/HW4_Final.qmd)
+
