@@ -110,8 +110,27 @@ coaster_data <- read_csv(
 Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.
 
 ```{r}
+#checking structure of data to make sure it makes sense
+str(coaster_data)
+
+#converting data; note the ` ` for the column headers with special characters
+coaster_data2 <- coaster_data |>
+  mutate(State = as.factor(State),
+         `Census Region` = as.factor(`Census Region`),
+         AgeGroup = as.factor(AgeGroup),
+         Scale = as.factor(Scale),
+         Type = as.factor(Type),
+         Design = as.factor(Design),
+         `Inversions?` = as.factor(`Inversions?`))
+
+str(coaster_data2)
 
 ```
+In the original data, several categorical variables were stored as character variables, 
+specifically `State`, `Census Region`, `AgeGroup`, `Scale`, `Type`, `Design`, and 
+`Inversions?`. They were converted to *factors* using the `mutate()` and `across()` 
+functions. As noted in class, factors are useful for categorical variables because 
+they have a levels attribute that becomes helpful for ordering and plotting.
 
 ## Question 5
 
@@ -119,7 +138,10 @@ Document any missing values in the data.
 
 ```{r}
 
+#from EDA material that shows us how to find missing data
+colSums(is.na(coaster_data2))
 ```
+Missing data are found in `Top Speed` = 74, `MaxHeight` = 8, `Drop` = 128, `Length` =33, `Duration` = 66, and `Make` = 36
 
 # Categorical Variables
 
@@ -136,28 +158,40 @@ Use `table()` and interpret one value from each resulting table.
 ### One-Way Table
 
 ```{r}
+# One-way contingency table
+table(coaster_data2$Type)
 
 ```
-
-**Interpretation:**
-
+There are 635 roller coaster observations in the data. 530 are made from *steel* and
+105 are made from *wood*.
 
 ### Two-Way Table
 
 ```{r}
-
+# Two-way contingency table
+table(coaster_data2$Scale, coaster_data2$Type)
 ```
 
-**Interpretation:**
+The *scale* of the roller coaster further classifies the ride by its intensity level 
+across the `type` variable. It shows that the *Extreme* intensity level is the most 
+popular (216 + 53 = 269 rides) while the *Kiddie* intensity level is the least popular 
+(27 + 1 = 28 rides).
 
 
 ### Three-Way Table
 
 ```{r}
-
+# Three-way contingency table
+table(
+  coaster_data2$Scale,
+  coaster_data2$Type,
+  coaster_data2$`Inversions?`)
 ```
 
-**Interpretation:**
+The `Inversions?` factor tells us the number of roller coasters that have loops. 
+Of the 635 roller coasters in our sample there are 170,  or about 27%, that have 
+loops. It is also evident that the material of choice to accommodate for loops is 
+steel given it accounts for 166 of the 170 roller coasters.
 
 
 ## Question 7
@@ -167,13 +201,26 @@ Create a conditional two-way table using two different methods.
 ### Method 1 - Subset the Data First
 
 ```{r}
+# Filter data to roller coasters with inversions
+coaster_inversions <- coaster_data2 |>
+  filter(`Inversions?` == "Yes")
 
+# Create two-way conditional table
+table(coaster_inversions$Scale, coaster_inversions$Type)
 ```
 
 ### Method 2 - Subset a Three-Way Table
 
 ```{r}
+# Create three-way contingency table
+coaster_table <- table(
+  coaster_data2$Scale,
+  coaster_data2$Type,
+  coaster_data2$`Inversions?`
+)
 
+# Condition on `Inversions?` = Yes
+coaster_table[, , "Yes"]
 ```
 
 ## Question 8
