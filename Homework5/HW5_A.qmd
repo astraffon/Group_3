@@ -1,0 +1,201 @@
+---
+title: "Homework 5"
+author: "Alfonso Straffon"
+format: html
+---
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(httr)
+library(jsonlite)
+```
+
+# Task 1 - Querying an API and a Tidy-Style Function
+
+## Question 1
+
+Use `GET()` from the `httr` package to return information about a topic of interest that has been in the news lately. Store the result as an R object.
+
+```{r}
+#this creates an HTTP response object
+news_return <- GET("https://newsapi.org/v2/everything?q=prediction%20markets&from=2026-08-21&language=en&pageSize=50&apiKey=5666c93387864ff7b1e91fc2cef51c8a")
+
+#to inspect structure
+str(news_return, max.level = 1)
+```
+
+## Question 2
+
+Parse what is returned and find the data frame containing the article information.
+
+```{r}
+#parsing converts raw JSON into a normal R object
+#`jasonlite` is an R package used to read, parse, and convert JSON data into R objects
+library(jsonlite)
+
+#news_return$content -> grabs the raw API response
+#rawToChar() -> converts the raw data into readable JSON text
+#fromJSON() -> converts the JSON into an R object
+#parsed <-  -> saves converted object
+parsed <- fromJSON(rawToChar(news_return$content))
+names(parsed)
+
+#data frame containing article information only
+str(parsed$articles)
+
+```
+
+## Question 3
+
+Write a function that allows the user to query the API. The function should take:
+
+- a title or subject to search for,
+- a starting date,
+- an API key.
+
+Use the function twice to demonstrate that it works.
+
+```{r}
+# creating a function to run a query on NewsAPI
+news_query <- function(subject, from_date, api_key) {
+  # replaces blank spaces with proper URL spacing 
+  subject <- gsub(" ", "%20", subject)
+  # build URL with `paste0()` function, which joins text with no separator
+  url <- paste0(
+     "https://newsapi.org/v2/everything?q=", subject,
+     "&from=", from_date,
+     "&language=en&pageSize=50&apiKey=", api_key
+  )
+  
+  # sends request to NewsAPI and stores the response
+  news_return <- GET(url)
+  
+  # convert raw JSON response into an R object
+  parsed <- fromJSON(rawToChar(news_return$content))
+  
+  # returns data frame containing the article information
+  parsed$articles
+}
+
+#Test 1
+test1 <- news_query(
+  "prediction markets",
+  "2026-09-18",
+  "5666c93387864ff7b1e91fc2cef51c8a"
+)
+
+#Test 2
+test2 <- news_query(
+  "Clarity Act",
+  "2026-09-18",
+  "5666c93387864ff7b1e91fc2cef51c8a"
+)
+```
+
+# Task 2 - Summarizing Roller Coaster Data
+
+## Read in the Data
+
+```{r}
+coaster_data <- read_csv(
+  "https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"
+)
+```
+
+## Question 4
+
+Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.
+
+```{r}
+
+```
+
+## Question 5
+
+Document any missing values in the data.
+
+```{r}
+
+```
+
+# Categorical Variables
+
+## Question 6
+
+Create:
+
+- a one-way contingency table,
+- a two-way contingency table,
+- a three-way contingency table.
+
+Use `table()` and interpret one value from each resulting table.
+
+### One-Way Table
+
+```{r}
+
+```
+
+**Interpretation:**
+
+
+### Two-Way Table
+
+```{r}
+
+```
+
+**Interpretation:**
+
+
+### Three-Way Table
+
+```{r}
+
+```
+
+**Interpretation:**
+
+
+## Question 7
+
+Create a conditional two-way table using two different methods.
+
+### Method 1 - Subset the Data First
+
+```{r}
+
+```
+
+### Method 2 - Subset a Three-Way Table
+
+```{r}
+
+```
+
+## Question 8
+
+Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
+
+```{r}
+
+```
+
+## Question 9
+
+Create both a stacked bar graph and a side-by-side bar graph. Include appropriate axis labels and titles.
+
+### Stacked Bar Graph
+
+```{r}
+
+```
+
+### Side-by-Side Bar Graph
+
+```{r}
+
+```
