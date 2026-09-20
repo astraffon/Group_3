@@ -1,0 +1,156 @@
+---
+title: "Homework 5"
+author: "Michael Costello"
+format: html
+editor: source
+---
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(httr)
+```
+
+# Task 1 - Querying an API and a Tidy-Style Function
+
+## Question 1
+
+Use `GET()` from the `httr` package to return information about a topic of interest that has been in the news lately. Store the result as an R object.
+
+```{r}
+library(httr)
+hegseth <- GET("https://newsapi.org/v2/everything?q=impeach&from=2026-09-05&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
+```
+
+## Question 2
+
+Parse what is returned and find the data frame containing the article information.
+
+```{r}
+library(jsonlite)
+parsed <- fromJSON(rawToChar(hegseth$content))
+impeach_info <- as_tibble(parsed$data)
+impeach_info
+```
+
+## Question 3
+
+Write a function that allows the user to query the API. The function should take:
+
+-   a title or subject to search for,
+-   a starting date,
+-   an API key.
+
+Use the function twice to demonstrate that it works.
+
+```{r}
+
+```
+
+# Task 2 - Summarizing Roller Coaster Data
+
+## Read in the Data
+
+```{r}
+coaster_data <- read_csv(
+  "https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"
+)
+```
+
+## Question 4
+
+Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.
+
+```{r}
+#install.packages("psych")
+library(psych)
+str(coaster_data)
+psych::describe(coaster_data)
+```
+
+## Question 5
+
+Document any missing values in the data.
+
+```{r}
+colSums(is.na(coaster_data))
+#Drop is missing from 128 obs, while TopSpeed & Duration are missing from ~70 each. Length and Make are missing in ~35 observations.
+```
+
+# Categorical Variables
+
+## Question 6
+
+Create:
+
+-   a one-way contingency table,
+-   a two-way contingency table,
+-   a three-way contingency table.
+
+Use `table()` and interpret one value from each resulting table.
+
+### One-Way Table
+
+```{r}
+
+```
+
+**Interpretation:**
+
+### Two-Way Table
+
+```{r}
+
+```
+
+**Interpretation:**
+
+### Three-Way Table
+
+```{r}
+
+```
+
+**Interpretation:**
+
+## Question 7
+
+Create a conditional two-way table using two different methods.
+
+### Method 1 - Subset the Data First
+
+```{r}
+
+```
+
+### Method 2 - Subset a Three-Way Table
+
+```{r}
+
+```
+
+## Question 8
+
+Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
+
+```{r}
+
+```
+
+## Question 9
+
+Create both a stacked bar graph and a side-by-side bar graph. Include appropriate axis labels and titles.
+
+### Stacked Bar Graph
+
+```{r}
+
+```
+
+### Side-by-Side Bar Graph
+
+```{r}
+
+```
