@@ -21,6 +21,7 @@ Use `GET()` from the `httr` package to return information about a topic of inter
 
 ```{r}
 library(httr)
+hegseth <- GET("https://newsapi.org/v2/everything?q=impeach&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
 hegseth <- GET("https://newsapi.org/v2/everything?q=impeach&from=2026-09-05&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
 ```
 
@@ -67,8 +68,9 @@ Look at how the data is stored and determine whether everything makes sense. Con
 #install.packages("psych")
 library(psych)
 str(coaster_data)
-psych::describe(coaster_data)
+#psych::describe(coaster_data)
 ```
+Yes, all of the storage types make sense for the way the data was structured in the .csv file. However, we could apply value labels to several variables in order to allow for numeric calculations or to enforce ordinality when graphing bar charts. These variables include: `Census Region`, `AgeGroup`, `Scale`, `Type`, `Design`, and `Inversions?`
 
 ## Question 5
 
@@ -76,8 +78,8 @@ Document any missing values in the data.
 
 ```{r}
 colSums(is.na(coaster_data))
-#Drop is missing from 128 obs, while TopSpeed & Duration are missing from ~70 each. Length and Make are missing in ~35 observations.
 ```
+`Drop` is missing from 128 obs, while `TopSpeed` & `Duration` are missing from ~70 each. `Length` and `Make` are missing in ~35 observations.
 
 # Categorical Variables
 
@@ -95,12 +97,7 @@ Use `table()` and interpret one value from each resulting table.
 
 ```{r}
 table(coaster_data$Type)
-#table(coaster_data$Type, useNA = "always")
-#No missing values
-#coaster_data |>
-  group_by(Type) |>
-  drop_na(Type) |>
-  summarize(count = n())
+#table(coaster_data$Type, useNA = "always") #No missing values
 ```
 
 **Interpretation:** Most of the roller coasters in this data set are steel constructions, 530 out of 635.
@@ -109,11 +106,6 @@ table(coaster_data$Type)
 
 ```{r}
 table(coaster_data$Type, coaster_data$Scale)
-#coaster_data |>
-  group_by(Type, Scale) |>
-  drop_na(Type, Scale) |>
-  summarize(count = n()) |>
-  pivot_wider(names_from = Type, values_from = count)
 ```
 
 **Interpretation:** There is only 1 coaster classified as "Kiddie" which is made of wood.
@@ -124,7 +116,7 @@ table(coaster_data$Type, coaster_data$Scale)
 table(coaster_data$Type, coaster_data$Scale, coaster_data$`Inversions?`)
 ```
 
-**Interpretation:** There are no Family, Kiddie, or Thrill coasters of any type (wood or steel) which invert the riders. Only Extreme coasters invert riders.
+**Interpretation:** There are no Family, Kiddie, or Thrill coasters of any construction type (wood or steel) which invert the riders. Only Extreme coasters invert riders.
 
 ## Question 7
 
@@ -133,13 +125,15 @@ Create a conditional two-way table using two different methods.
 ### Method 1 - Subset the Data First
 
 ```{r}
-
+filtered_coasters <- filter(coaster_data, `Inversions?` == "No")
+table(filtered_coasters$Type, filtered_coasters$Scale)
 ```
 
 ### Method 2 - Subset a Three-Way Table
 
 ```{r}
-
+three_way <- table(coaster_data$Type, coaster_data$Scale, coaster_data$`Inversions?`)
+three_way[, , "No"]
 ```
 
 ## Question 8
