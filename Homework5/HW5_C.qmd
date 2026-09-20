@@ -94,26 +94,37 @@ Use `table()` and interpret one value from each resulting table.
 ### One-Way Table
 
 ```{r}
-
+table(coaster_data$Type)
+#table(coaster_data$Type, useNA = "always")
+#No missing values
+#coaster_data |>
+  group_by(Type) |>
+  drop_na(Type) |>
+  summarize(count = n())
 ```
 
-**Interpretation:**
+**Interpretation:** Most of the roller coasters in this data set are steel constructions, 530 out of 635.
 
 ### Two-Way Table
 
 ```{r}
-
+table(coaster_data$Type, coaster_data$Scale)
+#coaster_data |>
+  group_by(Type, Scale) |>
+  drop_na(Type, Scale) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = Type, values_from = count)
 ```
 
-**Interpretation:**
+**Interpretation:** There is only 1 coaster classified as "Kiddie" which is made of wood.
 
 ### Three-Way Table
 
 ```{r}
-
+table(coaster_data$Type, coaster_data$Scale, coaster_data$`Inversions?`)
 ```
 
-**Interpretation:**
+**Interpretation:** There are no Family, Kiddie, or Thrill coasters of any type (wood or steel) which invert the riders. Only Extreme coasters invert riders.
 
 ## Question 7
 
@@ -136,7 +147,11 @@ Create a conditional two-way table using two different methods.
 Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
 
 ```{r}
-
+coaster_data |>
+  group_by(Type, Scale) |>
+  drop_na(Type, Scale, `Inversions?`) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = Scale, values_from = count)
 ```
 
 ## Question 9
@@ -146,11 +161,21 @@ Create both a stacked bar graph and a side-by-side bar graph. Include appropriat
 ### Stacked Bar Graph
 
 ```{r}
-
+g <- ggplot(data = coaster_data |> drop_na(Type, Scale), aes(x = Type, fill = Scale))
+g + geom_bar()+
+    labs(x = "Coaster Construction", 
+         y = "Number of Coasters", 
+         title = "Roller Coaster Materials & Target Audiance") +
+    scale_fill_discrete("Target Audiance")
 ```
 
 ### Side-by-Side Bar Graph
 
 ```{r}
-
+g <- ggplot(data = coaster_data |> drop_na(Type, Scale), aes(x = Type, fill = Scale))
+g + geom_bar(position = "dodge")+
+    labs(x = "Coaster Construction", 
+         y = "Number of Coasters", 
+         title = "Roller Coaster Materials & Target Audiance") +
+    scale_fill_discrete("Target Audiance")
 ```
