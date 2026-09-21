@@ -32,19 +32,15 @@ str(news_return, max.level = 1)
 Parse what is returned and find the data frame containing the article information.
 
 ```{r}
-#parsing converts raw JSON into a normal R object
-#`jasonlite` is an R package used to read, parse, and convert JSON data into R objects
-library(jsonlite)
+# parsing converts raw JSON into a normal R object
 
-#news_return$content -> grabs the raw API response
-#rawToChar() -> converts the raw data into readable JSON text
-#fromJSON() -> converts the JSON into an R object
-#parsed <-  -> saves converted object
-parsed <- fromJSON(rawToChar(news_return$content))
-names(parsed)
+# `content()` turns JSON into a nested R object
+parsed <- content(news_return)
 
-#data frame containing article information only
-str(parsed$articles)
+# Combine article records into a data frame using `bind_rows()`
+article_info <- bind_rows(parsed$articles)
+
+str(article_info)
 
 ```
 
@@ -87,12 +83,17 @@ test1 <- news_query(
   "5666c93387864ff7b1e91fc2cef51c8a"
 )
 
+head(test1$title)
+
 #Test 2
 test2 <- news_query(
   "Clarity Act",
   "2026-09-18",
   "5666c93387864ff7b1e91fc2cef51c8a"
 )
+head(test2$title)
+
+
 ```
 
 # Task 2 - Summarizing Roller Coaster Data
@@ -141,7 +142,7 @@ Document any missing values in the data.
 #from EDA material that shows us how to find missing data
 colSums(is.na(coaster_data2))
 ```
-Missing data are found in `Top Speed` = 74, `MaxHeight` = 8, `Drop` = 128, `Length` =33, `Duration` = 66, and `Make` = 36
+Missing data are found in `TopSpeed` = 74, `MaxHeight` = 8, `Drop` = 128, `Length` =33, `Duration` = 66, and `Make` = 36
 
 # Categorical Variables
 
@@ -188,7 +189,7 @@ table(
   coaster_data2$`Inversions?`)
 ```
 
-The `Inversions?` factor tells us the number of roller coasters that have loops. 
+The `Inversions?` factor tells us the number of roller coasters that have inversions. 
 Of the 635 roller coasters in our sample there are 170,  or about 27%, that have 
 loops. It is also evident that the material of choice to accommodate for loops is 
 steel given it accounts for 166 of the 170 roller coasters.
@@ -228,7 +229,13 @@ coaster_table[, , "Yes"]
 Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
 
 ```{r}
-
+coaster_data2 |>
+  group_by(Scale, Type) |>
+  summarize(count = n()) |>
+  pivot_wider(
+    names_from = Type, #determines column headings, in this case `Type`
+    values_from = count
+  )
 ```
 
 ## Question 9
@@ -238,11 +245,28 @@ Create both a stacked bar graph and a side-by-side bar graph. Include appropriat
 ### Stacked Bar Graph
 
 ```{r}
-
+ggplot(
+  data = coaster_data2,
+  aes(x = Scale, fill = Type)
+) +
+  geom_bar() + #default is stacked, while "dodge" makes side by side
+  labs(
+    x = "Roller Coaster Scale",
+    y = "Number of Roller Coasters",
+    title = "Roller Coaster Type by Scale"
+  )
 ```
 
 ### Side-by-Side Bar Graph
 
 ```{r}
-
-```
+ggplot(
+  data = coaster_data2,
+  aes(x = Scale, fill = Type)
+) +
+  geom_bar(position = "dodge") + #default is stacked, while "dodge" makes side by side
+  labs(
+    x = "Roller Coaster Scale",
+    y = "Number of Roller Coasters",
+    title = "Roller Coaster Type by Scale"
+  )
