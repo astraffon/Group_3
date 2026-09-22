@@ -191,15 +191,138 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 21
+  Coaster      Park  City  State `Census Region` `Year Opened` AgeGroup TopSpeed
+  &lt;chr&gt;        &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;                   &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;
+1 Adrenaline … Oaks… Port… Oreg… West                     2018 3:Newest     45  
+2 Adventure E… King… Mason Ohio  Midwest                  1991 2:Recent     35  
+3 Afterburn    Caro… Char… Nort… South                    1999 2:Recent     62  
+4 Aftershock   Silv… Athol Idaho West                     2008 3:Newest     65.6
+5 Air Grover   Busc… Tampa Flor… South                    2010 3:Newest     22  
+6 Alpengeist   Busc… Will… Virg… South                    1997 2:Recent     67  
+# ℹ 13 more variables: MaxHeight &lt;dbl&gt;, Scale &lt;chr&gt;, Type &lt;chr&gt;, Design &lt;chr&gt;,
+#   Drop &lt;dbl&gt;, Length &lt;dbl&gt;, Duration &lt;dbl&gt;, `Inversions?` &lt;chr&gt;,
+#   `# of Inversions` &lt;dbl&gt;, Make &lt;chr&gt;, Latitude &lt;dbl&gt;, Longitude &lt;dbl&gt;,
+#   Boundary &lt;chr&gt;</code></pre>
+</div>
 </div>
 </section>
 <section id="question-4" class="level2">
 <h2 class="anchored" data-anchor-id="question-4">Question 4</h2>
 <p>Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># look at structure of data</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data) <span class="co"># should `YearOpened` be  chr instead of num? </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>spc_tbl_ [635 × 21] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ Coaster        : chr [1:635] "Adrenaline Peak" "Adventure Express" "Afterburn" "Aftershock" ...
+ $ Park           : chr [1:635] "Oaks Amusement Park" "Kings Island" "Carowinds" "Silverwood Theme Park" ...
+ $ City           : chr [1:635] "Portland" "Mason" "Charlotte" "Athol" ...
+ $ State          : chr [1:635] "Oregon" "Ohio" "North Carolina" "Idaho" ...
+ $ Census Region  : chr [1:635] "West" "Midwest" "South" "West" ...
+ $ Year Opened    : num [1:635] 2018 1991 1999 2008 2010 ...
+ $ AgeGroup       : chr [1:635] "3:Newest" "2:Recent" "2:Recent" "3:Newest" ...
+ $ TopSpeed       : num [1:635] 45 35 62 65.6 22 67 35 66 48 50 ...
+ $ MaxHeight      : num [1:635] 72 63 113 192 25 ...
+ $ Scale          : chr [1:635] "Extreme" "Thrill" "Extreme" "Extreme" ...
+ $ Type           : chr [1:635] "Steel" "Steel" "Steel" "Steel" ...
+ $ Design         : chr [1:635] "Sit Down" "Sit Down" "Inverted" "Inverted" ...
+ $ Drop           : num [1:635] 70 47 110 177 22.5 170 20 147 80 144 ...
+ $ Length         : num [1:635] 1050 2963 2956 1204 628 ...
+ $ Duration       : num [1:635] 66 140 167 92 47 190 100 143 110 110 ...
+ $ Inversions?    : chr [1:635] "Yes" "No" "Yes" "Yes" ...
+ $ # of Inversions: num [1:635] 3 0 6 3 0 6 0 0 0 4 ...
+ $ Make           : chr [1:635] "Gerstlauer Amusement Rides GmbH" "Arrow Dynamics" "Bolliger &amp; Mabillard" "Vekoma" ...
+ $ Latitude       : num [1:635] 45.5 39.4 35.3 47.9 28 ...
+ $ Longitude      : num [1:635] -122.7 -84.3 -80.8 -116.7 -82.6 ...
+ $ Boundary       : chr [1:635] "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":95988.013,\"NAME\":\"Oregon\",\"GEO_ID\":\"0400000US41\",\"| __truncated__ "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":40860.694,\"NAME\":\"Ohio\",\"GEO_ID\":\"0400000US39\",\"L"| __truncated__ "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":48617.905,\"NAME\":\"North Carolina\",\"GEO_ID\":\"0400000"| __truncated__ "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":82643.117,\"NAME\":\"Idaho\",\"GEO_ID\":\"0400000US16\",\""| __truncated__ ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   Coaster = col_character(),
+  ..   Park = col_character(),
+  ..   City = col_character(),
+  ..   State = col_character(),
+  ..   `Census Region` = col_character(),
+  ..   `Year Opened` = col_double(),
+  ..   AgeGroup = col_character(),
+  ..   TopSpeed = col_double(),
+  ..   MaxHeight = col_double(),
+  ..   Scale = col_character(),
+  ..   Type = col_character(),
+  ..   Design = col_character(),
+  ..   Drop = col_double(),
+  ..   Length = col_double(),
+  ..   Duration = col_double(),
+  ..   `Inversions?` = col_character(),
+  ..   `# of Inversions` = col_double(),
+  ..   Make = col_character(),
+  ..   Latitude = col_double(),
+  ..   Longitude = col_double(),
+  ..   Boundary = col_character()
+  .. )
+ - attr(*, "problems")=&lt;pointer: 0x11e68c9f0&gt; </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># turn applicable variables into factors (variables that  represent categories)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">State =</span> <span class="fu">as.factor</span>(State),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Census Region</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Census Region</span><span class="st">`</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">AgeGroup =</span> <span class="fu">as.factor</span>(AgeGroup),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">Scale =</span> <span class="fu">as.factor</span>(Scale),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Type =</span> <span class="fu">as.factor</span>(Type),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Design =</span> <span class="fu">as.factor</span>(Design),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [635 × 21] (S3: tbl_df/tbl/data.frame)
+ $ Coaster        : chr [1:635] "Adrenaline Peak" "Adventure Express" "Afterburn" "Aftershock" ...
+ $ Park           : chr [1:635] "Oaks Amusement Park" "Kings Island" "Carowinds" "Silverwood Theme Park" ...
+ $ City           : chr [1:635] "Portland" "Mason" "Charlotte" "Athol" ...
+ $ State          : Factor w/ 40 levels "Alabama","Arizona",..: 30 28 27 9 7 37 26 10 21 37 ...
+ $ Census Region  : Factor w/ 4 levels "Midwest","Northeast",..: 4 1 3 4 3 3 2 1 1 3 ...
+ $ Year Opened    : num [1:635] 2018 1991 1999 2008 2010 ...
+ $ AgeGroup       : Factor w/ 3 levels "1:Older","2:Recent",..: 3 2 2 3 3 2 2 2 3 2 ...
+ $ TopSpeed       : num [1:635] 45 35 62 65.6 22 67 35 66 48 50 ...
+ $ MaxHeight      : num [1:635] 72 63 113 192 25 ...
+ $ Scale          : Factor w/ 4 levels "Extreme","Family",..: 1 4 1 1 2 1 4 1 4 1 ...
+ $ Type           : Factor w/ 2 levels "Steel","Wood": 1 1 1 1 1 1 1 2 2 1 ...
+ $ Design         : Factor w/ 7 levels "Bobsled","Flying",..: 4 4 3 3 4 3 1 4 4 4 ...
+ $ Drop           : num [1:635] 70 47 110 177 22.5 170 20 147 80 144 ...
+ $ Length         : num [1:635] 1050 2963 2956 1204 628 ...
+ $ Duration       : num [1:635] 66 140 167 92 47 190 100 143 110 110 ...
+ $ Inversions?    : Factor w/ 2 levels "No","Yes": 2 1 2 2 1 2 1 1 1 2 ...
+ $ # of Inversions: num [1:635] 3 0 6 3 0 6 0 0 0 4 ...
+ $ Make           : chr [1:635] "Gerstlauer Amusement Rides GmbH" "Arrow Dynamics" "Bolliger &amp; Mabillard" "Vekoma" ...
+ $ Latitude       : num [1:635] 45.5 39.4 35.3 47.9 28 ...
+ $ Longitude      : num [1:635] -122.7 -84.3 -80.8 -116.7 -82.6 ...
+ $ Boundary       : chr [1:635] "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":95988.013,\"NAME\":\"Oregon\",\"GEO_ID\":\"0400000US41\",\"| __truncated__ "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":40860.694,\"NAME\":\"Ohio\",\"GEO_ID\":\"0400000US39\",\"L"| __truncated__ "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":48617.905,\"NAME\":\"North Carolina\",\"GEO_ID\":\"0400000"| __truncated__ "{\"type\":\"Feature\",\"properties\":{\"CENSUSAREA\":82643.117,\"NAME\":\"Idaho\",\"GEO_ID\":\"0400000US16\",\""| __truncated__ ...</code></pre>
+</div>
+</div>
 </section>
 <section id="question-5" class="level2">
 <h2 class="anchored" data-anchor-id="question-5">Question 5</h2>
 <p>Document any missing values in the data.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check for missing values using `is.na()`</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(coaster_data))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Coaster            Park            City           State   Census Region 
+              0               0               0               0               0 
+    Year Opened        AgeGroup        TopSpeed       MaxHeight           Scale 
+              0               0              74               8               0 
+           Type          Design            Drop          Length        Duration 
+              0               0             128              33              66 
+    Inversions? # of Inversions            Make        Latitude       Longitude 
+              0               0              36               0               0 
+       Boundary 
+              0 </code></pre>
+</div>
+</div>
+<p><code>TopSpeed</code>, <code>MaxHeight</code>, <code>Drop</code>, <code>Length</code>, <code>Duration</code>, and <code>Make</code> have missing values</p>
 </section>
 </section>
 <section id="categorical-variables" class="level1">
@@ -215,15 +338,184 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <p>Use <code>table()</code> and interpret one value from each resulting table.</p>
 <section id="one-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="one-way-table">One-Way Table</h3>
-<p><strong>Interpretation:</strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a one-way contingency table</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+       Alabama        Arizona       Arkansas     California       Colorado 
+             6              2              6             75             12 
+   Connecticut        Florida        Georgia          Idaho       Illinois 
+             5             48             25              6             21 
+       Indiana           Iowa         Kansas       Kentucky      Louisiana 
+            12              8              1             11              3 
+         Maine       Maryland  Massachusetts       Michigan      Minnesota 
+             5             22             14             11             11 
+      Missouri         Nevada  New Hampshire     New Jersey     New Mexico 
+            26              5              6             37              5 
+      New York North Carolina           Ohio       Oklahoma         Oregon 
+            38             15             35              8              3 
+  Pennsylvania South Carolina   South Dakota      Tennessee          Texas 
+            51              4              1             13             38 
+          Utah       Virginia     Washington  West Virginia      Wisconsin 
+            10             21              4              3              8 </code></pre>
+</div>
+</div>
+<p><strong>Interpretation:</strong> There are 15 roller coasters from North Carolina in this dataset.</p>
 </section>
 <section id="two-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="two-way-table">Two-Way Table</h3>
-<p><strong>Interpretation:</strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a two-way contingency table</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State, coaster_data<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                
+                 Steel Wood
+  Alabama            5    1
+  Arizona            2    0
+  Arkansas           5    1
+  California        69    6
+  Colorado          10    2
+  Connecticut        3    2
+  Florida           45    3
+  Georgia           22    3
+  Idaho              4    2
+  Illinois          17    4
+  Indiana            6    6
+  Iowa               4    4
+  Kansas             1    0
+  Kentucky           8    3
+  Louisiana          3    0
+  Maine              4    1
+  Maryland          20    2
+  Massachusetts     13    1
+  Michigan          10    1
+  Minnesota          9    2
+  Missouri          20    6
+  Nevada             5    0
+  New Hampshire      5    1
+  New Jersey        35    2
+  New Mexico         4    1
+  New York          32    6
+  North Carolina    14    1
+  Ohio              28    7
+  Oklahoma           7    1
+  Oregon             3    0
+  Pennsylvania      34   17
+  South Carolina     3    1
+  South Dakota       1    0
+  Tennessee         11    2
+  Texas             34    4
+  Utah               9    1
+  Virginia          18    3
+  Washington         2    2
+  West Virginia      1    2
+  Wisconsin          4    4</code></pre>
+</div>
+</div>
+<p><strong>Interpretation:</strong> Of the 15 roller coasters from NC, 14 are Steel and only one is Wood.</p>
 </section>
 <section id="three-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="three-way-table">Three-Way Table</h3>
-<p><strong>Interpretation:</strong></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a three-way contingency table</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State, coaster_data<span class="sc">$</span>Scale, coaster_data<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>, ,  = Steel
+
+                
+                 Extreme Family Kiddie Thrill
+  Alabama              1      3      0      1
+  Arizona              1      1      0      0
+  Arkansas             2      2      0      1
+  California          30     18      4     17
+  Colorado             3      3      1      3
+  Connecticut          1      0      2      0
+  Florida             14     17      1     13
+  Georgia             10      6      0      6
+  Idaho                2      2      0      0
+  Illinois             7      6      1      3
+  Indiana              2      2      1      1
+  Iowa                 1      1      1      1
+  Kansas               0      1      0      0
+  Kentucky             3      4      0      1
+  Louisiana            1      1      0      1
+  Maine                1      2      0      1
+  Maryland             8      6      2      4
+  Massachusetts        7      4      0      2
+  Michigan             3      4      1      2
+  Minnesota            4      1      0      4
+  Missouri            10      5      0      5
+  Nevada               4      0      1      0
+  New Hampshire        2      2      1      0
+  New Jersey          14     13      0      8
+  New Mexico           0      2      0      2
+  New York            10     13      0      9
+  North Carolina       8      2      2      2
+  Ohio                15      3      3      7
+  Oklahoma             2      5      0      0
+  Oregon               1      1      0      1
+  Pennsylvania        15      9      3      7
+  South Carolina       0      2      0      1
+  South Dakota         0      1      0      0
+  Tennessee            3      7      0      1
+  Texas               16      5      1     12
+  Utah                 3      2      1      3
+  Virginia            11      4      0      3
+  Washington           1      0      0      1
+  West Virginia        0      1      0      0
+  Wisconsin            0      2      1      1
+
+, ,  = Wood
+
+                
+                 Extreme Family Kiddie Thrill
+  Alabama              1      0      0      0
+  Arizona              0      0      0      0
+  Arkansas             1      0      0      0
+  California           4      0      0      2
+  Colorado             1      0      0      1
+  Connecticut          1      0      0      1
+  Florida              1      1      0      1
+  Georgia              2      0      0      1
+  Idaho                2      0      0      0
+  Illinois             3      1      0      0
+  Indiana              3      0      0      3
+  Iowa                 0      1      0      3
+  Kansas               0      0      0      0
+  Kentucky             0      1      0      2
+  Louisiana            0      0      0      0
+  Maine                1      0      0      0
+  Maryland             2      0      0      0
+  Massachusetts        0      0      0      1
+  Michigan             1      0      0      0
+  Minnesota            2      0      0      0
+  Missouri             5      0      0      1
+  Nevada               0      0      0      0
+  New Hampshire        0      0      0      1
+  New Jersey           2      0      0      0
+  New Mexico           0      0      0      1
+  New York             2      2      1      1
+  North Carolina       1      0      0      0
+  Ohio                 3      2      0      2
+  Oklahoma             0      0      0      1
+  Oregon               0      0      0      0
+  Pennsylvania         6      4      0      7
+  South Carolina       0      0      0      1
+  South Dakota         0      0      0      0
+  Tennessee            2      0      0      0
+  Texas                1      0      0      3
+  Utah                 1      0      0      0
+  Virginia             2      0      0      1
+  Washington           1      0      0      1
+  West Virginia        0      1      0      1
+  Wisconsin            2      2      0      0</code></pre>
+</div>
+</div>
+<p><strong>Interpretation:</strong> Surprisingly, the one wooden roller coaster in NC is classified as an Extreme roller coaster (I don’t think I would trust going on it). There are 8 other Extreme roller coasters in NC, all of which are made of Steel. NC also has 2 steel coasters classified as Family, 2 classified as Kiddie, and 2 classified as Thrill.</p>
 </section>
 </section>
 <section id="question-7" class="level2">
@@ -231,9 +523,99 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <p>Create a conditional two-way table using two different methods.</p>
 <section id="method-1---subset-the-data-first" class="level3">
 <h3 class="anchored" data-anchor-id="method-1---subset-the-data-first">Method 1 - Subset the Data First</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check how State values are coded</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(coaster_data<span class="sc">$</span>State)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] Oregon         Ohio           North Carolina Idaho          Florida       
+ [6] Virginia       New York       Illinois       Missouri       California    
+[11] Arkansas       Maryland       Utah           Massachusetts  Georgia       
+[16] New Jersey     Texas          Nevada         West Virginia  Pennsylvania  
+[21] Colorado       Tennessee      Connecticut    New Hampshire  Alabama       
+[26] Washington     Michigan       Minnesota      Indiana        Wisconsin     
+[31] Arizona        Oklahoma       Kansas         Maine          New Mexico    
+[36] Iowa           Louisiana      South Dakota   Kentucky       South Carolina
+40 Levels: Alabama Arizona Arkansas California Colorado Connecticut ... Wisconsin</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use `filter()` to subset the data to roller coasters only in North Carolina</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>NC_coasters <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(State <span class="sc">==</span> <span class="st">"North Carolina"</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co"># check</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>NC_coasters</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 15 × 21
+   Coaster     Park  City  State `Census Region` `Year Opened` AgeGroup TopSpeed
+   &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt; &lt;fct&gt; &lt;fct&gt;                   &lt;dbl&gt; &lt;fct&gt;       &lt;dbl&gt;
+ 1 Afterburn   Caro… Char… Nort… South                    1999 2:Recent       62
+ 2 Carolina C… Caro… Char… Nort… South                    1980 2:Recent       41
+ 3 Carolina G… Caro… Char… Nort… South                    1973 1:Older        30
+ 4 Copperhead… Caro… Char… Nort… South                    2019 3:Newest       50
+ 5 Dinosaur C… Dead… Will… Nort… South                    2008 3:Newest       NA
+ 6 Flying Cob… Caro… Char… Nort… South                    2009 3:Newest       47
+ 7 Fury 325    Caro… Char… Nort… South                    2015 3:Newest       95
+ 8 Hurler      Caro… Char… Nort… South                    1994 2:Recent       50
+ 9 Intimidator Caro… Char… Nort… South                    2010 3:Newest       75
+10 Kiddy Hawk  Caro… Char… Nort… South                    2003 3:Newest       26
+11 Miner Mike  Funt… Pine… Nort… South                    2018 3:Newest        8
+12 Nighthawk   Caro… Char… Nort… South                    2004 3:Newest       51
+13 Ricochet    Caro… Char… Nort… South                    2002 3:Newest       28
+14 Vortex      Caro… Char… Nort… South                    1992 2:Recent       50
+15 Wilderness… Caro… Char… Nort… South                    1998 2:Recent       16
+# ℹ 13 more variables: MaxHeight &lt;dbl&gt;, Scale &lt;fct&gt;, Type &lt;fct&gt;, Design &lt;fct&gt;,
+#   Drop &lt;dbl&gt;, Length &lt;dbl&gt;, Duration &lt;dbl&gt;, `Inversions?` &lt;fct&gt;,
+#   `# of Inversions` &lt;dbl&gt;, Make &lt;chr&gt;, Latitude &lt;dbl&gt;, Longitude &lt;dbl&gt;,
+#   Boundary &lt;chr&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a two-way conditional table comparing coaster type and age group</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(NC_coasters<span class="sc">$</span>Type, NC_coasters<span class="sc">$</span>AgeGroup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       
+        1:Older 2:Recent 3:Newest
+  Steel       1        4        9
+  Wood        0        1        0</code></pre>
+</div>
+</div>
+<ul>
+<li>The 1 Wood roller coaster in NC is classified as Recent, so maybe I trust it. But how recent?</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check the opening year of the wooden coaster in NC</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>NC_coasters <span class="sc">|&gt;</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Type <span class="sc">==</span> <span class="st">"Wood"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Coaster, Park, <span class="st">`</span><span class="at">Year Opened</span><span class="st">`</span>, AgeGroup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 4
+  Coaster Park      `Year Opened` AgeGroup
+  &lt;chr&gt;   &lt;chr&gt;             &lt;dbl&gt; &lt;fct&gt;   
+1 Hurler  Carowinds          1994 2:Recent</code></pre>
+</div>
+</div>
+<ul>
+<li><p>The 1 Wood roller coaster, called the Hurler, was opened in 1994 at Carowinds. I think I would rather ride a newer wooden roller coaster, if I rode a wooden roller coaster at all.</p></li>
+<li><p>Haha, got a little sidetracked here!</p></li>
+</ul>
 </section>
 <section id="method-2---subset-a-three-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="method-2---subset-a-three-way-table">Method 2 - Subset a Three-Way Table</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a three-way contigency table</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>NC_coasters2 <span class="ot">&lt;-</span> <span class="fu">table</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>Type, </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>AgeGroup, </span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>State</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co"># condition is on State</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>NC_coasters2[, , <span class="st">"North Carolina"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       
+        1:Older 2:Recent 3:Newest
+  Steel       1        4        9
+  Wood        0        1        0</code></pre>
+</div>
+</div>
 </section>
 </section>
 <section id="question-8" class="level2">

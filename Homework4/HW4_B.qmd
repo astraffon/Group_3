@@ -116,7 +116,7 @@ yeast <- yeast |>
 yeast
 ```
 
-#### 7. **Wine Data** In HW 3 you read in two data sets on wine. Read those two in and combine them as was done there. 
+#### 7. **Wine Data** In HW 3 you read in two data sets on wine. Read those two in and combine them as was done there.
 
 ```{r}
 #Read in White wine data
