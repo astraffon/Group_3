@@ -35,15 +35,21 @@ news_return <- GET(
 status_code(news_return)
 ```
 
-## Question 2
+#### Question 2
 
 Parse what is returned and find the data frame containing the article information.
 
 ```{r}
+library(jsonlite)
+library(tibble)
 
+parsed_news <- fromJSON(rawToChar(news_return$content))
+news_articles <- as_tibble(parsed_news$articles)
+
+glimpse(news_articles)
 ```
 
-## Question 3
+#### Question 3
 
 Write a function that allows the user to query the API. The function should take:
 
@@ -54,12 +60,44 @@ Write a function that allows the user to query the API. The function should take
 Use the function twice to demonstrate that it works.
 
 ```{r}
+get_news <- function(subject, start_date, api_key) {
+  response <- httr::GET(
+    "https://newsapi.org/v2/everything",
+    query = list(
+      q = subject,
+      from = start_date,
+      apiKey = api_key
+    )
+  )
 
+  httr::stop_for_status(response)
+
+  parsed <- jsonlite::fromJSON(rawToChar(response$content))
+  articles <- tibble::as_tibble(parsed$articles)
+
+  return(articles)
+}
+
+#use the function twice
+russia_news <- get_news(
+  "Russia",
+  as.character(Sys.Date() - 7),
+  Sys.getenv("NEWSAPI_KEY")
+)
+
+ai_news <- get_news(
+  "artificial intelligence",
+  as.character(Sys.Date() - 7),
+  Sys.getenv("NEWSAPI_KEY")
+)
+
+glimpse(russia_news)
+glimpse(ai_news)
 ```
 
-# Task 2 - Summarizing Roller Coaster Data
+### Task 2 - Summarizing Roller Coaster Data
 
-## Read in the Data
+#### Read in the Data
 
 ```{r}
 coaster_data <- read_csv(
@@ -67,25 +105,55 @@ coaster_data <- read_csv(
 )
 ```
 
-## Question 4
+#### Question 4
 
 Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.
 
 ```{r}
-
+glimpse(coaster_data)
 ```
 
-## Question 5
+The dataset contains 635 roller coasters and 21 variables. The coaster, park, and city columns contain names, so I will keep them as character variables. The year opened, ride measurements, number of inversions, and coordinates were read as numeric values, which makes sense. State, census region, scale, type, design, manufacturer, and whether the coaster has inversions describe categories, so I will convert them to factors. Age group and scale have a natural order, so I will make those ordered factors. The `Boundary` column contains geographic information stored as JSON text; I will leave it as character because it is not a category.
+
+```{r}
+coaster_data <- coaster_data %>%
+  mutate(
+    across(c(State, `Census Region`, Type, Design, Make), factor),
+    AgeGroup = factor(
+      AgeGroup,
+      levels = c("1:Older", "2:Recent", "3:Newest"),
+      ordered = TRUE
+    ),
+    Scale = factor(
+      Scale,
+      levels = c("Kiddie", "Family", "Thrill", "Extreme"),
+      ordered = TRUE
+    ),
+    `Inversions?` = factor(`Inversions?`, levels = c("No", "Yes"))
+  )
+
+glimpse(coaster_data)
+```
+
+#### Question 5
 
 Document any missing values in the data.
 
 ```{r}
+missing_values <- tibble(
+  variable = names(coaster_data),
+  missing_count = colSums(is.na(coaster_data))
+) %>%
+  filter(missing_count > 0)
 
+missing_values
 ```
 
-# Categorical Variables
+Six variables have missing values: Drop (128), TopSpeed (74), Duration (66), Make (36), Length (33), and MaxHeight (8). The other 15 variables have no missing values. I have kept the missing entries as `NA` rather than replacing them, since the dataset does not provide the values needed to fill them in.
 
-## Question 6
+### Categorical Variables
+
+#### Question 6
 
 Create:
 
@@ -95,66 +163,110 @@ Create:
 
 Use `table()` and interpret one value from each resulting table.
 
-### One-Way Table
+#### One-Way Table
 
 ```{r}
-
+#One-way: coaster type
+one_way <- table(coaster_data$Type)
+one_way
 ```
 
-**Interpretation:**
+**Interpretation:** Of the 635 roller coasters, 530 are steel and 105 are wood. For example, the value **530** is the number of steel coasters.
 
 ### Two-Way Table
 
 ```{r}
-
+#Two-way: type and whether the coaster has inversions
+two_way <- table(
+  coaster_data$Type,
+  coaster_data$`Inversions?`
+)
+two_way
 ```
 
-**Interpretation:**
+**Interpretation:** The rows show coaster type, and the columns show whether the coaster has inversions. Of the steel coasters, 364 have no inversions and 166 have inversions. Of the wooden coasters, 101 have no inversions and 4 have inversions. For example, the value 4 counts wooden coasters with inversions.
 
-### Three-Way Table
+#### Three-Way Table
 
 ```{r}
-
+#Three-way: type, inversions, and scale
+three_way <- table(
+  coaster_data$Type,
+  coaster_data$`Inversions?`,
+  coaster_data$Scale
+)
+three_way
 ```
 
-**Interpretation:**
+**Interpretation:** Each section shows a coaster scale. Within each section, the rows show coaster type and the columns show whether it has inversions. For example, in the Extreme section, 166 steel coasters have inversions, while 50 steel coasters do not. Across all four scales shown, the coasters with inversions are classified as Extreme.
 
-## Question 7
+### Question 7
 
 Create a conditional two-way table using two different methods.
 
-### Method 1 - Subset the Data First
+#### Method 1 - Subset the Data First
 
 ```{r}
+extreme_coasters <- coaster_data %>%
+  filter(Scale == "Extreme")
 
+table(extreme_coasters$Type, extreme_coasters$`Inversions?`)
 ```
 
-### Method 2 - Subset a Three-Way Table
+#### Method 2 - Subset a Three-Way Table
 
 ```{r}
-
+three_way[, , "Extreme"]
 ```
 
-## Question 8
+### Question 8
 
 Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
 
 ```{r}
+library(dplyr)
+library(tidyr)
 
+two_way_tidy <- coaster_data %>%
+  group_by(Type, `Inversions?`) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  pivot_wider(
+    names_from = `Inversions?`,
+    values_from = count,
+    values_fill = 0
+  )
+
+two_way_tidy
 ```
 
-## Question 9
+### Question 9
 
 Create both a stacked bar graph and a side-by-side bar graph. Include appropriate axis labels and titles.
 
-### Stacked Bar Graph
+#### Stacked Bar Graph
 
 ```{r}
+library(ggplot2)
 
+ggplot(coaster_data, aes(x = Type, fill = `Inversions?`)) +
+  geom_bar(position = "stack") +
+  labs(
+    title = "Roller Coasters by Type and Inversions",
+    x = "Coaster type",
+    y = "Number of coasters",
+    fill = "Has inversions?"
+  )
 ```
 
-### Side-by-Side Bar Graph
+#### Side-by-Side Bar Graph
 
 ```{r}
-
+ggplot(coaster_data, aes(x = Type, fill = `Inversions?`)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Inversions by Roller Coaster Type",
+    x = "Coaster type",
+    y = "Number of coasters",
+    fill = "Has inversions?"
+  )
 ```
