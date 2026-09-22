@@ -53,6 +53,7 @@ Use the function twice to demonstrate that it works.
 coaster_data <- read_csv(
   "https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"
 )
+head(coaster_data)
 ```
 
 ## Question 4
@@ -60,7 +61,21 @@ coaster_data <- read_csv(
 Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.
 
 ```{r}
+# look at structure of data
+str(coaster_data) # should `YearOpened` be  chr instead of num? 
 
+# turn applicable variables into factors (variables that  represent categories)
+coaster_data <- coaster_data |>
+  mutate(State = as.factor(State),
+         `Census Region` = as.factor(`Census Region`),
+         AgeGroup = as.factor(AgeGroup),
+         Scale = as.factor(Scale),
+         Type = as.factor(Type),
+         Design = as.factor(Design),
+         `Inversions?` = as.factor(`Inversions?`)
+  )
+
+str(coaster_data)
 ```
 
 ## Question 5
@@ -68,8 +83,12 @@ Look at how the data is stored and determine whether everything makes sense. Con
 Document any missing values in the data.
 
 ```{r}
+# check for missing values using `is.na()`
 
+colSums(is.na(coaster_data))
 ```
+
+`TopSpeed`, `MaxHeight`, `Drop`, `Length`, `Duration`, and `Make` have missing values
 
 # Categorical Variables
 
@@ -86,26 +105,35 @@ Use `table()` and interpret one value from each resulting table.
 ### One-Way Table
 
 ```{r}
+# create a one-way contingency table
 
+table(coaster_data$State)
 ```
 
 **Interpretation:**
+There are 15 roller coasters from North Carolina in this dataset. 
 
 ### Two-Way Table
 
 ```{r}
+# create a two-way contingency table
 
+table(coaster_data$State, coaster_data$Type)
 ```
 
 **Interpretation:**
+Of the 15 roller coasters from NC, 14 are Steel and only one is Wood. 
 
 ### Three-Way Table
 
 ```{r}
+# create a three-way contingency table
 
+table(coaster_data$State, coaster_data$Scale, coaster_data$Type)
 ```
 
 **Interpretation:**
+Surprisingly, the one wooden roller coaster in NC is classified as an Extreme roller coaster (I don't think I would trust going on it). The rest of the coasters are Steel, with 8 coasters classified as Extreme, 2coasters  as Family, 2 classified as Kiddie, and 2 classified as Thrill.
 
 ## Question 7
 
@@ -114,13 +142,44 @@ Create a conditional two-way table using two different methods.
 ### Method 1 - Subset the Data First
 
 ```{r}
+# check how State values are coded
+unique(coaster_data$State)
 
+# use `filter()` to subset the data to roller coasters only in North Carolina
+
+NC_coasters <- coaster_data |>
+  filter(State == "North Carolina")
+
+# check
+NC_coasters
+
+# create a two-way conditional table comparing coaster type and age group
+table(NC_coasters$Type, NC_coasters$AgeGroup)
 ```
+- The 1 Wood roller coaster in NC is classified as Recent, so maybe I trust it. But how recent? 
+
+```{r}
+# check the opening year of the wooden coaster in NC
+NC_coasters |>
+  filter(Type == "Wood") |>
+  select(Coaster, Park, `Year Opened`, AgeGroup)
+```
+- The 1 Wood roller coaster, called the Hurler, was opened in 1994 at Carowinds. I think I would rather ride a newer wooden roller coaster, if I rode a wooden roller coaster at all. 
+
+- Haha, got a little sidetracked here!
 
 ### Method 2 - Subset a Three-Way Table
 
 ```{r}
+# create a three-way contigency table
+NC_coasters2 <- table(
+  coaster_data$Type, 
+  coaster_data$AgeGroup, 
+  coaster_data$State
+)
 
+# condition is on State
+NC_coasters2[, , "North Carolina"]
 ```
 
 ## Question 8
