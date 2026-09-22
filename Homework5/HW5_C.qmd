@@ -21,8 +21,8 @@ Use `GET()` from the `httr` package to return information about a topic of inter
 
 ```{r}
 library(httr)
-hegseth <- GET("https://newsapi.org/v2/everything?q=impeach&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
-hegseth <- GET("https://newsapi.org/v2/everything?q=impeach&from=2026-09-05&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
+hegseth <- httr::GET("https://newsapi.org/v2/everything?q=impeach&from=2026-09-05&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
+str(hegseth, max.level = 1)
 ```
 
 ## Question 2
@@ -32,7 +32,7 @@ Parse what is returned and find the data frame containing the article informatio
 ```{r}
 library(jsonlite)
 parsed <- fromJSON(rawToChar(hegseth$content))
-impeach_info <- as_tibble(parsed$data)
+impeach_info <- as_tibble(parsed$articles)
 impeach_info
 ```
 
@@ -47,7 +47,31 @@ Write a function that allows the user to query the API. The function should take
 Use the function twice to demonstrate that it works.
 
 ```{r}
+news_api_query <- function(amount = "everything", subject, from_date, 
+                       api_key = "3c7ae1d5e71d4483b25d50bfe0b530bd") {
+  #Generating all the input parameters:
+  address <- "https://newsapi.org/v2/"
+  news_subj <- "subject"
+  since <- "from_date"
+  lang <- "en"
+  results <- "pageSize=50"
 
+  #Creating a long string to use as the API request, then making request:
+  query_string <- paste("address", amount, "?q=", subject, "&from=", since, "&language=", lang, "&", results, "&apiKey=", api_key)
+  news_pulled <- httr::GET(query_string)
+  
+  #Parsing the API return:
+  str(news_pulled, max.level = 1)
+  parsed <- fromJSON(rawToChar(news_pulled$content))
+  returned_content <- as_tibble(parsed$articles)
+
+  #Spitting out the results as a tibble:
+  returned_content
+}
+
+news_api_query(subject = "hegseth", from_date = "2026-09-05")
+news_api_query(subject = "Iran%20war", from_date = "2026-09-05")
+#Mine isn't quite working, but I don't know how to get R to show me what code it runs when it's failing. It give me the function, but not the input message that leads to the error.
 ```
 
 # Task 2 - Summarizing Roller Coaster Data
