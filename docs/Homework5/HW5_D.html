@@ -150,17 +150,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="task-1---querying-an-api-and-a-tidy-style-function" class="level1">
 <h1>Task 1 - Querying an API and a Tidy-Style Function</h1>
 <section id="question-1" class="level2">
 <h2 class="anchored" data-anchor-id="question-1">Question 1</h2>
 <p>Use <code>GET()</code> from the <code>httr</code> package to return information about a topic of interest that has been in the news lately. Store the result as an R object.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use GET() to send a GET request to the news API </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>new_species <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="st">"https://newsapi.org/v2/everything?q=Leopardus%20tilcayo&amp;from=2026-9-18&amp;language=en&amp;pageSize=50&amp;apiKey=ef59b58fce7542e0b4b17976d880650a"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 </section>
 <section id="question-2" class="level2">
 <h2 class="anchored" data-anchor-id="question-2">Question 2</h2>
 <p>Parse what is returned and find the data frame containing the article information.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># convert from raw data to text (`rawToChar()`) </span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># and parse the JSON text into an R object (`fromJSON()`)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>parsed <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="fu">rawToChar</span>(new_species<span class="sc">$</span>content))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># convert articles into a tibble</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>article_info <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(parsed<span class="sc">$</span>articles)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># display names of variables </span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(article_info)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "source"      "author"      "title"       "description" "url"        
+[6] "urlToImage"  "publishedAt" "content"    </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># display relevant information</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>article_info <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(author, title, url)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 28 × 3
+   author                       title                                      url  
+   &lt;chr&gt;                        &lt;chr&gt;                                      &lt;chr&gt;
+ 1 Allen Chang, MDCM            First new feline species in 100 years dis… http…
+ 2 &lt;NA&gt;                         New tiger cat species identified in Boliv… http…
+ 3 Heba Habib                   New Bolivian cat claws its way into speci… http…
+ 4 January Nelson               Scientists Just Formally Named a Tiny New… http…
+ 5 Blake Seidel, Blake Seidel   New Wild Cat Species Discovered for the F… http…
+ 6 Celeste Mello, Celeste Mello 'Everybody Say Pspsps to Tilcayo': 21 Cat… http…
+ 7 Mason Stallings              Cat Ladies Rejoice! New Feline Species Di… http…
+ 8 &lt;NA&gt;                         New species of wild cat discovered for fi… http…
+ 9 whyevolutionistrue           New species of cat discovered!             http…
+10 Kieran Burke                 Bolivia: New cat species discovered by sc… http…
+# ℹ 18 more rows</code></pre>
+</div>
+</div>
 </section>
 <section id="question-3" class="level2">
 <h2 class="anchored" data-anchor-id="question-3">Question 3</h2>
@@ -171,6 +211,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>an API key.</li>
 </ul>
 <p>Use the function twice to demonstrate that it works.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a function that queries the news API</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>query_news_API <span class="ot">&lt;-</span> <span class="cf">function</span>(subject, start_date, your_API_key) {</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># query news API</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  response <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="st">"https://newsapi.org/v2/everything"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">query =</span> <span class="fu">list</span>(</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">q =</span> subject,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">from =</span> start_date,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">language =</span> <span class="st">"en"</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>                    <span class="at">pageSize =</span> <span class="dv">50</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                    <span class="at">apiKey =</span> your_API_key</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                  ))</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># no need to build URL because of `query = list(...)`</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># convert &amp; parse response</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  parsed <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="fu">rawToChar</span>(response<span class="sc">$</span>content))</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># convert articles to tibble</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  article_info <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(parsed<span class="sc">$</span>articles)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(article_info)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co"># first function use</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>species_news <span class="ot">&lt;-</span> <span class="fu">query_news_API</span>(</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">subject =</span> <span class="st">"Leopardus tilcayo"</span>,</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">start_date =</span> <span class="st">"2026-09-18"</span>,</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">your_API_key =</span> <span class="st">"ef59b58fce7542e0b4b17976d880650a"</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>species_news</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 28 × 8
+   source$id $name author title description url   urlToImage publishedAt content
+   &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;       &lt;chr&gt;  
+ 1 &lt;NA&gt;      Abcn… Allen… Firs… "The \"kit… http… https://i… 2026-09-18… "A new…
+ 2 al-jazee… Al J… &lt;NA&gt;   New … "Leopardus… http… https://w… 2026-09-18… "A tin…
+ 3 al-jazee… Al J… Heba … New … "Purrfectl… http… https://w… 2026-09-18… "A new…
+ 4 &lt;NA&gt;      Thou… Janua… Scie… "For the f… http… https://t… 2026-09-18… "via R…
+ 5 &lt;NA&gt;      Chee… Blake… New … "Wake up f… http… https://i… 2026-09-18… "No, s…
+ 6 &lt;NA&gt;      Chee… Celes… 'Eve… "A new spe… http… https://i… 2026-09-19… "Pspsp…
+ 7 &lt;NA&gt;      The … Mason… Cat … "The disco… http… https://i… 2026-09-18… "The J…
+ 8 cbs-news  CBS … &lt;NA&gt;   New … "Scientist… http… https://a… 2026-09-18… "Scien…
+ 9 &lt;NA&gt;      Whye… whyev… New … "According… http… https://w… 2026-09-18… "Accor…
+10 &lt;NA&gt;      DW (… Kiera… Boli… "Genetic d… http… https://s… 2026-09-18… "Scien…
+# ℹ 18 more rows</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># second function use</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ESA_news <span class="ot">&lt;-</span> <span class="fu">query_news_API</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">subject =</span> <span class="st">"Endangered Species Act Trump"</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">start_date =</span> <span class="st">"2026-09-18"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">your_API_key =</span> <span class="st">"ef59b58fce7542e0b4b17976d880650a"</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>ESA_news</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 8
+  source$id $name  author title description url   urlToImage publishedAt content
+  &lt;lgl&gt;     &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;       &lt;chr&gt;  
+1 NA        Grist  Sachi… The … "The Trump… http… https://g… 2026-09-18… "The E…
+2 NA        Natur… Iva G… Trum… "President… http… https://w… 2026-09-20… "Presi…
+3 NA        HuffP… HuffP… Kill… "A directi… http… https://i… 2026-09-18… "Trump…
+4 NA        Natio… Matth… Kill… "Killing e… http… https://w… 2026-09-18… "Killi…
+5 NA        Freer… Nextr… News… "Explosion… http… &lt;NA&gt;       2026-09-19… "Skip …</code></pre>
+</div>
+</div>
 </section>
 </section>
 <section id="task-2---summarizing-roller-coaster-data" class="level1">
@@ -178,9 +284,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="read-in-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="read-in-the-data">Read in the Data</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 635 Columns: 21
 ── Column specification ────────────────────────────────────────────────────────
@@ -191,7 +297,7 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 21
   Coaster      Park  City  State `Census Region` `Year Opened` AgeGroup TopSpeed
@@ -213,8 +319,8 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <h2 class="anchored" data-anchor-id="question-4">Question 4</h2>
 <p>Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># look at structure of data</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data) <span class="co"># should `YearOpened` be  chr instead of num? </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># look at structure of data</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data) <span class="co"># should `YearOpened` be  chr instead of num? </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>spc_tbl_ [635 × 21] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
  $ Coaster        : chr [1:635] "Adrenaline Peak" "Adventure Express" "Afterburn" "Aftershock" ...
@@ -262,20 +368,20 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
   ..   Longitude = col_double(),
   ..   Boundary = col_character()
   .. )
- - attr(*, "problems")=&lt;pointer: 0x15ae425b0&gt; </code></pre>
+ - attr(*, "problems")=&lt;pointer: 0x14015af00&gt; </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># turn applicable variables into factors (variables that  represent categories)</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">State =</span> <span class="fu">as.factor</span>(State),</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Census Region</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Census Region</span><span class="st">`</span>),</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">AgeGroup =</span> <span class="fu">as.factor</span>(AgeGroup),</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">Scale =</span> <span class="fu">as.factor</span>(Scale),</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Type =</span> <span class="fu">as.factor</span>(Type),</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Design =</span> <span class="fu">as.factor</span>(Design),</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span>)</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># turn applicable variables into factors (variables that  represent categories)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">State =</span> <span class="fu">as.factor</span>(State),</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Census Region</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Census Region</span><span class="st">`</span>),</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">AgeGroup =</span> <span class="fu">as.factor</span>(AgeGroup),</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">Scale =</span> <span class="fu">as.factor</span>(Scale),</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Type =</span> <span class="fu">as.factor</span>(Type),</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Design =</span> <span class="fu">as.factor</span>(Design),</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>tibble [635 × 21] (S3: tbl_df/tbl/data.frame)
  $ Coaster        : chr [1:635] "Adrenaline Peak" "Adventure Express" "Afterburn" "Aftershock" ...
@@ -306,9 +412,9 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <h2 class="anchored" data-anchor-id="question-5">Question 5</h2>
 <p>Document any missing values in the data.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check for missing values using `is.na()`</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(coaster_data))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check for missing values using `is.na()`</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(coaster_data))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        Coaster            Park            City           State   Census Region 
               0               0               0               0               0 
@@ -339,9 +445,9 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="one-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="one-way-table">One-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a one-way contingency table</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a one-way contingency table</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
        Alabama        Arizona       Arkansas     California       Colorado 
@@ -367,9 +473,9 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="two-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="two-way-table">Two-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a two-way contingency table</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State, coaster_data<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a two-way contingency table</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State, coaster_data<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                
                  Steel Wood
@@ -420,9 +526,9 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="three-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="three-way-table">Three-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a three-way contingency table</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State, coaster_data<span class="sc">$</span>Scale, coaster_data<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a three-way contingency table</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data<span class="sc">$</span>State, coaster_data<span class="sc">$</span>Scale, coaster_data<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>, ,  = Steel
 
@@ -524,8 +630,8 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="method-1---subset-the-data-first" class="level3">
 <h3 class="anchored" data-anchor-id="method-1---subset-the-data-first">Method 1 - Subset the Data First</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check how State values are coded</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(coaster_data<span class="sc">$</span>State)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check how State values are coded</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(coaster_data<span class="sc">$</span>State)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] Oregon         Ohio           North Carolina Idaho          Florida       
  [6] Virginia       New York       Illinois       Missouri       California    
@@ -537,13 +643,13 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 [36] Iowa           Louisiana      South Dakota   Kentucky       South Carolina
 40 Levels: Alabama Arizona Arkansas California Colorado Connecticut ... Wisconsin</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use `filter()` to subset the data to roller coasters only in North Carolina</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>NC_coasters <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(State <span class="sc">==</span> <span class="st">"North Carolina"</span>)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co"># check</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>NC_coasters</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use `filter()` to subset the data to roller coasters only in North Carolina</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>NC_coasters <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(State <span class="sc">==</span> <span class="st">"North Carolina"</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="co"># check</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>NC_coasters</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 15 × 21
    Coaster     Park  City  State `Census Region` `Year Opened` AgeGroup TopSpeed
@@ -568,8 +674,8 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 #   `# of Inversions` &lt;dbl&gt;, Make &lt;chr&gt;, Latitude &lt;dbl&gt;, Longitude &lt;dbl&gt;,
 #   Boundary &lt;chr&gt;</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a two-way conditional table comparing coaster type and age group</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(NC_coasters<span class="sc">$</span>Type, NC_coasters<span class="sc">$</span>AgeGroup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a two-way conditional table comparing coaster type and age group</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(NC_coasters<span class="sc">$</span>Type, NC_coasters<span class="sc">$</span>AgeGroup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       
         1:Older 2:Recent 3:Newest
@@ -581,10 +687,10 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <li>The 1 Wood roller coaster in NC is classified as Recent, so maybe I trust it. But how recent?</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check the opening year of the wooden coaster in NC</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>NC_coasters <span class="sc">|&gt;</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Type <span class="sc">==</span> <span class="st">"Wood"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Coaster, Park, <span class="st">`</span><span class="at">Year Opened</span><span class="st">`</span>, AgeGroup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check the opening year of the wooden coaster in NC</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>NC_coasters <span class="sc">|&gt;</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Type <span class="sc">==</span> <span class="st">"Wood"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Coaster, Park, <span class="st">`</span><span class="at">Year Opened</span><span class="st">`</span>, AgeGroup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 4
   Coaster Park      `Year Opened` AgeGroup
@@ -600,15 +706,15 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="method-2---subset-a-three-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="method-2---subset-a-three-way-table">Method 2 - Subset a Three-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a three-way contigency table</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>NC_coasters2 <span class="ot">&lt;-</span> <span class="fu">table</span>(</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>Type, </span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>AgeGroup, </span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>State</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co"># condition is on State</span></span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>NC_coasters2[, , <span class="st">"North Carolina"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a three-way contigency table</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>NC_coasters2 <span class="ot">&lt;-</span> <span class="fu">table</span>(</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>Type, </span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>AgeGroup, </span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  coaster_data<span class="sc">$</span>State</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co"># condition is on State</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>NC_coasters2[, , <span class="st">"North Carolina"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       
         1:Older 2:Recent 3:Newest
@@ -622,12 +728,12 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <h2 class="anchored" data-anchor-id="question-8">Question 8</h2>
 <p>Create a two-way contingency table using <code>group_by()</code> and <code>summarize()</code>. Then use <code>pivot_wider()</code> so that the result resembles the output from <code>table()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create the same two-way contingency table as before </span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"># but by using `group_by()` and `summarize()`</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="sc">|&gt;</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(State, Type) <span class="sc">|&gt;</span></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create the same two-way contingency table as before </span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co"># but by using `group_by()` and `summarize()`</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="sc">|&gt;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(State, Type) <span class="sc">|&gt;</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has regrouped the output.
 ℹ Summaries were computed grouped by State and Type.
@@ -653,13 +759,13 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 10 Connecticut Steel     3
 # ℹ 64 more rows</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use `pivot_wider()` so result resembles the output from `table()`</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="sc">|&gt;</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(State, Type) <span class="sc">|&gt;</span></span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Type, </span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> count)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use `pivot_wider()` so result resembles the output from `table()`</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="sc">|&gt;</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(State, Type) <span class="sc">|&gt;</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Type, </span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> count)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has regrouped the output.
 ℹ Summaries were computed grouped by State and Type.
@@ -693,19 +799,19 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="stacked-bar-graph" class="level3">
 <h3 class="anchored" data-anchor-id="stacked-bar-graph">Stacked Bar Graph</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">help</span>(ggplot) <span class="co"># to see syntax; usually would do in console (or can look at cheat sheet)</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create a simple stacked bar graph</span></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data, </span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> AgeGroup, <span class="at">fill =</span> Type)</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span> </span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Age Group"</span>, </span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>, </span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Age Group"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">help</span>(ggplot) <span class="co"># to see syntax; usually would do in console (or can look at cheat sheet)</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create a simple stacked bar graph</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data, </span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> AgeGroup, <span class="at">fill =</span> Type)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span> </span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Age Group"</span>, </span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>, </span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Age Group"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -718,18 +824,18 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="side-by-side-bar-graph" class="level3">
 <h3 class="anchored" data-anchor-id="side-by-side-bar-graph">Side-by-Side Bar Graph</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a simple side-by-side bar graph </span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># use `geom_bar(position = "dodge")` (from help(geom_bar))</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data, </span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> AgeGroup, <span class="at">fill =</span> Type)</span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span> </span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Age Group"</span>, </span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>, </span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Age Group"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a simple side-by-side bar graph </span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="co"># use `geom_bar(position = "dodge")` (from help(geom_bar))</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data, </span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> AgeGroup, <span class="at">fill =</span> Type)</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span> </span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Age Group"</span>, </span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>, </span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Age Group"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">

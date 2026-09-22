@@ -11,6 +11,7 @@ editor: source
 
 library(tidyverse)
 library(httr)
+library(jsonlite)
 ```
 
 # Task 1 - Querying an API and a Tidy-Style Function
@@ -20,7 +21,9 @@ library(httr)
 Use `GET()` from the `httr` package to return information about a topic of interest that has been in the news lately. Store the result as an R object.
 
 ```{r}
+# use GET() to send a GET request to the news API 
 
+new_species <- GET("https://newsapi.org/v2/everything?q=Leopardus%20tilcayo&from=2026-9-18&language=en&pageSize=50&apiKey=ef59b58fce7542e0b4b17976d880650a")
 ```
 
 ## Question 2
@@ -28,7 +31,19 @@ Use `GET()` from the `httr` package to return information about a topic of inter
 Parse what is returned and find the data frame containing the article information.
 
 ```{r}
+# convert from raw data to text (`rawToChar()`) 
+# and parse the JSON text into an R object (`fromJSON()`)
+parsed <- fromJSON(rawToChar(new_species$content))
 
+# convert articles into a tibble
+article_info <- as_tibble(parsed$articles)
+
+# display names of variables 
+names(article_info)
+
+# display relevant information
+article_info |>
+  select(author, title, url)
 ```
 
 ## Question 3
@@ -42,7 +57,45 @@ Write a function that allows the user to query the API. The function should take
 Use the function twice to demonstrate that it works.
 
 ```{r}
+# create a function that queries the news API
 
+query_news_API <- function(subject, start_date, your_API_key) {
+  
+  # query news API
+  response <- GET("https://newsapi.org/v2/everything",
+                  query = list(
+                    q = subject,
+                    from = start_date,
+                    language = "en",
+                    pageSize = 50,
+                    apiKey = your_API_key
+                  ))
+  # no need to build URL because of `query = list(...)`
+  
+  # convert & parse response
+  parsed <- fromJSON(rawToChar(response$content))
+  
+  # convert articles to tibble
+  article_info <- as_tibble(parsed$articles)
+  
+  return(article_info)
+}
+
+# first function use
+species_news <- query_news_API(
+  subject = "Leopardus tilcayo",
+  start_date = "2026-09-18",
+  your_API_key = "ef59b58fce7542e0b4b17976d880650a"
+)
+species_news
+
+# second function use
+ESA_news <- query_news_API(
+  subject = "Endangered Species Act Trump",
+  start_date = "2026-09-18",
+  your_API_key = "ef59b58fce7542e0b4b17976d880650a"
+)
+ESA_news
 ```
 
 # Task 2 - Summarizing Roller Coaster Data
