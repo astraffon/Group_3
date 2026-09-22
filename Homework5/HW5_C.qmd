@@ -1,0 +1,199 @@
+---
+title: "Homework 5"
+author: "Michael Costello"
+format: html
+editor: source
+---
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(httr)
+```
+
+# Task 1 - Querying an API and a Tidy-Style Function
+
+## Question 1
+
+Use `GET()` from the `httr` package to return information about a topic of interest that has been in the news lately. Store the result as an R object.
+
+```{r}
+library(httr)
+hegseth <- httr::GET("https://newsapi.org/v2/everything?q=impeach&from=2026-09-05&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
+str(hegseth, max.level = 1)
+```
+
+## Question 2
+
+Parse what is returned and find the data frame containing the article information.
+
+```{r}
+library(jsonlite)
+parsed <- fromJSON(rawToChar(hegseth$content))
+impeach_info <- as_tibble(parsed$articles)
+impeach_info
+```
+
+## Question 3
+
+Write a function that allows the user to query the API. The function should take:
+
+-   a title or subject to search for,
+-   a starting date,
+-   an API key.
+
+Use the function twice to demonstrate that it works.
+
+```{r}
+news_api_query <- function(amount = "everything", subject, from_date, 
+                       api_key = "3c7ae1d5e71d4483b25d50bfe0b530bd") {
+  #Generating all the input parameters:
+  address <- "https://newsapi.org/v2/"
+  news_subj <- "subject"
+  since <- "from_date"
+  lang <- "en"
+  results <- "pageSize=50"
+
+  #Creating a long string to use as the API request, then making request:
+  query_string <- paste("address", amount, "?q=", subject, "&from=", since, "&language=", lang, "&", results, "&apiKey=", api_key)
+  news_pulled <- httr::GET(query_string)
+  
+  #Parsing the API return:
+  str(news_pulled, max.level = 1)
+  parsed <- fromJSON(rawToChar(news_pulled$content))
+  returned_content <- as_tibble(parsed$articles)
+
+  #Spitting out the results as a tibble:
+  returned_content
+}
+
+news_api_query(subject = "hegseth", from_date = "2026-09-05")
+news_api_query(subject = "Iran%20war", from_date = "2026-09-05")
+#Mine isn't quite working, but I don't know how to get R to show me what code it runs when it's failing. It give me the function, but not the input message that leads to the error.
+```
+
+# Task 2 - Summarizing Roller Coaster Data
+
+## Read in the Data
+
+```{r}
+coaster_data <- read_csv(
+  "https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"
+)
+```
+
+## Question 4
+
+Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.
+
+```{r}
+#install.packages("psych")
+library(psych)
+str(coaster_data)
+#psych::describe(coaster_data)
+```
+Yes, all of the storage types make sense for the way the data was structured in the .csv file. However, we could apply value labels to several variables in order to allow for numeric calculations or to enforce ordinality when graphing bar charts. These variables include: `Census Region`, `AgeGroup`, `Scale`, `Type`, `Design`, and `Inversions?`
+
+## Question 5
+
+Document any missing values in the data.
+
+```{r}
+colSums(is.na(coaster_data))
+```
+`Drop` is missing from 128 obs, while `TopSpeed` & `Duration` are missing from ~70 each. `Length` and `Make` are missing in ~35 observations.
+
+# Categorical Variables
+
+## Question 6
+
+Create:
+
+-   a one-way contingency table,
+-   a two-way contingency table,
+-   a three-way contingency table.
+
+Use `table()` and interpret one value from each resulting table.
+
+### One-Way Table
+
+```{r}
+table(coaster_data$Type)
+#table(coaster_data$Type, useNA = "always") #No missing values
+```
+
+**Interpretation:** Most of the roller coasters in this data set are steel constructions, 530 out of 635.
+
+### Two-Way Table
+
+```{r}
+table(coaster_data$Type, coaster_data$Scale)
+```
+
+**Interpretation:** There is only 1 coaster classified as "Kiddie" which is made of wood.
+
+### Three-Way Table
+
+```{r}
+table(coaster_data$Type, coaster_data$Scale, coaster_data$`Inversions?`)
+```
+
+**Interpretation:** There are no Family, Kiddie, or Thrill coasters of any construction type (wood or steel) which invert the riders. Only Extreme coasters invert riders.
+
+## Question 7
+
+Create a conditional two-way table using two different methods.
+
+### Method 1 - Subset the Data First
+
+```{r}
+filtered_coasters <- filter(coaster_data, `Inversions?` == "No")
+table(filtered_coasters$Type, filtered_coasters$Scale)
+```
+
+### Method 2 - Subset a Three-Way Table
+
+```{r}
+three_way <- table(coaster_data$Type, coaster_data$Scale, coaster_data$`Inversions?`)
+three_way[, , "No"]
+```
+
+## Question 8
+
+Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
+
+```{r}
+coaster_data |>
+  group_by(Type, Scale) |>
+  drop_na(Type, Scale, `Inversions?`) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = Scale, values_from = count)
+```
+
+## Question 9
+
+Create both a stacked bar graph and a side-by-side bar graph. Include appropriate axis labels and titles.
+
+### Stacked Bar Graph
+
+```{r}
+g <- ggplot(data = coaster_data |> drop_na(Type, Scale), aes(x = Type, fill = Scale))
+g + geom_bar()+
+    labs(x = "Coaster Construction", 
+         y = "Number of Coasters", 
+         title = "Roller Coaster Materials & Target Audiance") +
+    scale_fill_discrete("Target Audiance")
+```
+
+### Side-by-Side Bar Graph
+
+```{r}
+g <- ggplot(data = coaster_data |> drop_na(Type, Scale), aes(x = Type, fill = Scale))
+g + geom_bar(position = "dodge")+
+    labs(x = "Coaster Construction", 
+         y = "Number of Coasters", 
+         title = "Roller Coaster Materials & Target Audiance") +
+    scale_fill_discrete("Target Audiance")
+```
