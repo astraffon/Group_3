@@ -187,7 +187,20 @@ NC_coasters2[, , "North Carolina"]
 Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
 
 ```{r}
+# create the same two-way contingency table as before 
+# but by using `group_by()` and `summarize()`
 
+coaster_data |>
+  group_by(State, Type) |>
+  summarize(count = n())
+
+# use `pivot_wider()` so result resembles the output from `table()`
+
+coaster_data |>
+  group_by(State, Type) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = Type, 
+              values_from = count)
 ```
 
 ## Question 9
@@ -197,11 +210,35 @@ Create both a stacked bar graph and a side-by-side bar graph. Include appropriat
 ### Stacked Bar Graph
 
 ```{r}
+library(ggplot2)
+help(ggplot) # to see syntax; usually would do in console (or can look at cheat sheet)
 
+# create a simple stacked bar graph
+ggplot(
+  data = coaster_data, 
+  aes(x = AgeGroup, fill = Type)
+  ) + 
+  geom_bar() + 
+  labs(
+    x = "Roller Coaster Age Group", 
+    y = "Number of Roller Coasters", 
+    title = "Roller Coaster Type by Age Group")
 ```
+
 
 ### Side-by-Side Bar Graph
 
 ```{r}
+# create a simple side-by-side bar graph 
+# use `geom_bar(position = "dodge")` (from help(geom_bar))
 
+ggplot(
+  data = coaster_data, 
+  aes(x = AgeGroup, fill = Type)
+  ) + 
+  geom_bar(position = "dodge") + 
+  labs(
+    x = "Roller Coaster Age Group", 
+    y = "Number of Roller Coasters", 
+    title = "Roller Coaster Type by Age Group")
 ```
