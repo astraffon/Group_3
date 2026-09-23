@@ -170,8 +170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  $ all_headers:List of 1
  $ cookies    :'data.frame':    0 obs. of  7 variables:
  $ content    : raw [1:42696] 7b 22 73 74 ...
- $ date       : POSIXct[1:1], format: "2026-09-23 21:33:40"
- $ times      : Named num [1:6] 0 0.0274 0.0343 0.0547 0.1676 ...
+ $ date       : POSIXct[1:1], format: "2026-09-23 22:44:44"
+ $ times      : Named num [1:6] 0 0.0171 0.0336 0.0472 0.1561 ...
   ..- attr(*, "names")= chr [1:6] "redirect" "namelookup" "connect" "pretransfer" ...
  $ request    :List of 7
   ..- attr(*, "class")= chr "request"
@@ -184,126 +184,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="question-2">Question 2</h2>
 <p>Parse what is returned and find the data frame containing the article information.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># parsing converts raw JSON into a normal R object</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># `content()` turns JSON into a nested R object</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>parsed <span class="ot">&lt;-</span> <span class="fu">content</span>(news_return)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine article records into a data frame using `bind_rows()`</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>article_info <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(parsed<span class="sc">$</span>articles)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(article_info)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parse the API response</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>parsed <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="fu">rawToChar</span>(news_return<span class="sc">$</span>content))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the article information to a tibble</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>article_info <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(parsed<span class="sc">$</span>articles)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(article_info)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>tibble [98 × 8] (S3: tbl_df/tbl/data.frame)
- $ source     :List of 98
-  ..$ id  : chr "wired"
-  ..$ name: chr "Wired"
-  ..$ id  : NULL
-  ..$ name: chr "Entrepreneur"
-  ..$ id  : NULL
-  ..$ name: chr "Gizmodo.com"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : NULL
-  ..$ name: chr "Abcnews.com"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : NULL
-  ..$ name: chr "Abcnews.com"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : chr "the-next-web"
-  ..$ name: chr "The Next Web"
-  ..$ id  : chr "bbc-news"
-  ..$ name: chr "BBC News"
-  ..$ id  : NULL
-  ..$ name: chr "Prior.chat"
-  ..$ id  : NULL
-  ..$ name: chr "Marginalrevolution.com"
-  ..$ id  : NULL
-  ..$ name: chr "Gizmodo.com"
-  ..$ id  : NULL
-  ..$ name: chr "Boing Boing"
-  ..$ id  : NULL
-  ..$ name: chr "Gizmodo.com"
-  ..$ id  : chr "business-insider"
-  ..$ name: chr "Business Insider"
-  ..$ id  : chr "bbc-news"
-  ..$ name: chr "BBC News"
-  ..$ id  : NULL
-  ..$ name: chr "Gizmodo.com"
-  ..$ id  : chr "the-next-web"
-  ..$ name: chr "The Next Web"
-  ..$ id  : NULL
-  ..$ name: chr "Boing Boing"
-  ..$ id  : NULL
-  ..$ name: chr "Abcnews.com"
-  ..$ id  : NULL
-  ..$ name: chr "University of Bristol"
-  ..$ id  : chr "newsweek"
-  ..$ name: chr "Newsweek"
-  ..$ id  : NULL
-  ..$ name: chr "Salon"
-  ..$ id  : NULL
-  ..$ name: chr "The New Republic"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : chr "business-insider"
-  ..$ name: chr "Business Insider"
-  ..$ id  : chr "business-insider"
-  ..$ name: chr "Business Insider"
-  ..$ id  : NULL
-  ..$ name: chr "Jezebel"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : NULL
-  ..$ name: chr "Marginalrevolution.com"
-  ..$ id  : NULL
-  ..$ name: chr "The New Republic"
-  ..$ id  : NULL
-  ..$ name: chr "Nakedcapitalism.com"
-  ..$ id  : chr "business-insider"
-  ..$ name: chr "Business Insider"
-  ..$ id  : NULL
-  ..$ name: chr "Wealthmanagement.com"
-  ..$ id  : NULL
-  ..$ name: chr "Quartz India"
-  ..$ id  : NULL
-  ..$ name: chr "Cryptoprowl.com"
-  ..$ id  : chr "business-insider"
-  ..$ name: chr "Business Insider"
-  ..$ id  : NULL
-  ..$ name: chr "Arcturus-labs.com"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : NULL
-  ..$ name: chr "Yahoo Entertainment"
-  ..$ id  : NULL
-  ..$ name: chr "Cryptoprowl.com"
-  ..$ id  : NULL
-  ..$ name: chr "The New Republic"
-  ..$ id  : NULL
-  ..$ name: chr "The New Republic"
-  ..$ id  : chr "the-wall-street-journal"
-  ..$ name: chr "The Wall Street Journal"
-  ..$ id  : NULL
-  ..$ name: chr "Quartz India"
-  ..$ id  : NULL
-  ..$ name: chr "BeInCrypto"
-  ..$ id  : NULL
-  ..$ name: chr "BeInCrypto"
- $ author     : chr [1:98] "Kate Knibbs" "Kate Knibbs" "Jon Small" "Jon Small" ...
- $ title      : chr [1:98] "George Santos Just Got Hit With Kalshi’s First-Ever Lifetime Ban" "George Santos Just Got Hit With Kalshi’s First-Ever Lifetime Ban" "LeBron James Is Teaming Up With Polymarket — Fans Accuse the Billionaire of ‘Selling Out’" "LeBron James Is Teaming Up With Polymarket — Fans Accuse the Billionaire of ‘Selling Out’" ...
- $ description: chr [1:98] "The former US representative was also fined more than $71,000 for allegedly attempting to manipulate the prediction market." "The former US representative was also fined more than $71,000 for allegedly attempting to manipulate the prediction market." "The NBA superstar joins a growing list of athletes partnering with prediction markets as the booming industry p"| __truncated__ "The NBA superstar joins a growing list of athletes partnering with prediction markets as the booming industry p"| __truncated__ ...
- $ url        : chr [1:98] "https://www.wired.com/story/george-santos-gets-a-lifetime-ban-from-kalshi/" "https://www.wired.com/story/george-santos-gets-a-lifetime-ban-from-kalshi/" "https://www.entrepreneur.com/business-news/lebron-james-is-teaming-up-with-polymarket-fans-accuse-the-billionai"| __truncated__ "https://www.entrepreneur.com/business-news/lebron-james-is-teaming-up-with-polymarket-fans-accuse-the-billionai"| __truncated__ ...
- $ urlToImage : chr [1:98] "https://media.wired.com/photos/6a958e6735670edd292eaf69/191:100/w_1280,c_limit/george-santos-kalshi.jpg" "https://media.wired.com/photos/6a958e6735670edd292eaf69/191:100/w_1280,c_limit/george-santos-kalshi.jpg" "https://www.entrepreneur.com/wp-content/uploads/sites/2/2026/09/lebron-james-polymarket-sell-out-0926-g-2286411"| __truncated__ "https://www.entrepreneur.com/wp-content/uploads/sites/2/2026/09/lebron-james-polymarket-sell-out-0926-g-2286411"| __truncated__ ...
- $ publishedAt: chr [1:98] "2026-08-31T15:27:31Z" "2026-08-31T15:27:31Z" "2026-09-10T13:45:00Z" "2026-09-10T13:45:00Z" ...
- $ content    : chr [1:98] "Former Republican congressman George Santos has received a first-of-its-kind lifetime ban from the prediction m"| __truncated__ "Former Republican congressman George Santos has received a first-of-its-kind lifetime ban from the prediction m"| __truncated__ "LeBron James’ latest business move is looking like an air ball with some fans. The NBA superstar is teaming up "| __truncated__ "LeBron James’ latest business move is looking like an air ball with some fans. The NBA superstar is teaming up "| __truncated__ ...</code></pre>
+<pre><code>Rows: 49
+Columns: 8
+$ source      &lt;df[,2]&gt; &lt;data.frame[26 x 2]&gt;
+$ author      &lt;chr&gt; "Kate Knibbs", "Jon Small", "Kyle Torpey", "Reuters", "…
+$ title       &lt;chr&gt; "George Santos Just Got Hit With Kalshi’s First-Ever Lifet…
+$ description &lt;chr&gt; "The former US representative was also fined more than $71…
+$ url         &lt;chr&gt; "https://www.wired.com/story/george-santos-gets-a-lifetime…
+$ urlToImage  &lt;chr&gt; "https://media.wired.com/photos/6a958e6735670edd292eaf69/1…
+$ publishedAt &lt;chr&gt; "2026-08-31T15:27:31Z", "2026-09-10T13:45:00Z", "2026-09-2…
+$ content     &lt;chr&gt; "Former Republican congressman George Santos has received …</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert source back to a list column</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>article_info <span class="ot">&lt;-</span> article_info <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">source =</span> <span class="fu">pmap</span>(source, \(...) <span class="fu">list</span>(...))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(article_info)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 49
+Columns: 8
+$ source      &lt;list&gt; ["wired", "Wired"], [NA, "Entrepreneur"], [NA, "Gizmodo.c…
+$ author      &lt;chr&gt; "Kate Knibbs", "Jon Small", "Kyle Torpey", "Reuters", "Max…
+$ title       &lt;chr&gt; "George Santos Just Got Hit With Kalshi’s First-Ever Lifet…
+$ description &lt;chr&gt; "The former US representative was also fined more than $71…
+$ url         &lt;chr&gt; "https://www.wired.com/story/george-santos-gets-a-lifetime…
+$ urlToImage  &lt;chr&gt; "https://media.wired.com/photos/6a958e6735670edd292eaf69/1…
+$ publishedAt &lt;chr&gt; "2026-08-31T15:27:31Z", "2026-09-10T13:45:00Z", "2026-09-2…
+$ content     &lt;chr&gt; "Former Republican congressman George Santos has received …</code></pre>
 </div>
 </div>
-<p>NOTE: using <code>content()</code> and <code>bind_rows()</code> so the nested source information remains a list column, as specified in the assignment; using <code>fromJSON()</code> would automatically simplify the nested structure into a data frame.</p>
+<p>NOTE: Using <code>fromJSON()</code> automatically simplifies the nested structure into a <em>data frame</em>, so we have to convert the <code>source</code> column back to a <em>list</em> as requested in the assignment.</p>
 </section>
 <section id="question-3" class="level2">
 <h2 class="anchored" data-anchor-id="question-3">Question 3</h2>
@@ -315,59 +235,91 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <p>Use the function twice to demonstrate that it works.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>news_query <span class="ot">&lt;-</span> <span class="cf">function</span>(subject, start_date, api_key) {</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Send request to NewsAPI</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  response <span class="ot">&lt;-</span> <span class="fu">GET</span>(</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"https://newsapi.org/v2/everything"</span>,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">query =</span> <span class="fu">list</span>(</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">q =</span> subject,</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">from =</span> start_date,</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">language =</span> <span class="st">"en"</span>,</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">pageSize =</span> <span class="dv">50</span>,</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">apiKey =</span> api_key</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Parse the API response</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  parsed <span class="ot">&lt;-</span> <span class="fu">content</span>(response)</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine article records into a data frame</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  article_info <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(parsed<span class="sc">$</span>articles)</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(article_info)</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">#Test 1</span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>test1 <span class="ot">&lt;-</span> <span class="fu">news_query</span>(</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="st">"prediction markets"</span>,</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="st">"2026-09-18"</span>,</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="st">"5666c93387864ff7b1e91fc2cef51c8a"</span></span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(test1<span class="sc">$</span>title)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>news_query <span class="ot">&lt;-</span> <span class="cf">function</span>(subject, start_date, api_key) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Send request to NewsAPI</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  response <span class="ot">&lt;-</span> <span class="fu">GET</span>(</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"https://newsapi.org/v2/everything"</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">query =</span> <span class="fu">list</span>(</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">q =</span> subject,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">from =</span> start_date,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">language =</span> <span class="st">"en"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">pageSize =</span> <span class="dv">50</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">apiKey =</span> api_key</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Parse the API response</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  parsed <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(<span class="fu">rawToChar</span>(response<span class="sc">$</span>content))</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Convert the article information into a tibble</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  article_info <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(parsed<span class="sc">$</span>articles)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Convert source back to a list column</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  article_info <span class="ot">&lt;-</span> article_info <span class="sc">|&gt;</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">source =</span> <span class="fu">pmap</span>(source, \(...) <span class="fu">list</span>(...))</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(article_info)</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co">#Test 1</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>test1 <span class="ot">&lt;-</span> <span class="fu">news_query</span>(</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"prediction markets"</span>,</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  <span class="st">"2026-09-18"</span>,</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  <span class="st">"5666c93387864ff7b1e91fc2cef51c8a"</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(test1) <span class="co">#before</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Polymarket Bug Reportedly Let Identity Thieves Into Existing Accounts"       
-[2] "Polymarket Bug Reportedly Let Identity Thieves Into Existing Accounts"       
-[3] "Wall Street is cramming for the midterms. Here’s a handy market cheat sheet."
-[4] "Wall Street is cramming for the midterms. Here’s a handy market cheat sheet."
-[5] "9 Ads per Minute: FIFA Cup 26 – \"the price of the beautiful game\""         
-[6] "9 Ads per Minute: FIFA Cup 26 – \"the price of the beautiful game\""         </code></pre>
+<pre><code>Rows: 47
+Columns: 8
+$ source      &lt;list&gt; [NA, "Gizmodo.com"], ["business-insider", "Business Insid…
+$ author      &lt;chr&gt; "Kyle Torpey", "jciolli@businessinsider.com (Joe Ciolli)",…
+$ title       &lt;chr&gt; "Polymarket Bug Reportedly Let Identity Thieves Into Exist…
+$ description &lt;chr&gt; "The flaw apparently exposed accounts, and the cards and b…
+$ url         &lt;chr&gt; "https://gizmodo.com/polymarket-bug-reportedly-let-identit…
+$ urlToImage  &lt;chr&gt; "https://gizmodo.com/app/uploads/2026/01/shutterstock_2649…
+$ publishedAt &lt;chr&gt; "2026-09-20T18:23:50Z", "2026-09-18T09:50:01Z", "2026-09-2…
+$ content     &lt;chr&gt; "Nearly 500 Polymarket US users were hit in late July by a…</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Test 2</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>test2 <span class="ot">&lt;-</span> <span class="fu">news_query</span>(</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Clarity Act"</span>,</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"2026-09-18"</span>,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"5666c93387864ff7b1e91fc2cef51c8a"</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(test2<span class="sc">$</span>title)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(test1<span class="sc">$</span>title)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Elon Musk’s X Sues Bitcoin Account Network It Says Farmed £207,000 Via Fake Engagement"
-[2] "Elon Musk’s X Sues Bitcoin Account Network It Says Farmed £207,000 Via Fake Engagement"
-[3] "Anthropic and OpenAI ask Australia to ease its ban on AI training with local content"  
-[4] "Anthropic and OpenAI ask Australia to ease its ban on AI training with local content"  
-[5] "The Record Player That Skips the Vinyl and Plays Falling Water"                        
-[6] "The Record Player That Skips the Vinyl and Plays Falling Water"                        </code></pre>
+<pre><code>[1] "Polymarket Bug Reportedly Let Identity Thieves Into Existing Accounts"        
+[2] "Wall Street is cramming for the midterms. Here’s a handy market cheat sheet." 
+[3] "9 Ads per Minute: FIFA Cup 26 – \"the price of the beautiful game\""          
+[4] "10 of the US' youngest billionaires in 2026 — and how they got their fortunes"
+[5] "OpenAI is about to eat Jev's lunch – Arcturus Labs"                           
+[6] "U.S. Regulator Expands Crypto Trading To Online Platforms"                    </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Test 2</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>test2 <span class="ot">&lt;-</span> <span class="fu">news_query</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Clarity Act"</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"2026-09-18"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"5666c93387864ff7b1e91fc2cef51c8a"</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(test2) <span class="co">#after</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 50
+Columns: 8
+$ source      &lt;list&gt; [NA, "Gizmodo.com"], ["the-next-web", "The Next Web"], [N…
+$ author      &lt;chr&gt; "Kyle Torpey", "Ana Maria Constantin", "JC Torres", "Surbh…
+$ title       &lt;chr&gt; "Elon Musk’s X Sues Bitcoin Account Network It Says Farmed…
+$ description &lt;chr&gt; "X wants the money rewarded to accounts that copy-pasted c…
+$ url         &lt;chr&gt; "https://gizmodo.com/elon-musks-x-sues-bitcoin-account-net…
+$ urlToImage  &lt;chr&gt; "https://gizmodo.com/app/uploads/2025/12/GettyImages-15622…
+$ publishedAt &lt;chr&gt; "2026-09-21T23:05:25Z", "2026-09-22T11:26:56Z", "2026-09-2…
+$ content     &lt;chr&gt; "X has sued two of its own users in London, claiming they …</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(test2<span class="sc">$</span>title)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Elon Musk’s X Sues Bitcoin Account Network It Says Farmed £207,000 Via Fake Engagement"  
+[2] "Anthropic and OpenAI ask Australia to ease its ban on AI training with local content"    
+[3] "The Record Player That Skips the Vinyl and Plays Falling Water"                          
+[4] "Bitcoin reclaims $80,000, Ethereum nears $2,620 despite hawkish Fed, CLARITY Act setback"
+[5] "I Am Often Wrong"                                                                        
+[6] "4 Reasons Your Target Buyers Aren’t Responding to Your Marketing"                        </code></pre>
 </div>
 </div>
 </section>
@@ -377,9 +329,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="read-in-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="read-in-the-data">Read in the Data</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>coaster_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 635 Columns: 21
 ── Column specification ────────────────────────────────────────────────────────
@@ -396,8 +348,8 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <h2 class="anchored" data-anchor-id="question-4">Question 4</h2>
 <p>Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#checking structure of data to make sure it makes sense</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#checking structure of data to make sure it makes sense</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>spc_tbl_ [635 × 21] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
  $ Coaster        : chr [1:635] "Adrenaline Peak" "Adventure Express" "Afterburn" "Aftershock" ...
@@ -447,18 +399,18 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
   .. )
  - attr(*, "problems")=&lt;externalptr&gt; </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#converting data; note the ` ` for the column headers with special characters</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>coaster_data2 <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">State =</span> <span class="fu">as.factor</span>(State),</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Census Region</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Census Region</span><span class="st">`</span>),</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">AgeGroup =</span> <span class="fu">as.factor</span>(AgeGroup),</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">Scale =</span> <span class="fu">as.factor</span>(Scale),</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Type =</span> <span class="fu">as.factor</span>(Type),</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Design =</span> <span class="fu">as.factor</span>(Design),</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span>),</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Make =</span> <span class="fu">as.factor</span>(Make)) <span class="co">#added make as factor</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#converting data; note the ` ` for the column headers with special characters</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>coaster_data2 <span class="ot">&lt;-</span> coaster_data <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">State =</span> <span class="fu">as.factor</span>(State),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Census Region</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Census Region</span><span class="st">`</span>),</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">AgeGroup =</span> <span class="fu">as.factor</span>(AgeGroup),</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">Scale =</span> <span class="fu">as.factor</span>(Scale),</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Type =</span> <span class="fu">as.factor</span>(Type),</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Design =</span> <span class="fu">as.factor</span>(Design),</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span>),</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Make =</span> <span class="fu">as.factor</span>(Make)) <span class="co">#added make as factor</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(coaster_data2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>tibble [635 × 21] (S3: tbl_df/tbl/data.frame)
  $ Coaster        : chr [1:635] "Adrenaline Peak" "Adventure Express" "Afterburn" "Aftershock" ...
@@ -490,8 +442,8 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <h2 class="anchored" data-anchor-id="question-5">Question 5</h2>
 <p>Document any missing values in the data.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#from EDA material that shows us how to find missing data</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(coaster_data2))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#from EDA material that shows us how to find missing data</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(coaster_data2))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        Coaster            Park            City           State   Census Region 
               0               0               0               0               0 
@@ -505,6 +457,7 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
               0 </code></pre>
 </div>
 </div>
+<p>Missing data are found in <code>TopSpeed</code> = 74, <code>MaxHeight</code> = 8, <code>Drop</code> = 128, <code>Length</code> =33, <code>Duration</code> = 66, and <code>Make</code> = 36</p>
 </section>
 </section>
 <section id="categorical-variables" class="level1">
@@ -521,8 +474,8 @@ dbl  (9): Year Opened, TopSpeed, MaxHeight, Drop, Length, Duration, # of Inv...
 <section id="one-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="one-way-table">One-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One-way contingency table</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data2<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One-way contingency table</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data2<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Steel  Wood 
@@ -534,8 +487,8 @@ Steel  Wood
 <section id="two-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="two-way-table">Two-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Two-way contingency table</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data2<span class="sc">$</span>Scale, coaster_data2<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Two-way contingency table</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_data2<span class="sc">$</span>Scale, coaster_data2<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         
           Steel Wood
@@ -550,11 +503,11 @@ Steel  Wood
 <section id="three-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="three-way-table">Three-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Three-way contingency table</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Scale,</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Type,</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span><span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Three-way contingency table</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Scale,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Type,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span><span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>, ,  = No
 
@@ -584,12 +537,12 @@ Steel  Wood
 <section id="method-1---subset-the-data-first" class="level3">
 <h3 class="anchored" data-anchor-id="method-1---subset-the-data-first">Method 1 - Subset the Data First</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter data to roller coasters with inversions</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>coaster_inversions <span class="ot">&lt;-</span> coaster_data2 <span class="sc">|&gt;</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Yes"</span>)</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create two-way conditional table</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_inversions<span class="sc">$</span>Scale, coaster_inversions<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter data to roller coasters with inversions</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>coaster_inversions <span class="ot">&lt;-</span> coaster_data2 <span class="sc">|&gt;</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Yes"</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create two-way conditional table</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(coaster_inversions<span class="sc">$</span>Scale, coaster_inversions<span class="sc">$</span>Type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         
           Steel Wood
@@ -603,15 +556,15 @@ Steel  Wood
 <section id="method-2---subset-a-three-way-table" class="level3">
 <h3 class="anchored" data-anchor-id="method-2---subset-a-three-way-table">Method 2 - Subset a Three-Way Table</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create three-way contingency table</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>coaster_table <span class="ot">&lt;-</span> <span class="fu">table</span>(</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Scale,</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Type,</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span><span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Condition on `Inversions?` = Yes</span></span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>coaster_table[, , <span class="st">"Yes"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create three-way contingency table</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>coaster_table <span class="ot">&lt;-</span> <span class="fu">table</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Scale,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span>Type,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  coaster_data2<span class="sc">$</span><span class="st">`</span><span class="at">Inversions?</span><span class="st">`</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Condition on `Inversions?` = Yes</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>coaster_table[, , <span class="st">"Yes"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         
           Steel Wood
@@ -627,17 +580,13 @@ Steel  Wood
 <h2 class="anchored" data-anchor-id="question-8">Question 8</h2>
 <p>Create a two-way contingency table using <code>group_by()</code> and <code>summarize()</code>. Then use <code>pivot_wider()</code> so that the result resembles the output from <code>table()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>coaster_data2 <span class="sc">|&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Scale, Type) <span class="sc">|&gt;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> Type, <span class="co">#determines column headings, in this case `Type`</span></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> count</span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`summarise()` has grouped output by 'Scale'. You can override using the
-`.groups` argument.</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>coaster_data2 <span class="sc">|&gt;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Scale, Type) <span class="sc">|&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> Type, <span class="co">#determines column headings, in this case `Type`</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> count</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 3
 # Groups:   Scale [4]
@@ -656,19 +605,17 @@ Steel  Wood
 <section id="stacked-bar-graph" class="level3">
 <h3 class="anchored" data-anchor-id="stacked-bar-graph">Stacked Bar Graph</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Stacked Bar Graph</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data2,</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Scale, <span class="at">fill =</span> Type)</span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Scale"</span>,</span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>,</span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Coaster Type"</span>,</span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Scale"</span></span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data2,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Scale, <span class="at">fill =</span> Type)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Scale"</span>,</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>,</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Coaster Type"</span>,</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Scale"</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -681,19 +628,17 @@ Steel  Wood
 <section id="side-by-side-bar-graph" class="level3">
 <h3 class="anchored" data-anchor-id="side-by-side-bar-graph">Side-by-Side Bar Graph</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Side-by-Side Bar Graph</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data2,</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Scale, <span class="at">fill =</span> Type)</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Scale"</span>,</span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>,</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Coaster Type"</span>,</span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Scale"</span></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> coaster_data2,</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> Scale, <span class="at">fill =</span> Type)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Roller Coaster Scale"</span>,</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Roller Coasters"</span>,</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Coaster Type"</span>,</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Roller Coaster Type by Scale"</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">

@@ -32,20 +32,25 @@ str(news_return, max.level = 1)
 Parse what is returned and find the data frame containing the article information.
 
 ```{r}
-# parsing converts raw JSON into a normal R object
+# Parse the API response
+parsed <- fromJSON(rawToChar(news_return$content))
 
-# `content()` turns JSON into a nested R object
-parsed <- content(news_return)
+# Convert the article information to a tibble
+article_info <- as_tibble(parsed$articles)
 
-# Combine article records into a data frame using `bind_rows()`
-article_info <- bind_rows(parsed$articles)
+glimpse(article_info)
+
+# Convert source back to a list column
+article_info <- article_info |>
+  mutate(
+    source = pmap(source, \(...) list(...))
+  )
 
 glimpse(article_info)
 
 ```
-NOTE: using `content()` and `bind_rows()` so the nested source information remains 
-a list column, as specified in the assignment; using `fromJSON()` would automatically 
-simplify the nested structure into a data frame.
+NOTE: Using `fromJSON()` automatically simplifies the nested structure into a *data frame*, 
+so we have to convert the `source` column back to a *list* as requested in the assignment.
 
 
 ## Question 3
@@ -74,11 +79,17 @@ news_query <- function(subject, start_date, api_key) {
   )
   
   # Parse the API response
-  parsed <- content(response)
+  parsed <- fromJSON(rawToChar(response$content))
+
+  # Convert the article information into a tibble
+  article_info <- as_tibble(parsed$articles)
   
-  # Combine article records into a data frame
-  article_info <- bind_rows(parsed$articles)
-  
+  # Convert source back to a list column
+  article_info <- article_info |>
+    mutate(
+      source = pmap(source, \(...) list(...))
+    )
+
   return(article_info)
 }
 
@@ -89,6 +100,7 @@ test1 <- news_query(
   "5666c93387864ff7b1e91fc2cef51c8a"
 )
 
+glimpse(test1) #before
 head(test1$title)
 
 #Test 2
@@ -97,7 +109,9 @@ test2 <- news_query(
   "2026-09-18",
   "5666c93387864ff7b1e91fc2cef51c8a"
 )
+glimpse(test2) #after
 head(test2$title)
+
 
 ```
 
@@ -148,6 +162,7 @@ Document any missing values in the data.
 #from EDA material that shows us how to find missing data
 colSums(is.na(coaster_data2))
 ```
+Missing data are found in `TopSpeed` = 74, `MaxHeight` = 8, `Drop` = 128, `Length` =33, `Duration` = 66, and `Make` = 36
 
 # Categorical Variables
 
@@ -236,6 +251,8 @@ coaster_table[, , "Yes"]
 Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
 
 ```{r}
+#| message: false
+
 coaster_data2 |>
   group_by(Scale, Type) |>
   summarize(count = n()) |>
@@ -252,7 +269,6 @@ Create both a stacked bar graph and a side-by-side bar graph. Include appropriat
 ### Stacked Bar Graph
 
 ```{r}
-### Stacked Bar Graph
 
 ggplot(
   data = coaster_data2,
@@ -270,7 +286,6 @@ ggplot(
 ### Side-by-Side Bar Graph
 
 ```{r}
-### Side-by-Side Bar Graph
 
 ggplot(
   data = coaster_data2,
