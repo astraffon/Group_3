@@ -129,9 +129,9 @@ str(coaster_data2)
 ```
 In the original data, several categorical variables were stored as character variables, 
 specifically `State`, `Census Region`, `AgeGroup`, `Scale`, `Type`, `Design`, and 
-`Inversions?`. They were converted to *factors* using the `mutate()` and `across()` 
-functions. As noted in class, factors are useful for categorical variables because 
-they have a levels attribute that becomes helpful for ordering and plotting.
+`Inversions?`. They were converted to *factors* using the `mutate()` function. As 
+noted in class, factors are useful for categorical variables because they have a 
+levels attribute that becomes helpful for ordering and plotting.
 
 ## Question 5
 
