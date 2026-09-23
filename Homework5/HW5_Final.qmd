@@ -1,0 +1,286 @@
+---
+title: "Homework 5"
+author: " Daria Smyslova, Maya Szymborski, Michael Costello & Alfonso Straffon"
+format: html
+---
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(httr)
+library(jsonlite)
+```
+
+# Task 1 - Querying an API and a Tidy-Style Function
+
+## Question 1
+
+Use `GET()` from the `httr` package to return information about a topic of interest that has been in the news lately. Store the result as an R object.
+
+```{r}
+#this creates an HTTP response object
+news_return <- GET("https://newsapi.org/v2/everything?q=prediction%20markets&from=2026-08-23&language=en&pageSize=50&apiKey=5666c93387864ff7b1e91fc2cef51c8a")
+
+#to inspect structure
+str(news_return, max.level = 1)
+```
+
+## Question 2
+
+Parse what is returned and find the data frame containing the article information.
+
+```{r}
+# parsing converts raw JSON into a normal R object
+
+# `content()` turns JSON into a nested R object
+parsed <- content(news_return)
+
+# Combine article records into a data frame using `bind_rows()`
+article_info <- bind_rows(parsed$articles)
+
+str(article_info)
+
+```
+NOTE: using `content()` and `bind_rows()` so the nested source information remains 
+a list column, as specified in the assignment; using `fromJSON()` would automatically 
+simplify the nested structure into a data frame.
+
+
+## Question 3
+
+Write a function that allows the user to query the API. The function should take:
+
+- a title or subject to search for,
+- a starting date,
+- an API key.
+
+Use the function twice to demonstrate that it works.
+
+```{r}
+news_query <- function(subject, start_date, api_key) {
+  
+  # Send request to NewsAPI
+  response <- GET(
+    "https://newsapi.org/v2/everything",
+    query = list(
+      q = subject,
+      from = start_date,
+      language = "en",
+      pageSize = 50,
+      apiKey = api_key
+    )
+  )
+  
+  # Parse the API response
+  parsed <- content(response)
+  
+  # Combine article records into a data frame
+  article_info <- bind_rows(parsed$articles)
+  
+  return(article_info)
+}
+
+#Test 1
+test1 <- news_query(
+  "prediction markets",
+  "2026-09-18",
+  "5666c93387864ff7b1e91fc2cef51c8a"
+)
+
+head(test1$title)
+
+#Test 2
+test2 <- news_query(
+  "Clarity Act",
+  "2026-09-18",
+  "5666c93387864ff7b1e91fc2cef51c8a"
+)
+head(test2$title)
+
+```
+
+# Task 2 - Summarizing Roller Coaster Data
+
+## Read in the Data
+
+```{r}
+coaster_data <- read_csv(
+  "https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv"
+)
+```
+
+## Question 4
+
+Look at how the data is stored and determine whether everything makes sense. Convert variables to factors as needed.
+
+```{r}
+#checking structure of data to make sure it makes sense
+str(coaster_data)
+
+#converting data; note the ` ` for the column headers with special characters
+coaster_data2 <- coaster_data |>
+  mutate(State = as.factor(State),
+         `Census Region` = as.factor(`Census Region`),
+         AgeGroup = as.factor(AgeGroup),
+         Scale = as.factor(Scale),
+         Type = as.factor(Type),
+         Design = as.factor(Design),
+         `Inversions?` = as.factor(`Inversions?`),
+         Make = as.factor(Make)) #added make as factor
+
+str(coaster_data2)
+
+```
+In the original data, several categorical variables were stored as character variables, 
+specifically `State`, `Census Region`, `AgeGroup`, `Scale`, `Type`, `Design`, `Inversions?`, 
+and `Make`. They were converted to *factors* using the `mutate()` function. As noted 
+in class, factors are useful for categorical variables because they have a 
+levels attribute that becomes helpful for ordering and plotting.
+
+## Question 5
+
+Document any missing values in the data.
+
+```{r}
+
+#from EDA material that shows us how to find missing data
+colSums(is.na(coaster_data2))
+```
+
+# Categorical Variables
+
+## Question 6
+
+Create:
+
+- a one-way contingency table,
+- a two-way contingency table,
+- a three-way contingency table.
+
+Use `table()` and interpret one value from each resulting table.
+
+### One-Way Table
+
+```{r}
+# One-way contingency table
+table(coaster_data2$Type)
+
+```
+There are 635 roller coaster observations in the data. 530 are made from *steel* and
+105 are made from *wood*.
+
+
+
+### Two-Way Table
+
+```{r}
+# Two-way contingency table
+table(coaster_data2$Scale, coaster_data2$Type)
+```
+
+The *scale* of the roller coaster further classifies the ride by its intensity level 
+across the `type` variable. It shows that the *Extreme* intensity level is the most 
+popular (216 + 53 = 269 rides) while the *Kiddie* intensity level is the least popular 
+(27 + 1 = 28 rides).
+
+
+### Three-Way Table
+
+```{r}
+# Three-way contingency table
+table(
+  coaster_data2$Scale,
+  coaster_data2$Type,
+  coaster_data2$`Inversions?`)
+```
+
+The `Inversions?` factor tells us the number of roller coasters that have inversions. 
+Of the 635 roller coasters in our sample there are 170,  or about 27%, that have 
+loops. It is also evident that the material of choice to accommodate for loops is 
+steel given it accounts for 166 of the 170 roller coasters.
+
+
+## Question 7
+
+Create a conditional two-way table using two different methods.
+
+### Method 1 - Subset the Data First
+
+```{r}
+# Filter data to roller coasters with inversions
+coaster_inversions <- coaster_data2 |>
+  filter(`Inversions?` == "Yes")
+
+# Create two-way conditional table
+table(coaster_inversions$Scale, coaster_inversions$Type)
+```
+
+### Method 2 - Subset a Three-Way Table
+
+```{r}
+# Create three-way contingency table
+coaster_table <- table(
+  coaster_data2$Scale,
+  coaster_data2$Type,
+  coaster_data2$`Inversions?`
+)
+
+# Condition on `Inversions?` = Yes
+coaster_table[, , "Yes"]
+```
+
+## Question 8
+
+Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
+
+```{r}
+coaster_data2 |>
+  group_by(Scale, Type) |>
+  summarize(count = n()) |>
+  pivot_wider(
+    names_from = Type, #determines column headings, in this case `Type`
+    values_from = count
+  )
+```
+
+## Question 9
+
+Create both a stacked bar graph and a side-by-side bar graph. Include appropriate axis labels and titles.
+
+### Stacked Bar Graph
+
+```{r}
+### Stacked Bar Graph
+
+ggplot(
+  data = coaster_data2,
+  aes(x = Scale, fill = Type)
+) +
+  geom_bar() +
+  labs(
+    x = "Roller Coaster Scale",
+    y = "Number of Roller Coasters",
+    fill = "Coaster Type",
+    title = "Roller Coaster Type by Scale"
+  )
+```
+
+### Side-by-Side Bar Graph
+
+```{r}
+### Side-by-Side Bar Graph
+
+ggplot(
+  data = coaster_data2,
+  aes(x = Scale, fill = Type)
+) +
+  geom_bar(position = "dodge") +
+  labs(
+    x = "Roller Coaster Scale",
+    y = "Number of Roller Coasters",
+    fill = "Coaster Type",
+    title = "Roller Coaster Type by Scale"
+  )
+```
