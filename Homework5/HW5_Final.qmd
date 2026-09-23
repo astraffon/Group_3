@@ -40,7 +40,7 @@ parsed <- content(news_return)
 # Combine article records into a data frame using `bind_rows()`
 article_info <- bind_rows(parsed$articles)
 
-str(article_info)
+glimpse(article_info)
 
 ```
 NOTE: using `content()` and `bind_rows()` so the nested source information remains 
