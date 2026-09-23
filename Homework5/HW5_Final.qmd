@@ -195,7 +195,7 @@ There are 635 roller coaster observations in the data. 530 are made from *steel*
 table(coaster_data2$Scale, coaster_data2$Type)
 ```
 
-The *scale* of the roller coaster further classifies the ride by its intensity level 
+The `scale` of the roller coaster further classifies the ride by its intensity level 
 across the `type` variable. It shows that the *Extreme* intensity level is the most 
 popular (216 + 53 = 269 rides) while the *Kiddie* intensity level is the least popular 
 (27 + 1 = 28 rides).
