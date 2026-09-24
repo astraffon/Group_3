@@ -11,6 +11,7 @@ editor: source
 
 library(tidyverse)
 library(httr)
+library(jsonlite)
 ```
 
 # Task 1 - Querying an API and a Tidy-Style Function
@@ -20,7 +21,6 @@ library(httr)
 Use `GET()` from the `httr` package to return information about a topic of interest that has been in the news lately. Store the result as an R object.
 
 ```{r}
-library(httr)
 hegseth <- httr::GET("https://newsapi.org/v2/everything?q=impeach&from=2026-09-05&language=en&pageSize=50&apiKey=3c7ae1d5e71d4483b25d50bfe0b530bd")
 str(hegseth, max.level = 1)
 ```
@@ -30,7 +30,6 @@ str(hegseth, max.level = 1)
 Parse what is returned and find the data frame containing the article information.
 
 ```{r}
-library(jsonlite)
 parsed <- fromJSON(rawToChar(hegseth$content))
 impeach_info <- as_tibble(parsed$articles)
 impeach_info

@@ -1,6 +1,6 @@
 ---
 title: "Homework 5"
-author: "Alfonso Straffon"
+author: " Daria Smyslova, Maya Szymborski, Michael Costello & Alfonso Straffon"
 format: html
 ---
 
@@ -21,7 +21,7 @@ Use `GET()` from the `httr` package to return information about a topic of inter
 
 ```{r}
 #this creates an HTTP response object
-news_return <- GET("https://newsapi.org/v2/everything?q=prediction%20markets&from=2026-08-21&language=en&pageSize=50&apiKey=5666c93387864ff7b1e91fc2cef51c8a")
+news_return <- GET("https://newsapi.org/v2/everything?q=prediction%20markets&from=2026-08-23&language=en&pageSize=50&apiKey=5666c93387864ff7b1e91fc2cef51c8a")
 
 #to inspect structure
 str(news_return, max.level = 1)
@@ -32,17 +32,26 @@ str(news_return, max.level = 1)
 Parse what is returned and find the data frame containing the article information.
 
 ```{r}
-# parsing converts raw JSON into a normal R object
+# Parse the API response
+parsed <- fromJSON(rawToChar(news_return$content))
 
-# `content()` turns JSON into a nested R object
-parsed <- content(news_return)
+# Convert the article information to a tibble
+article_info <- as_tibble(parsed$articles)
 
-# Combine article records into a data frame using `bind_rows()`
-article_info <- bind_rows(parsed$articles)
+glimpse(article_info)
 
-str(article_info)
+# Convert source back to a list column
+article_info <- article_info |>
+  mutate(
+    source = pmap(source, \(...) list(...))
+  )
+
+glimpse(article_info)
 
 ```
+NOTE: Using `fromJSON()` automatically simplifies the nested structure into a *data frame*, 
+so we have to convert the `source` column back to a *list* as requested in the assignment.
+
 
 ## Question 3
 
@@ -55,25 +64,33 @@ Write a function that allows the user to query the API. The function should take
 Use the function twice to demonstrate that it works.
 
 ```{r}
-# creating a function to run a query on NewsAPI
-news_query <- function(subject, from_date, api_key) {
-  # replaces blank spaces with proper URL spacing 
-  subject <- gsub(" ", "%20", subject)
-  # build URL with `paste0()` function, which joins text with no separator
-  url <- paste0(
-     "https://newsapi.org/v2/everything?q=", subject,
-     "&from=", from_date,
-     "&language=en&pageSize=50&apiKey=", api_key
+news_query <- function(subject, start_date, api_key) {
+  
+  # Send request to NewsAPI
+  response <- GET(
+    "https://newsapi.org/v2/everything",
+    query = list(
+      q = subject,
+      from = start_date,
+      language = "en",
+      pageSize = 50,
+      apiKey = api_key
+    )
   )
   
-  # sends request to NewsAPI and stores the response
-  news_return <- GET(url)
+  # Parse the API response
+  parsed <- fromJSON(rawToChar(response$content))
+
+  # Convert the article information into a tibble
+  article_info <- as_tibble(parsed$articles)
   
-  # convert raw JSON response into an R object
-  parsed <- fromJSON(rawToChar(news_return$content))
-  
-  # returns data frame containing the article information
-  parsed$articles
+  # Convert source back to a list column
+  article_info <- article_info |>
+    mutate(
+      source = pmap(source, \(...) list(...))
+    )
+
+  return(article_info)
 }
 
 #Test 1
@@ -83,6 +100,7 @@ test1 <- news_query(
   "5666c93387864ff7b1e91fc2cef51c8a"
 )
 
+glimpse(test1) #before
 head(test1$title)
 
 #Test 2
@@ -91,6 +109,7 @@ test2 <- news_query(
   "2026-09-18",
   "5666c93387864ff7b1e91fc2cef51c8a"
 )
+glimpse(test2) #after
 head(test2$title)
 
 
@@ -122,15 +141,16 @@ coaster_data2 <- coaster_data |>
          Scale = as.factor(Scale),
          Type = as.factor(Type),
          Design = as.factor(Design),
-         `Inversions?` = as.factor(`Inversions?`))
+         `Inversions?` = as.factor(`Inversions?`),
+         Make = as.factor(Make)) #added make as factor
 
 str(coaster_data2)
 
 ```
 In the original data, several categorical variables were stored as character variables, 
-specifically `State`, `Census Region`, `AgeGroup`, `Scale`, `Type`, `Design`, and 
-`Inversions?`. They were converted to *factors* using the `mutate()` function. As 
-noted in class, factors are useful for categorical variables because they have a 
+specifically `State`, `Census Region`, `AgeGroup`, `Scale`, `Type`, `Design`, `Inversions?`, 
+and `Make`. They were converted to *factors* using the `mutate()` function. As noted 
+in class, factors are useful for categorical variables because they have a 
 levels attribute that becomes helpful for ordering and plotting.
 
 ## Question 5
@@ -166,6 +186,8 @@ table(coaster_data2$Type)
 There are 635 roller coaster observations in the data. 530 are made from *steel* and
 105 are made from *wood*.
 
+
+
 ### Two-Way Table
 
 ```{r}
@@ -173,7 +195,7 @@ There are 635 roller coaster observations in the data. 530 are made from *steel*
 table(coaster_data2$Scale, coaster_data2$Type)
 ```
 
-The *scale* of the roller coaster further classifies the ride by its intensity level 
+The `scale` of the roller coaster further classifies the ride by its intensity level 
 across the `type` variable. It shows that the *Extreme* intensity level is the most 
 popular (216 + 53 = 269 rides) while the *Kiddie* intensity level is the least popular 
 (27 + 1 = 28 rides).
@@ -229,6 +251,8 @@ coaster_table[, , "Yes"]
 Create a two-way contingency table using `group_by()` and `summarize()`. Then use `pivot_wider()` so that the result resembles the output from `table()`.
 
 ```{r}
+#| message: false
+
 coaster_data2 |>
   group_by(Scale, Type) |>
   summarize(count = n()) |>
@@ -245,14 +269,16 @@ Create both a stacked bar graph and a side-by-side bar graph. Include appropriat
 ### Stacked Bar Graph
 
 ```{r}
+
 ggplot(
   data = coaster_data2,
   aes(x = Scale, fill = Type)
 ) +
-  geom_bar() + #default is stacked, while "dodge" makes side by side
+  geom_bar() +
   labs(
     x = "Roller Coaster Scale",
     y = "Number of Roller Coasters",
+    fill = "Coaster Type",
     title = "Roller Coaster Type by Scale"
   )
 ```
@@ -260,13 +286,16 @@ ggplot(
 ### Side-by-Side Bar Graph
 
 ```{r}
+
 ggplot(
   data = coaster_data2,
   aes(x = Scale, fill = Type)
 ) +
-  geom_bar(position = "dodge") + #default is stacked, while "dodge" makes side by side
+  geom_bar(position = "dodge") +
   labs(
     x = "Roller Coaster Scale",
     y = "Number of Roller Coasters",
+    fill = "Coaster Type",
     title = "Roller Coaster Type by Scale"
   )
+```
