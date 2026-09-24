@@ -98,6 +98,33 @@ ESA_news <- query_news_API(
 ESA_news
 ```
 
+can also do
+```{r}
+query_news_API_2 <- function(subject, start_date, your_API_key) {
+  
+  # create the API URL
+  url <- paste0("https://newsapi.org/v2/everything?q=",
+                     subject,
+                     "&from=",
+                     start_date,
+                     "&language=en&pageSize=50&apiKey=",
+                     your_API_key,
+                     sep = ""
+  )
+  
+  # send GET request 
+  reponse <- GET(url)
+  
+  # convert & parse reponse 
+  parsed_data <- fromJSON(rawToChar(response$content))
+  
+  # convert to tibble
+  articles <- as_tibble(parsed_data$articles)
+  
+  return(articles)
+  
+```
+
 # Task 2 - Summarizing Roller Coaster Data
 
 ## Read in the Data
