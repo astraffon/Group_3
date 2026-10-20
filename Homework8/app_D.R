@@ -7,25 +7,80 @@ source("helpers.R")
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   
-  "Add a title panel here!",
-  sidebarLayout(
-    sidebarPanel(
-      h2("Select Variables to Find Correlation:"),
-      "Put your selectize inputs here!",
-      "Give them internal IDs of corr_x and corr_y.",
-      "Note the vector with these names comes from the helpers.R files. The object is called `numeric_vars`. Make sure you don't assign the same initial value to both inputs!",
-      br(),
-      "Place your radio buttons here! One radio button for each variable we may subset on. Set the internal IDs for these to be hhl_corr, fs_corr, and schl_corr.",
-      "Notice that you can use choiceNames and choiceValues to have different values show vs the values you use internally for comparisons. There are 'internal' values already used in the server file - the first large commented section - so you should set the internal values to match those!",
-      h2("Select a Sample Size"),
-      "Put your slider for sample size here. Give this an ID of corr_n.",
-      actionButton("corr_sample","Get a Sample!")
+  titlePanel("Correlation Exploration"),
+    sidebarLayout(
+      sidebarPanel(
+        h2("Select Variables to Find Correlation:"),
+        
+        selectizeInput(
+          inputId = "corr_x",
+          label = "x Variable",
+          choices = numeric_vars,
+          selected = "PINCP"
+        ),
+        
+        selectizeInput(
+          inputId = "corr_y",
+          label = "y Variable",
+          choices = numeric_vars,
+          selected = "JWMNP"
+        ),
+        
+        br(),
+        
+        h2("Choose a subset of the data"),
+        
+        radioButtons(
+          inputId = "hhl_corr",
+          label = "Household Language",
+          choices = c(
+            "All" = "all",
+            "English only" = "english",
+            "Spanish" = "spanish",
+            "Other" = "other"
+          ),
+          selected = "all"
+        ),
+        
+        radioButtons(
+          inputId = "fs_corr",
+          label  = "SNAP Recipient",
+          choices = c(
+            "All" = "all",
+            "Yes" = "yes",
+            "No" = "no"
+          ),
+          selected = "all"
+        ),
+        
+        radioButtons(
+          inputId = "schl_corr",
+          label = "Eduational Attainment",
+          choices = c(
+            "All" = "all",
+            "High School not Completed" = "no_hs",
+            "High School or GED" = "hs",
+            "College Degree" = "college"
+          ),
+          selected = "all"
+        ),
+
+        h2("Select a Sample Size"),
+      
+        sliderInput(
+          inputId = "corr_n",
+          label = "Select a Sample Size",
+          min = 20,
+          max = 500,
+          value = 20,
+        ),
+        actionButton("corr_sample","Get a Sample!")
     ),
-    mainPanel(
-      "Add a plotOutput here for the scatter plot!",
-      conditionalPanel("input.corr_sample", #only show if a sample has been taken
-                       h2("Guess the correlation!"),
-                       column(6, 
+      mainPanel(
+        plotOutput("corr_plot"),
+        conditionalPanel("input.corr_sample",
+                        h2("Guess the correlation!"),
+                        column(6, 
                               numericInput("corr_guess",
                                            "",
                                            value = 0,
@@ -40,7 +95,7 @@ ui <- fluidPage(
   )
 )
 
-my_sample <- readRDS("my_sample_temp.rds")
+my_sample <- readRDS("data/my_sample_temp.rds")
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
