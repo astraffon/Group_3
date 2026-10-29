@@ -1,0 +1,33 @@
+---
+title: "HW9 - Basic Modeling Practice"
+format: html
+---
+
+## Introduction
+
+In this assignment, we explore the Seoul Bike Sharing dataset
+and develop multiple linear regression models to predict
+daily bicycle rentals.
+
+We begin by importing and exploring the data, then prepare
+the data for modeling, fit three regression models, and
+compare their predictive performance using RMSE.
+
+## Reading in the Data
+
+```{r}
+# Load the packages needed for data manipulation and exploration
+library(tidyverse)
+library(lubridate)
+library(rsample)
+
+# Read the locally saved Seoul Bike Sharing dataset
+# Specify Latin1 encoding to handle special characters
+bike_data <- read_csv(
+  "data/SeoulBikeData.csv",
+  locale = locale(encoding = "Latin1")
+)
+
+# Examine the structure of the dataset
+glimpse(bike_data)
+```
