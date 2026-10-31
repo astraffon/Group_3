@@ -27,7 +27,72 @@ bike_data <- read_csv(
   "data/SeoulBikeData.csv",
   locale = locale(encoding = "Latin1")
 )
-
-# Examine the structure of the dataset
-glimpse(bike_data)
 ```
+
+
+## Exploratory data analysis
+
+### 1) Checking for missing values
+
+```{r}
+# Count missing values in each column
+colSums(is.na(bike_data))
+```
+There are no missing values in the data.
+
+### 2) Check column types and values within the columns
+```{r}
+# Examine the structure of the dataset
+# glimpse() tells us the number of rows, columns, variable names, data types, and 
+#sample values
+glimpse(bike_data)
+
+# head() lets us see the first six observations
+head(bike_data)
+
+# provides min, max, quartiles, median and mean for numeric variables
+summary(bike_data)
+
+# unique() lets us inspect the unique values of the categorical variables.
+unique(bike_data$Seasons)
+unique(bike_data$Holiday)
+unique(bike_data$"Functioning Day")
+```
+
+We have 8,760 observations across 14 variables (columns). Of these 10 are numeric and 4 are character variables. Three of the character variables are categorical (`Seasons`, `Holiday`, ` Functioning Day`) while the `Date` variable needs to be converted to the proper date format. 
+
+### 3) Convert `Date' column to actual date format
+
+```{r}
+
+# Convert Date from character to Date format (day/month/year)
+# Use dmy() function from the lubridate package
+bike_data$Date <- dmy(bike_data$Date)
+
+# confirm conversion
+class(bike_data$Date)
+```
+### 4) Convert the character variables into factors using factor()
+
+```{r}
+# Convert Seasons from character to factor
+bike_data$Seasons <- factor(bike_data$Seasons)
+# Display the factor's levels
+levels(bike_data$Seasons)
+
+# Convert Holiday from character to factor
+bike_data$Holiday <- factor(bike_data$Holiday)
+# Display the factor's levels
+levels(bike_data$Holiday)
+
+# Convert Functioning Day from character to factor
+bike_data$"Functioning Day" <- factor(bike_data$"Functioning Day")
+# Display the factor's levels
+levels(bike_data$"Functioning Day")
+```
+After converting the character variables to factors, we use the `levels` function to identify
+the unique values for each one.
+
+
+
+
