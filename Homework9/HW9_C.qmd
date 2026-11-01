@@ -7,13 +7,9 @@ editor: source
 
 ## Introduction
 
-In this assignment, we explore the Seoul Bike Sharing dataset
-and develop multiple linear regression models to predict
-daily bicycle rentals.
+In this assignment, we explore the Seoul Bike Sharing dataset and develop multiple linear regression models to predict daily bicycle rentals.
 
-We begin by importing and exploring the data, then prepare
-the data for modeling, fit three regression models, and
-compare their predictive performance using RMSE.
+We begin by importing and exploring the data, then prepare the data for modeling, fit three regression models, and compare their predictive performance using RMSE.
 
 ## Reading in the Data
 
@@ -30,21 +26,41 @@ bike_data <- read_csv(
   "data/SeoulBikeData.csv",
   locale = locale(encoding = "Latin1")
 )
-
-# Examine the structure of the dataset
-glimpse(bike_data)
 ```
+
+## Exploratory Data Analysis
 
 With the data imported, we conducted a basic EDA, including the following:
 * checked for missingness
-* created some numerical and some graphical summaries
-* did some data manipulations
-  * Turn the character variables (Seasons, Holiday, and Functioning Day) into factors.
-  * Lastly, rename the all the variables to have easy to use names
 
 ```{r}
-missingValues <- colSums(is.na(bike_data))
+colSums(is.na(bike_data))
+```
 
+* Examine the structure of the dataset
+
+```{r}
+glimpse(bike_data)
+```
+
+* created some numerical summaries . . .
+
+```{r}
+cate_tables <- bike_data |> # Target only categorical variables
+  select(where(is.character)) %>%
+  map(unique)
+
+numb_tables <- bike_data |>   # Target only numeric variables
+  select(where(is.numeric)) %>%
+  summary()
+
+basic_eda <- list(cate_tables, numb_tables)
+basic_eda
+```
+
+* . . . and some graphical summaries
+
+```{r}
 # Histos
 plot_A <- ggplot(data = bike_data, aes(x = `Temperature(°C)`)) +
   geom_histogram(binwidth = 2, fill = "red3", color = "white") +
@@ -59,18 +75,45 @@ plot_C <- ggplot(data = bike_data, aes(x = Seasons)) +
   geom_bar(fill = "red3", color = "white") +
   labs(title = "Number of Rides by Season", x = "Season", y = "Number of Rides")
 
-plotsABC <- plot_grid(plot_A, plot_B, plot_C, labels = c("A", "B", "C"), ncol = 3)
+plot_grid(plot_A, plot_B, plot_C, labels = c("A", "B", "C"), ncol = 3)
+```
 
-clean_bikes <- bike_data |>
+* did some data manipulations
+  * Turn the character variables (Seasons, Holiday, and Functioning Day) into factors.
+
+```{r}
+bike_data <- bike_data |>
   mutate(
     #Fix current vars:
     Date = dmy(Date),
-    season = factor(season, levels = c("Spring", "Summer", "Autumn", "Winter"))
-  ) |>
+    Seasons = factor(Seasons, levels = c("Spring", "Summer", "Autumn", "Winter")),
+    Holiday = as.factor(Holiday),
+    `Functioning Day` = as.factor(`Functioning Day`)
+  ) #|>
+    # Make New vars:
+  # mutate(
+  #   dayOfWeek = wday(Date, label = TRUE, abbr = FALSE), # Extract day name (Mon, etc.)
+  #     dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+  #   isWeekend = if_else(dayOfWeek %in% c("Saturday", "Sunday"), 1, 0), #dummy
+  #   isWeekend = as.factor(isWeekend),
+  #   month = month(Date, label = TRUE), # Extract monht.
+  #     month = factor(month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")),
+  #   monthNumber = month(Date), #Month number, for slightly off "season" trend analyiss.
+  #   monthNumber = as.factor(monthNumber)
+  # )
+
+#Create output
+#bike_data |> select(season, dayOfWeek:monthNumber) |> lapply(table)
+```
+
+* Lastly, rename the all the variables to have easy to use names
+
+```{r}
+clean_bikes <- bike_data |>
   # Convert string to a true date obj.
   rename(
     date          = Date,
-    bike_count    = `Rented Bike Count`, # Note the backticks for spaces!
+    bikeCount    = `Rented Bike Count`, # Note the backticks for spaces!
     hour          = Hour,
     temperature   = `Temperature(°C)`,
     humidity      = `Humidity(%)`,
@@ -83,24 +126,7 @@ clean_bikes <- bike_data |>
     season        = Seasons,
     holiday       = Holiday,
     functDay      = `Functioning Day`
-  ) |>
-  # Make New vars:
-  mutate(
-    dayOfWeek = wday(date, label = TRUE, abbr = FALSE), # Extract day name (Mon, etc.)
-      dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
-    isWeekend = if_else(dayOfWeek %in% c("Saturday", "Sunday"), 1, 0), #dummy
-    isWeekend = as.factor(isWeekend),
-    month = month(date, label = TRUE), # Extract monht.
-      month = factor(month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")),
-    monthNumber = month(date), #Month number, for slightly off "season" trend analyiss.
-    monthNumber = as.factor(monthNumber)
   )
-
-#Create output
-newVars <- clean_bikes |> select(dayOfWeek:monthNumber) |> lapply(table)
-
-myList <- list(missingValues, plotsABC, newVars)
-myList
 ```
 
 There do not appear to be any missing variables, and season appears mostly uniform. We created some variables to help look at larger trends (months) and smaller trends (weekdays vs. weekends) in later analysis.
@@ -114,16 +140,20 @@ Then we summarized across the hours so that each day had one observation and val
 compressed_bikes <- clean_bikes |>
   group_by(date, season, holiday) |>
   summarize(
-    across(c(bike_count, rainfall, snowfall), sum, na.rm = TRUE),
-    across(c(temperature, humidity, windSpeed, visibility, dewPoint, solarRadiation), \(x) mean(x, na.rm = TRUE)),
-    across(dayOfWeek:monthNumber, first),
+    across(c(bikeCount, rainfall, snowfall), sum, na.rm = TRUE),
+    across(c(temperature, humidity, windSpeed, visibility, dewPoint, solarRadiation), \(x) mean(x, na.rm = TRUE))
   )
 ```
 Then we recreated our basic summary stats and then create some plots to explore relationships. 
 
 ```{r}
 #Report correlation between your numeric variables as well.
+
+
 ```
+
+## Splitting the Data
+
 We then split the data into a training and test sets.
 
 ```{r}
@@ -138,7 +168,7 @@ Our final bit of cleaning involved standardizing several of the numeric weather 
 bike_train_std <- bike_train %>%
   mutate(
     across(
-      c(temperature, humidity, wind_speed, visability, dewPoint, solarRadiation, rainfall, snowfall), 
+      c(temperature, humidity, windSpeed, visibility, dewPoint, solarRadiation, rainfall, snowfall), 
       ~ (. - mean(.[dummy_var == TRUE], na.rm = TRUE)) / 
           sd(.[dummy_var == TRUE], na.rm = TRUE),     # Standardization
       .names = "{.col}_std"
@@ -148,18 +178,19 @@ bike_train_std <- bike_train %>%
 Must port those std vars from train into test somehow.
 bike_test_std
 ```
+## Fitting a Model to the Data
 
 fitting three different multiple linear regression models on the training data and predicting on the test set, reporting the RMSE
 ```{r}
-reg1 <- lm(???? ~ temperature_std + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std + snowfall_std + season + holiday + isWeekend, data = bike_train_std)
+reg1 <- lm(bikeCount ~ temperature_std + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std + snowfall_std + season + holiday + isWeekend, data = bike_train_std)
   #coef(reg1)
   #yardstick::rmse_vec(bike_train_std$???, predict(reg1))
 
-reg2 <- lm(???? ~ temperature_std:season + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std:season + snowfall_std + season:holiday + isWeekend, data = bike_train_std)
+reg2 <- lm(bikeCount ~ temperature_std:season + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std:season + snowfall_std + season:holiday + isWeekend, data = bike_train_std)
   #coef(reg2)
   #yardstick::rmse_vec(bike_train_std$???, predict(reg2))
   
-reg3 <- lm(???? ~ temperature_std:season + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std:season + snowfall_std + season:holiday + isWeekend + I(temperature_std^2) + I(humidity_std^2), data = bike_train_std)
+reg3 <- lm(bikeCount ~ temperature_std:season + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std:season + snowfall_std + season:holiday + isWeekend + I(temperature_std^2) + I(humidity_std^2), data = bike_train_std)
   #coef(reg3)
   #yardstick::rmse_vec(bike_train_std$???, predict(reg3))
 
@@ -168,9 +199,9 @@ reg3 <- lm(???? ~ temperature_std:season + humidity_std + wind_speed_std + visab
 We then found the RMSE for each model against the test set:
   
 ```{r}
-rmse_vec(bike_test_std$???, predict(reg1, newdata = bike_test_std))
-rmse_vec(bike_test_std$???, predict(reg2, newdata = bike_test_std))
-rmse_vec(bike_test_std$???, predict(reg3, newdata = bike_test_std))
+rmse_vec(bike_test_std$bikeCount, predict(reg1, newdata = bike_test_std))
+rmse_vec(bike_test_std$bikeCount, predict(reg2, newdata = bike_test_std))
+rmse_vec(bike_test_std$bikeCount, predict(reg3, newdata = bike_test_std))
   
 ```
 
@@ -188,6 +219,6 @@ bike_standard <- compressed_bikes %>%
 
 
 coef(regFinal)
-rmse_vec(bike_test$???, predict(ref?, newdata = bike_standard))
+rmse_vec(bike_test$bikeCount, predict(ref?, newdata = bike_standard))
 ```
 
