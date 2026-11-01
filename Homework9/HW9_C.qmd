@@ -64,7 +64,8 @@ plotsABC <- plot_grid(plot_A, plot_B, plot_C, labels = c("A", "B", "C"), ncol = 
 clean_bikes <- bike_data |>
   mutate(
     #Fix current vars:
-    Date = dmy(Date)
+    Date = dmy(Date),
+    season = factor(season, levels = c("Spring", "Summer", "Autumn", "Winter"))
   ) |>
   # Convert string to a true date obj.
   rename(
@@ -73,7 +74,7 @@ clean_bikes <- bike_data |>
     hour          = Hour,
     temperature   = `Temperature(°C)`,
     humidity      = `Humidity(%)`,
-    wind_speed    = `Wind speed (m/s)`,
+    windSpeed    = `Wind speed (m/s)`,
     visibility    = `Visibility (10m)`,         
     dewPoint      = `Dew point temperature(°C)`,
     solarRadiation= `Solar Radiation (MJ/m2)`,
@@ -114,7 +115,7 @@ compressed_bikes <- clean_bikes |>
   group_by(date, season, holiday) |>
   summarize(
     across(c(bike_count, rainfall, snowfall), sum, na.rm = TRUE),
-    across(c(temperature, humidity, wind_speed, visibility, dewPoint, solarRadiation), \(x) mean(x, na.rm = TRUE)),
+    across(c(temperature, humidity, windSpeed, visibility, dewPoint, solarRadiation), \(x) mean(x, na.rm = TRUE)),
     across(dayOfWeek:monthNumber, first),
   )
 ```
@@ -126,14 +127,67 @@ Then we recreated our basic summary stats and then create some plots to explore 
 We then split the data into a training and test sets.
 
 ```{r}
-rsample::initial_split(compressed_bikes, prop = 3/4, strata = season)
+bike_split <- rsample::initial_split(compressed_bikes, prop = 3/4, strata = season)
 	bike_train <- training(bike_split)
 	bike_test <- testing(bike_split)
-bike_train
+```
 
+Our final bit of cleaning involved standardizing several of the numeric weather variables, then applying to both training and test datasets:
+
+```{r}
+bike_train_std <- bike_train %>%
+  mutate(
+    across(
+      c(temperature, humidity, wind_speed, visability, dewPoint, solarRadiation, rainfall, snowfall), 
+      ~ (. - mean(.[dummy_var == TRUE], na.rm = TRUE)) / 
+          sd(.[dummy_var == TRUE], na.rm = TRUE),     # Standardization
+      .names = "{.col}_std"
+    )
+  )
+
+Must port those std vars from train into test somehow.
+bike_test_std
 ```
 
 fitting three different multiple linear regression models on the training data and predicting on the test set, reporting the RMSE
 ```{r}
+reg1 <- lm(???? ~ temperature_std + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std + snowfall_std + season + holiday + isWeekend, data = bike_train_std)
+  #coef(reg1)
+  #yardstick::rmse_vec(bike_train_std$???, predict(reg1))
+
+reg2 <- lm(???? ~ temperature_std:season + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std:season + snowfall_std + season:holiday + isWeekend, data = bike_train_std)
+  #coef(reg2)
+  #yardstick::rmse_vec(bike_train_std$???, predict(reg2))
+  
+reg3 <- lm(???? ~ temperature_std:season + humidity_std + wind_speed_std + visability_std + dewPoint_std + solarRadiation_std + rainfall_std:season + snowfall_std + season:holiday + isWeekend + I(temperature_std^2) + I(humidity_std^2), data = bike_train_std)
+  #coef(reg3)
+  #yardstick::rmse_vec(bike_train_std$???, predict(reg3))
+
 ```
-  talk.
+
+We then found the RMSE for each model against the test set:
+  
+```{r}
+rmse_vec(bike_test_std$???, predict(reg1, newdata = bike_test_std))
+rmse_vec(bike_test_std$???, predict(reg2, newdata = bike_test_std))
+rmse_vec(bike_test_std$???, predict(reg3, newdata = bike_test_std))
+  
+```
+
+Lastly, we fit that model against the entire dataset by first creating the standardized vars for the whole dataset. We already had the weekday/end var.
+
+```{r}
+bike_standard <- compressed_bikes %>%
+  mutate(
+    across(
+      c(temperature, humidity, wind_speed, visability, dewPoint, solarRadiation, rainfall, snowfall), 
+      ~ (. - mean(., na.rm = TRUE)) / sd(., na.rm = TRUE),
+      .names = "{.col}_std"
+    )
+  )
+
+
+coef(regFinal)
+rmse_vec(bike_test$???, predict(ref?, newdata = bike_standard))
+```
+
