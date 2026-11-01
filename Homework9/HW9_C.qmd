@@ -1,6 +1,8 @@
 ---
 title: "HW9 - Basic Modeling Practice"
+author: "Michael Costello"
 format: html
+editor: source
 ---
 
 ## Introduction
@@ -20,6 +22,7 @@ compare their predictive performance using RMSE.
 library(tidyverse)
 library(lubridate)
 library(rsample)
+library(cowplot)
 
 # Read the locally saved Seoul Bike Sharing dataset
 # Specify Latin1 encoding to handle special characters
@@ -31,3 +34,106 @@ bike_data <- read_csv(
 # Examine the structure of the dataset
 glimpse(bike_data)
 ```
+
+With the data imported, we conducted a basic EDA, including the following:
+* checked for missingness
+* created some numerical and some graphical summaries
+* did some data manipulations
+  * Turn the character variables (Seasons, Holiday, and Functioning Day) into factors.
+  * Lastly, rename the all the variables to have easy to use names
+
+```{r}
+missingValues <- colSums(is.na(bike_data))
+
+# Histos
+plot_A <- ggplot(data = bike_data, aes(x = `Temperature(°C)`)) +
+  geom_histogram(binwidth = 2, fill = "red3", color = "white") +
+  labs(title = "Distribution of Temperatures", x = "Temperature", y = "Count")
+
+plot_B <- ggplot(data = bike_data, aes(x = `Humidity(%)`)) +
+  geom_histogram(binwidth = 2, fill = "steelblue", color = "white") +
+  labs(title = "Distribution of Temperatures", x = "Humidity", y = "Count")
+
+# Simple Bar Graph
+plot_C <- ggplot(data = bike_data, aes(x = Seasons)) +
+  geom_bar(fill = "red3", color = "white") +
+  labs(title = "Number of Rides by Season", x = "Season", y = "Number of Rides")
+
+plotsABC <- plot_grid(plot_A, plot_B, plot_C, labels = c("A", "B", "C"), ncol = 3)
+
+clean_bikes <- bike_data |>
+  mutate(
+    #Fix current vars:
+    Date = dmy(Date)
+  ) |>
+  # Convert string to a true date obj.
+  rename(
+    date          = Date,
+    bike_count    = `Rented Bike Count`, # Note the backticks for spaces!
+    hour          = Hour,
+    temperature   = `Temperature(°C)`,
+    humidity      = `Humidity(%)`,
+    wind_speed    = `Wind speed (m/s)`,
+    visibility    = `Visibility (10m)`,         
+    dewPoint      = `Dew point temperature(°C)`,
+    solarRadiation= `Solar Radiation (MJ/m2)`,
+    rainfall      = `Rainfall(mm)`,
+    snowfall      = `Snowfall (cm)`,
+    season        = Seasons,
+    holiday       = Holiday,
+    functDay      = `Functioning Day`
+  ) |>
+  # Make New vars:
+  mutate(
+    dayOfWeek = wday(date, label = TRUE, abbr = FALSE), # Extract day name (Mon, etc.)
+      dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+    isWeekend = if_else(dayOfWeek %in% c("Saturday", "Sunday"), 1, 0), #dummy
+    isWeekend = as.factor(isWeekend),
+    month = month(date, label = TRUE), # Extract monht.
+      month = factor(month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")),
+    monthNumber = month(date), #Month number, for slightly off "season" trend analyiss.
+    monthNumber = as.factor(monthNumber)
+  )
+
+#Create output
+newVars <- clean_bikes |> select(dayOfWeek:monthNumber) |> lapply(table)
+
+myList <- list(missingValues, plotsABC, newVars)
+myList
+```
+
+There do not appear to be any missing variables, and season appears mostly uniform. We created some variables to help look at larger trends (months) and smaller trends (weekdays vs. weekends) in later analysis.
+
+Then we summarized across the hours so that each day had one observation and value for all categorical/factor variables, and shows:
+• sum of the bike_count, rainfall, and snowfall variables
+• mean of all the other weather related variables.
+
+
+```{r}
+compressed_bikes <- clean_bikes |>
+  group_by(date, season, holiday) |>
+  summarize(
+    across(c(bike_count, rainfall, snowfall), sum, na.rm = TRUE),
+    across(c(temperature, humidity, wind_speed, visibility, dewPoint, solarRadiation), \(x) mean(x, na.rm = TRUE)),
+    across(dayOfWeek:monthNumber, first),
+  )
+```
+Then we recreated our basic summary stats and then create some plots to explore relationships. 
+
+```{r}
+#Report correlation between your numeric variables as well.
+```
+We then split the data into a training and test sets.
+
+```{r}
+rsample::initial_split(compressed_bikes, prop = 3/4, strata = season)
+	bike_train <- training(bike_split)
+	bike_test <- testing(bike_split)
+bike_train
+
+```
+
+fitting three different multiple linear regression models on the training data and predicting on the test set, reporting the RMSE
+```{r}
+```
+  talk.
