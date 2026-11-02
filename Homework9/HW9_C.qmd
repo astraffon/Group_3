@@ -31,34 +31,34 @@ bike_data <- read_csv(
 ## Exploratory Data Analysis
 
 With the data imported, we conducted a basic EDA, including the following:
-* checked for missingness
+* checked for missingness (#1)
 
 ```{r}
 colSums(is.na(bike_data))
 ```
 
-* Examine the structure of the dataset
+* Examine the structure of the dataset (#2)
 
 ```{r}
 glimpse(bike_data)
 ```
 
-* created some numerical summaries . . .
+* created some numerical summaries . . .  (#2 cont)
 
 ```{r}
 cate_tables <- bike_data |> # Target only categorical variables
-  select(where(is.character)) %>%
+  select(where(is.character)) |>
   map(unique)
 
 numb_tables <- bike_data |>   # Target only numeric variables
-  select(where(is.numeric)) %>%
+  select(where(is.numeric)) |>
   summary()
 
 basic_eda <- list(cate_tables, numb_tables)
 basic_eda
 ```
 
-* . . . and some graphical summaries
+* . . . and some graphical summaries  (#2 cont)
 
 ```{r}
 # Histos
@@ -78,8 +78,9 @@ plot_C <- ggplot(data = bike_data, aes(x = Seasons)) +
 plot_grid(plot_A, plot_B, plot_C, labels = c("A", "B", "C"), ncol = 3)
 ```
 
-* did some data manipulations
-  * Turn the character variables (Seasons, Holiday, and Functioning Day) into factors.
+* did some data manipulations:
+  * Turn the character variables (Seasons, Holiday, and Functioning Day) into factors. (#4)
+  * Converted date from string to date (#3)
 
 ```{r}
 bike_data <- bike_data |>
@@ -106,7 +107,7 @@ bike_data <- bike_data |>
 #bike_data |> select(season, dayOfWeek:monthNumber) |> lapply(table)
 ```
 
-* Lastly, rename the all the variables to have easy to use names
+* Lastly, we renamed the all the variables to have easy to use names (#5)
 
 ```{r}
 clean_bikes <- bike_data |>
@@ -129,27 +130,43 @@ clean_bikes <- bike_data |>
   )
 ```
 
-There do not appear to be any missing variables, and season appears mostly uniform. We created some variables to help look at larger trends (months) and smaller trends (weekdays vs. weekends) in later analysis.
+There do not appear to be any missing variables, and season appears mostly uniform. We created some variables to help look at trends (weekdays vs. weekends) in later analysis.
 
 Then we summarized across the hours so that each day had one observation and value for all categorical/factor variables, and shows:
-• sum of the bike_count, rainfall, and snowfall variables
-• mean of all the other weather related variables.
-
+• subsetted by removing all data where Functioning Day == "No" (#6)
+• sum of the bike_count, rainfall, and snowfall variables  (#6)
+• mean of all the other weather related variables.  (#7)
 
 ```{r}
+compressed_bikes$date[compressed_bikes$functDay == "No"] # quick check on functioning day variable.
+
 compressed_bikes <- clean_bikes |>
-  group_by(date, season, holiday) |>
+  filter(functDay == "Yes") |>
+  group_by(date, season, holiday, functDay) |>
   summarize(
     across(c(bikeCount, rainfall, snowfall), sum, na.rm = TRUE),
     across(c(temperature, humidity, windSpeed, visibility, dewPoint, solarRadiation), \(x) mean(x, na.rm = TRUE))
   )
 ```
-Then we recreated our basic summary stats and then create some plots to explore relationships. 
+Then we recreated our basic summary stats and then create some plots to explore relationships. (#8)
 
 ```{r}
-#Report correlation between your numeric variables as well.
+glimpse(bike_data)
 
+cate_tables <- bike_data |> # Target only categorical variables
+  select(where(is.character)) |>
+  map(unique)
 
+numb_tables <- bike_data |>   # Target only numeric variables
+  select(where(is.numeric)) |>
+  summary()
+
+cor_matrix <- bike_data |>
+  select(where(is.numeric)) |>
+  cor(, use = "pairwise.complete.obs")
+
+basic_eda <- list(cate_tables, numb_tables, cor_matrix)
+basic_eda
 ```
 
 ## Splitting the Data
@@ -165,7 +182,7 @@ bike_split <- rsample::initial_split(compressed_bikes, prop = 3/4, strata = seas
 Our final bit of cleaning involved standardizing several of the numeric weather variables, then applying to both training and test datasets:
 
 ```{r}
-bike_train_std <- bike_train %>%
+bike_train_std <- bike_train |>
   mutate(
     across(
       c(temperature, humidity, windSpeed, visibility, dewPoint, solarRadiation, rainfall, snowfall), 
@@ -208,7 +225,7 @@ rmse_vec(bike_test_std$bikeCount, predict(reg3, newdata = bike_test_std))
 Lastly, we fit that model against the entire dataset by first creating the standardized vars for the whole dataset. We already had the weekday/end var.
 
 ```{r}
-bike_standard <- compressed_bikes %>%
+bike_standard <- compressed_bikes |>
   mutate(
     across(
       c(temperature, humidity, wind_speed, visability, dewPoint, solarRadiation, rainfall, snowfall), 
