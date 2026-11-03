@@ -1,0 +1,927 @@
+---
+title: "HW9 - Basic Modeling Practice"
+format: html
+author: "Daria"
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+## Introduction
+
+In this assignment, we explore the Seoul Bike Sharing dataset and
+develop multiple linear regression models to predict daily bicycle
+rentals.
+
+We begin by importing and exploring the hourly data, then aggregate the
+observations by day. We split the daily data into training and test
+sets, fit three regression models, and compare their predictive
+performance using root mean squared error (RMSE). Finally, we refit the
+selected model using the full daily dataset and report its coefficients.
+
+## Reading in the Data
+
+We use `tidyverse` for data manipulation and visualization, `lubridate`
+for working with dates, and `rsample` for splitting the data.
+
+The Latin-1 encoding handles special characters in the original column
+names, including the temperature units.
+
+```{r}
+# Load the packages needed for data manipulation and exploration
+library(tidyverse)
+library(lubridate)
+library(rsample)
+library(knitr)
+
+# Read the locally saved Seoul Bike Sharing dataset
+# Specify Latin1 encoding to handle special characters
+bike_data <- read_csv(
+  "data/SeoulBikeData.csv",
+  locale = locale(encoding = "Latin1")
+)
+
+# Examine the structure of the dataset
+glimpse(bike_data)
+```
+
+## Exploratory Data Analysis
+
+### 1) Checking for missing values
+
+We count missing values in each column before preparing the data.
+
+```{r}
+missing_counts <- tibble(
+  variable = names(bike_data),
+  missing = colSums(is.na(bike_data))
+)
+
+kable(missing_counts)
+```
+
+There are **`r sum(missing_counts$missing)` missing values** in the
+imported dataset.
+
+### 2) Checking column types and values
+
+We inspect the structure, initial observations, numeric summaries, and
+categorical values to check whether the imported data make sense.
+
+```{r}
+glimpse(bike_data)
+
+head(bike_data)
+
+summary(bike_data)
+
+unique(bike_data$Seasons)
+unique(bike_data$Holiday)
+unique(bike_data[["Functioning Day"]])
+```
+
+The dataset contains **`r nrow(bike_data)` observations** across
+**`r ncol(bike_data)` variables**. Each observation represents an hour.
+The numeric variables describe rentals, the hour, and weather
+conditions. The season, holiday, and functioning-day variables identify
+categories. The date requires conversion to a date object.
+
+### 3) Converting the date
+
+The original dates use day/month/year order, so we convert them with
+`dmy()`.
+
+```{r}
+bike_data$Date <- dmy(bike_data$Date)
+
+class(bike_data$Date)
+
+# Check whether conversion introduced missing dates.
+sum(is.na(bike_data$Date))
+```
+
+After conversion, there are **`r sum(is.na(bike_data$Date))` missing
+dates**.
+
+### 4) Converting character variables into factors
+
+We convert the categorical variables into factors so that R treats them
+as categorical predictors when fitting regression models.
+
+```{r}
+bike_data$Seasons <- factor(bike_data$Seasons)
+bike_data$Holiday <- factor(bike_data$Holiday)
+bike_data[["Functioning Day"]] <-
+  factor(bike_data[["Functioning Day"]])
+
+levels(bike_data$Seasons)
+levels(bike_data$Holiday)
+levels(bike_data[["Functioning Day"]])
+```
+
+The factor levels show the categories available for each variable.
+Regression coefficients for these variables will compare categories
+against a reference category.
+
+### 5) Renaming variables
+
+We use short, lowercase names to make the remaining code easier to read.
+The names below follow the original dataset's column order.
+
+```{r}
+stopifnot(ncol(bike_data) == 14)
+
+names(bike_data) <- c(
+  "date",
+  "bike_count",
+  "hour",
+  "temp",
+  "humidity",
+  "wind_speed",
+  "visibility",
+  "dew_point",
+  "solar_radiation",
+  "rainfall",
+  "snowfall",
+  "seasons",
+  "holiday",
+  "functioning_day"
+)
+
+glimpse(bike_data)
+```
+
+### 6) Summarizing hourly rentals
+
+We summarize rental counts overall and across seasons, holidays, and
+functioning-day categories.
+
+```{r}
+# Reusable function for rental-count summaries.
+rental_summary <- function(data, ...) {
+  data |>
+    group_by(...) |>
+    summarise(
+      observations = n(),
+      mean_rentals = mean(bike_count),
+      sd_rentals = sd(bike_count),
+      median_rentals = median(bike_count),
+      min_rentals = min(bike_count),
+      max_rentals = max(bike_count),
+      .groups = "drop"
+    )
+}
+
+kable(
+  rental_summary(bike_data),
+  digits = 2,
+  caption = "Overall hourly rental summary"
+)
+
+kable(
+  rental_summary(bike_data, seasons),
+  digits = 2,
+  caption = "Hourly rentals by season"
+)
+
+kable(
+  rental_summary(bike_data, holiday),
+  digits = 2,
+  caption = "Hourly rentals by holiday status"
+)
+
+functioning_summary <- rental_summary(
+  bike_data,
+  functioning_day
+)
+
+kable(
+  functioning_summary,
+  digits = 2,
+  caption = "Hourly rentals by functioning-day status"
+)
+```
+
+The functioning-day summary distinguishes low demand from service
+unavailability. Nonfunctioning hours have zero rentals, reflecting that
+the system was unavailable. We exclude those hours so that our analysis
+focuses on rentals while the service was functioning.
+
+```{r}
+bike_functioning <- bike_data |>
+  filter(functioning_day == "Yes")
+
+# Check the number of functioning hours available for each date.
+hours_per_day <- bike_functioning |>
+  count(date, name = "functioning_hours")
+
+kable(
+  hours_per_day |>
+    count(functioning_hours, name = "number_of_days"),
+  caption = "Number of functioning hours per retained date"
+)
+```
+
+We retain **`r nrow(bike_functioning)` hourly observations**. Of the
+retained dates, **`r sum(hours_per_day$functioning_hours < 24)` have
+fewer than 24 functioning hours**. Their daily rental totals represent
+the functioning hours available on those dates.
+
+### 7) Aggregating to daily observations
+
+Following the assignment, we group by date, season, and holiday status.
+We sum rentals, rainfall, and snowfall, and calculate the mean of the
+remaining weather variables.
+
+```{r}
+bike_daily <- bike_functioning |>
+  group_by(date, seasons, holiday) |>
+  summarise(
+    bike_count = sum(bike_count),
+    rainfall = sum(rainfall),
+    snowfall = sum(snowfall),
+    across(
+      c(
+        temp,
+        humidity,
+        wind_speed,
+        visibility,
+        dew_point,
+        solar_radiation
+      ),
+      mean
+    ),
+    .groups = "drop"
+  )
+
+glimpse(bike_daily)
+```
+
+The resulting dataset contains **`r nrow(bike_daily)` daily
+observations**. Daily rental count is the response variable for all
+three models.
+
+### 8) Daily summary statistics
+
+We examine the distributions of the daily numeric variables and compare
+daily rental counts across seasons and holiday categories.
+
+```{r}
+daily_numeric_summary <- bike_daily |>
+  select(where(is.numeric)) |>
+  pivot_longer(
+    everything(),
+    names_to = "variable",
+    values_to = "value"
+  ) |>
+  group_by(variable) |>
+  summarise(
+    mean = mean(value),
+    sd = sd(value),
+    min = min(value),
+    median = median(value),
+    max = max(value),
+    .groups = "drop"
+  )
+
+kable(daily_numeric_summary, digits = 2)
+
+daily_season_summary <- rental_summary(
+  bike_daily,
+  seasons
+)
+
+daily_holiday_summary <- rental_summary(
+  bike_daily,
+  holiday
+)
+
+kable(
+  daily_season_summary,
+  digits = 2,
+  caption = "Daily rentals by season"
+)
+
+kable(
+  daily_holiday_summary,
+  digits = 2,
+  caption = "Daily rentals by holiday status"
+)
+
+highest_season <- daily_season_summary |>
+  slice_max(mean_rentals, n = 1, with_ties = FALSE)
+
+lowest_season <- daily_season_summary |>
+  slice_min(mean_rentals, n = 1, with_ties = FALSE)
+
+highest_holiday <- daily_holiday_summary |>
+  slice_max(mean_rentals, n = 1, with_ties = FALSE)
+```
+
+Daily rentals average
+**`r format(round(mean(bike_daily$bike_count)), big.mark = ",")`**, with
+a median of
+**`r format(round(median(bike_daily$bike_count)), big.mark = ",")`**.
+
+**`r highest_season$seasons`** has the highest average daily rentals
+(`r round(highest_season$mean_rentals, 1)`), while
+**`r lowest_season$seasons`** has the lowest
+(`r round(lowest_season$mean_rentals, 1)`). The
+**`r highest_holiday$holiday`** category has the higher average daily
+rentals. These are descriptive comparisons and do not account for
+differences in weather or other variables.
+
+## Graphical Exploration
+
+### Distribution of daily rentals
+
+```{r}
+ggplot(bike_daily, aes(x = bike_count)) +
+  geom_histogram(
+    bins = 25,
+    fill = "steelblue",
+    color = "white"
+  ) +
+  labs(
+    title = "Distribution of Daily Bike Rentals",
+    x = "Daily rental count",
+    y = "Number of days"
+  ) +
+  theme_minimal()
+```
+
+The histogram shows the frequency of different daily rental totals. The
+mean and median reported above help assess the distribution's asymmetry,
+while the spread shows how much demand varies across days.
+
+### Rentals by season
+
+```{r}
+ggplot(
+  bike_daily,
+  aes(x = seasons, y = bike_count, fill = seasons)
+) +
+  geom_boxplot(show.legend = FALSE) +
+  labs(
+    title = "Daily Bike Rentals by Season",
+    x = "Season",
+    y = "Daily rental count"
+  ) +
+  theme_minimal()
+```
+
+The boxplots compare seasonal medians, variability, and potential
+outliers. Together with the seasonal summaries, they show why season may
+be useful for predicting daily rentals. Overlapping distributions also
+indicate that season alone cannot explain all daily variation.
+
+### Temperature and rentals
+
+```{r}
+ggplot(
+  bike_daily,
+  aes(x = temp, y = bike_count, color = seasons)
+) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(
+    aes(group = 1),
+    method = "loess",
+    se = FALSE,
+    color = "black"
+  ) +
+  labs(
+    title = "Temperature and Daily Bike Rentals",
+    x = "Mean daily temperature (C)",
+    y = "Daily rental count",
+    color = "Season"
+  ) +
+  theme_minimal()
+```
+
+The smooth curve helps assess whether the temperature relationship is
+approximately linear or curved. Coloring observations by season also
+helps reveal whether days with similar temperatures have different
+rental patterns across seasons. These possibilities motivate the
+temperature interaction and quadratic terms in the later models.
+
+### Rainfall and rentals
+
+```{r}
+ggplot(bike_daily, aes(x = rainfall, y = bike_count)) +
+  geom_point(alpha = 0.6, color = "steelblue") +
+  labs(
+    title = "Rainfall and Daily Bike Rentals",
+    x = "Total daily rainfall (mm)",
+    y = "Daily rental count"
+  ) +
+  theme_minimal()
+```
+
+This plot compares rental totals across rainfall levels. The
+temperature-by-rainfall interaction in Models 2 and 3 allows the
+association between temperature and rentals to differ with rainfall.
+
+### Rentals over time
+
+```{r}
+ggplot(bike_daily, aes(x = date, y = bike_count)) +
+  geom_line(color = "steelblue") +
+  labs(
+    title = "Daily Bike Rentals Over Time",
+    x = "Date",
+    y = "Daily rental count"
+  ) +
+  theme_minimal()
+```
+
+The time plot shows longer-term changes and short-term fluctuations in
+daily rentals. Because these are consecutive daily observations, nearby
+days may be related. We use the random split requested in the
+assignment; a chronological split would address a different goal of
+predicting future periods.
+
+## Correlations Among Numeric Variables
+
+We calculate Pearson correlations among daily rentals and the weather
+variables. These describe pairwise linear associations.
+
+```{r}
+correlation_matrix <- bike_daily |>
+  select(where(is.numeric)) |>
+  cor()
+
+kable(
+  correlation_matrix,
+  digits = 2,
+  caption = "Correlations among daily numeric variables"
+)
+
+rental_correlations <- tibble(
+  variable = setdiff(
+    colnames(correlation_matrix),
+    "bike_count"
+  ),
+  correlation = correlation_matrix[
+    "bike_count",
+    setdiff(colnames(correlation_matrix), "bike_count")
+  ]
+) |>
+  arrange(desc(abs(correlation)))
+
+kable(
+  rental_correlations,
+  digits = 3,
+  caption = "Weather-variable correlations with daily rentals"
+)
+```
+
+The strongest absolute correlation with rentals is for
+**`r rental_correlations$variable[1]`** (*r* =
+**`r round(rental_correlations$correlation[1], 3)`**). A positive
+correlation indicates that larger values tend to accompany more rentals;
+a negative correlation indicates fewer rentals.
+
+Strong correlations among weather predictors can make their individual
+regression coefficients harder to interpret. Correlation also does not
+establish causation or account for the other predictors.
+
+## Splitting the Data
+
+We use `initial_split()` to allocate approximately 75% of the daily
+observations to training and 25% to testing. Stratifying by season helps
+preserve seasonal representation in both sets. A fixed seed makes the
+split reproducible.
+
+```{r}
+set.seed(558)
+
+bike_split <- initial_split(
+  bike_daily,
+  prop = 0.75,
+  strata = seasons
+)
+
+train_data <- training(bike_split)
+test_data <- testing(bike_split)
+
+kable(
+  tibble(
+    dataset = c("Training", "Test"),
+    observations = c(
+      nrow(train_data),
+      nrow(test_data)
+    )
+  )
+)
+
+bind_rows(
+  train_data |> count(seasons) |> mutate(dataset = "Training"),
+  test_data |> count(seasons) |> mutate(dataset = "Test")
+) |>
+  select(dataset, seasons, n) |>
+  kable(caption = "Seasonal representation in each set")
+```
+
+The training set contains **`r nrow(train_data)` days**, and the test
+set contains **`r nrow(test_data)` days**. We estimate model
+coefficients using the training data and compare predictions using the
+test data.
+
+## Preparing Predictors
+
+### Creating a weekday/weekend variable
+
+We derive a factor identifying weekdays and weekends in both datasets.
+With Monday defined as day 1, Saturday and Sunday have values 6 and 7.
+We exclude the date itself from the model formulas.
+
+```{r}
+add_weekend <- function(data) {
+  data |>
+    mutate(
+      weekend = factor(
+        if_else(
+          wday(date, week_start = 1) >= 6,
+          "Weekend",
+          "Weekday"
+        ),
+        levels = c("Weekday", "Weekend")
+      )
+    )
+}
+
+train_data <- add_weekend(train_data)
+test_data <- add_weekend(test_data)
+```
+
+### Standardizing numeric predictors
+
+We standardize each weather predictor by subtracting its training-set
+mean and dividing by its training-set standard deviation:
+
+\[ z = \frac{x-\bar{x}_{\text{training}}}{s_{\text{training}}}. \]
+
+We apply the same training means and standard deviations to the test
+data. This prevents test information from influencing predictor
+preparation. We do not standardize rental counts.
+
+```{r}
+weather_vars <- c(
+  "temp",
+  "humidity",
+  "wind_speed",
+  "visibility",
+  "dew_point",
+  "solar_radiation",
+  "rainfall",
+  "snowfall"
+)
+
+training_means <- sapply(
+  train_data[weather_vars],
+  mean
+)
+
+training_sds <- sapply(
+  train_data[weather_vars],
+  sd
+)
+
+stopifnot(all(training_sds > 0))
+
+standardize_weather <- function(data, centers, spreads) {
+  for (variable in weather_vars) {
+    data[[paste0(variable, "_z")]] <-
+      (data[[variable]] - centers[[variable]]) /
+      spreads[[variable]]
+  }
+
+  data
+}
+
+train_data <- standardize_weather(
+  train_data,
+  training_means,
+  training_sds
+)
+
+test_data <- standardize_weather(
+  test_data,
+  training_means,
+  training_sds
+)
+
+kable(
+  tibble(
+    variable = weather_vars,
+    training_mean = training_means[weather_vars],
+    training_sd = training_sds[weather_vars]
+  ),
+  digits = 3,
+  caption = "Training-set standardization parameters"
+)
+```
+
+The standardized training predictors have means approximately zero and
+standard deviations approximately one. The standardized test predictors
+need not have those exact properties because they use the training
+parameters.
+
+## Fitting Multiple Linear Regression Models
+
+### Model 1: Main effects
+
+The first model includes all eight standardized weather predictors,
+season, holiday status, and weekday/weekend status.
+
+```{r}
+model1 <- lm(
+  bike_count ~
+    temp_z +
+    humidity_z +
+    wind_speed_z +
+    visibility_z +
+    dew_point_z +
+    solar_radiation_z +
+    rainfall_z +
+    snowfall_z +
+    seasons +
+    holiday +
+    weekend,
+  data = train_data
+)
+```
+
+Model 1 assumes an additive, linear relationship between each weather
+predictor and rentals. Each weather slope is the same across seasons and
+holiday categories.
+
+### Model 2: Adding interactions
+
+The second model retains all Model 1 terms and adds interactions between
+season and holiday, season and temperature, and temperature and
+rainfall.
+
+```{r}
+model2 <- update(
+  model1,
+  . ~ . +
+    seasons:holiday +
+    seasons:temp_z +
+    temp_z:rainfall_z
+)
+```
+
+The season-by-holiday interaction allows the holiday association to vary
+by season. The season-by-temperature interaction allows temperature
+slopes to differ by season. The temperature-by-rainfall interaction
+allows the temperature slope to depend on rainfall.
+
+### Model 3: Adding quadratic terms
+
+The third model retains all Model 2 terms and adds squared standardized
+temperature and humidity terms.
+
+```{r}
+model3 <- update(
+  model2,
+  . ~ . +
+    I(temp_z^2) +
+    I(humidity_z^2)
+)
+```
+
+The quadratic terms allow curved relationships with temperature and
+humidity. For example, the change in predicted rentals associated with a
+temperature increase can depend on the starting temperature. Additional
+flexibility does not guarantee better test predictions, so we compare
+all three models using RMSE.
+
+## Comparing Test-Set RMSE
+
+For each model, we predict daily rentals in the test set and calculate:
+
+\[ RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2}. \]
+
+RMSE is measured in daily rentals. Lower values indicate smaller
+prediction errors on this test set.
+
+```{r}
+models <- list(
+  "Model 1" = model1,
+  "Model 2" = model2,
+  "Model 3" = model3
+)
+
+rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+
+rmse_results <- tibble(
+  model = names(models),
+  test_rmse = vapply(
+    models,
+    function(model) {
+      predictions <- predict(
+        model,
+        newdata = test_data
+      )
+
+      rmse(test_data$bike_count, predictions)
+    },
+    numeric(1)
+  )
+)
+
+kable(
+  rmse_results,
+  digits = 2,
+  caption = "Test-set RMSE comparison"
+)
+
+best_name <- rmse_results$model[
+  which.min(rmse_results$test_rmse)
+]
+
+best_rmse <- min(rmse_results$test_rmse)
+
+best_model <- models[[best_name]]
+
+model1_rmse <- rmse_results$test_rmse[1]
+
+improvement_pct <- 100 *
+  (model1_rmse - best_rmse) / model1_rmse
+```
+
+**`r best_name` has the lowest test-set RMSE: `r round(best_rmse, 2)`
+daily rentals.**
+
+RMSE summarizes the magnitude of prediction errors, with larger errors
+receiving greater weight. Relative to Model 1, the selected model
+reduces test RMSE by **`r round(improvement_pct, 1)`%**.
+
+`r if (best_name == "Model 1") {   "The main-effects model performs best on this split. The added interactions and quadratic terms do not improve test RMSE." } else if (best_name == "Model 2") {   "The interaction model performs best on this split. Allowing selected relationships to vary improves prediction, while adding quadratic terms does not further reduce test RMSE." } else {   "The model with interactions and quadratic terms performs best on this split. Its additional flexibility improves test predictions relative to the simpler models." }`
+
+These results depend on a single train/test split. Because this test set
+is used to select the model, an additional independent dataset would be
+needed for a separate assessment of the selected model's performance.
+
+### Observed versus predicted rentals
+
+```{r}
+prediction_comparison <- test_data |>
+  mutate(
+    predicted = predict(
+      best_model,
+      newdata = test_data
+    )
+  )
+
+ggplot(
+  prediction_comparison,
+  aes(x = bike_count, y = predicted)
+) +
+  geom_point(alpha = 0.7, color = "steelblue") +
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    linetype = "dashed",
+    color = "red"
+  ) +
+  coord_equal() +
+  labs(
+    title = paste("Test Predictions:", best_name),
+    x = "Observed daily rentals",
+    y = "Predicted daily rentals"
+  ) +
+  theme_minimal()
+```
+
+Points near the dashed line represent accurate predictions. Points above
+the line indicate overprediction, while points below indicate
+underprediction. The distances from the line show the remaining
+prediction errors.
+
+## Refitting the Selected Model on the Full Dataset
+
+We now refit the selected model using all daily observations. Following
+the assignment, we recompute standardization parameters using the full
+dataset and recreate the weekday/weekend factor.
+
+```{r}
+full_data <- add_weekend(bike_daily)
+
+full_means <- sapply(
+  full_data[weather_vars],
+  mean
+)
+
+full_sds <- sapply(
+  full_data[weather_vars],
+  sd
+)
+
+full_data <- standardize_weather(
+  full_data,
+  full_means,
+  full_sds
+)
+
+final_model <- lm(
+  formula(best_model),
+  data = full_data
+)
+
+formula(final_model)
+```
+
+The final model uses the **`r best_name`** specification. Its
+coefficients are estimated using all **`r nrow(full_data)` days**.
+
+The test RMSE reported earlier evaluates the model fitted to the
+training data. It is not a new test evaluation of this full-data fit.
+
+### Final model coefficients
+
+```{r}
+final_coefficients <- tibble(
+  term = names(coef(final_model)),
+  estimate = unname(coef(final_model))
+)
+
+kable(
+  final_coefficients,
+  digits = 3,
+  caption = paste("Final model coefficients:", best_name)
+)
+
+reference_categories <- tibble(
+  variable = c("seasons", "holiday", "weekend"),
+  reference_category = c(
+    levels(full_data$seasons)[1],
+    levels(full_data$holiday)[1],
+    levels(full_data$weekend)[1]
+  )
+)
+
+kable(
+  reference_categories,
+  caption = "Reference categories for factor predictors"
+)
+```
+
+### Interpreting the final model
+
+The intercept is
+**`r round(unname(coef(final_model)["(Intercept)"]), 2)` rentals**. It
+represents predicted daily rentals when all weather predictors are at
+their full-data means and the categorical variables are in their
+reference categories.
+
+The weekday/weekend coefficient is
+**`r round(unname(coef(final_model)["weekendWeekend"]), 2)`**. Holding
+the other predictors constant, the model predicts approximately
+**`r round(abs(unname(coef(final_model)["weekendWeekend"])), 2)`**
+`r if (coef(final_model)["weekendWeekend"] >= 0) "more" else "fewer"`
+rentals on weekends than on weekdays.
+
+For standardized numeric predictors, one unit corresponds to one
+full-data standard deviation of the original predictor. In a model
+without interactions or quadratic terms involving that predictor, its
+coefficient gives the expected rental-count change for that increase,
+holding the other variables constant.
+
+For predictors involved in interactions or quadratic terms, a single
+coefficient does not describe the entire relationship:
+
+-   Season-by-temperature terms describe how temperature slopes differ
+    from the reference season.
+-   Season-by-holiday terms describe how the holiday association differs
+    across seasons.
+-   The temperature-by-rainfall term describes how the temperature slope
+    changes with rainfall.
+-   Squared temperature and humidity terms describe curvature.
+
+When interactions are present, categorical main effects are conditional
+on the interacting predictors. For example, a season coefficient is
+evaluated at mean temperature and the reference holiday category. A
+positive quadratic coefficient indicates upward curvature, while a
+negative coefficient indicates downward curvature, holding the remaining
+predictors fixed.
+
+These coefficients describe associations in the observed data and should
+not be interpreted as causal effects.
+
+## Conclusion
+
+We prepared the hourly Seoul bike-sharing data, excluded nonfunctioning
+hours, and aggregated the retained observations into daily rental totals
+and weather summaries. We then compared three multiple linear regression
+models using a season-stratified training/test split.
+
+**`r best_name`** achieved the lowest test RMSE of
+**`r round(best_rmse, 2)` daily rentals** and was refitted using the
+full daily dataset. The analysis illustrates how interactions and
+quadratic terms can be evaluated through their contribution to
+prediction, rather than assuming that a more complex model will always
+perform better.
