@@ -13,11 +13,374 @@ In this assignment, we continue using the Seoul Bike Sharing dataset from HW9 to
 We begin with our previous data preparation and EDA, then use cross-validation to compare three multiple linear regression models and tune three tree-based models. We compare their performance using RMSE and MAE and refit the best model on the full dataset.
 
 ## II. Reading in the Data
-THIS SECTION SHOULD BE UNCHANGED FROM HW9... REUSE
 
+```{r}
+# Load the packages needed for data manipulation and exploration
+library(tidyverse)
+library(lubridate)
+library(tidymodels)
+
+# Read the locally saved Seoul Bike Sharing dataset
+# Specify Latin1 encoding to handle special characters
+bike_data <- read_csv(
+  "data/SeoulBikeData.csv",
+  locale = locale(encoding = "Latin1")
+)
+```
 
 ## III. Exploratory data analysis
-THIS SECTION SHOULD BE UNCHANGED FROM HW9... REUSE
+
+### 1) Checking for missing values
+
+```{r}
+# Count missing values in each column
+colSums(is.na(bike_data))
+```
+
+There are no missing values in the data.
+
+### 2) Check column types and values within the columns
+
+```{r}
+# Examine the structure of the dataset
+# glimpse() tells us the number of rows, columns, variable names, data types, and 
+#sample values
+glimpse(bike_data)
+
+# head() lets us see the first six observations
+head(bike_data)
+
+# provides min, max, quartiles, median and mean for numeric variables
+summary(bike_data)
+
+# unique() lets us inspect the unique values of the categorical variables.
+unique(bike_data$Seasons)
+unique(bike_data$Holiday)
+unique(bike_data$"Functioning Day")
+```
+
+We have 8,760 observations across 14 variables (columns). Of these 10 are numeric and 4 are character variables. Three of the character variables are categorical (`Seasons`, `Holiday`, `Functioning Day`) while the `Date` variable needs to be converted to the proper date format.
+
+Each observation represents one hour of bike rental activity, rather than an individual rental. The `Hour` variable identifies the hour of the day (0–23), while `Rented Bike Count` represents the number of bikes rented during that hour. The dataset covers 365 days, with 24 hourly observations per day, so there are a total of 8,760 observations.
+
+### 3) Convert Date column to actual date format
+
+```{r}
+
+# Convert Date from character to Date format (day/month/year)
+# Use dmy() function from the lubridate package
+bike_data$Date <- dmy(bike_data$Date)
+
+# confirm conversion
+class(bike_data$Date)
+```
+
+### 4) Convert the character variables into factors using factor()
+
+After converting the character variables to factors using the `factor()` function, we used the `levels` function to identify the unique values for each one.
+
+```{r}
+# Convert Seasons from character to factor
+bike_data$Seasons <- factor(bike_data$Seasons)
+# Display the factor's levels
+levels(bike_data$Seasons)
+
+# Convert Holiday from character to factor
+bike_data$Holiday <- factor(bike_data$Holiday)
+# Display the factor's levels
+levels(bike_data$Holiday)
+
+# Convert Functioning Day from character to factor
+bike_data$"Functioning Day" <- factor(bike_data$"Functioning Day")
+# Display the factor's levels
+levels(bike_data$"Functioning Day")
+```
+
+### 5) Rename variables
+
+```{r}
+# Rename variables using lower snake case for easier reference
+bike_data <- bike_data |>
+  rename(
+    date = Date,
+    bike_count = `Rented Bike Count`,
+    hour = Hour,
+    temp = `Temperature(°C)`,
+    humidity = `Humidity(%)`,
+    wind_speed = `Wind speed (m/s)`,
+    visibility = `Visibility (10m)`,
+    dew_point_temp = `Dew point temperature(°C)`, # backticks are needed because of spaces in original name
+    solar_radiation = `Solar Radiation (MJ/m2)`,
+    rainfall = `Rainfall(mm)`,
+    snowfall = `Snowfall (cm)`,
+    seasons = Seasons,
+    holiday = Holiday,
+    functioning_day = `Functioning Day`
+  )
+
+# Verify the new column names
+names(bike_data)
+```
+
+### 6) Create summary statistics
+
+#### - Numeric variables
+
+```{r}
+# Generate summary statistics for all numerical variables
+bike_data |>
+  select(where(is.numeric)) |>
+  summary()
+```
+
+#### - Categorical variables
+
+##### + Seasons
+
+```{r}
+# Calculate summary statistics for hourly bike rentals by season
+bike_data |>
+  group_by(seasons) |>
+  summarise(
+    observations = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+We grouped the observations by season to examine differences in hourly bike rentals. Summer had the highest average, with approximately 1,034 rentals per hour, followed by autumn (820), spring (730), and winter (226). Total rentals were also highest during summer, at about 2.28 million, compared with just 487,000 during winter. These results suggest strong seasonality in bike rental activity, with much higher demand during warmer months.
+
+##### + Holidays
+
+```{r}
+# Calculate summary statistics for hourly bike rentals by holiday status
+bike_data |>
+  group_by(holiday) |>
+  summarise(
+    observations = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+We also examined hourly bike rentals based on whether a day was classified as a `holiday`. Non-holidays averaged approximately 715 rentals per hour, compared with 500 on holidays. Median rentals were also considerably higher on non-holidays (524.5) than on holidays (240). This suggests that bike rental activity tends to be lower during holidays. However, there were substantially fewer holiday observations (432) than non-holiday observations (8,328), so comparing hourly averages is more informative than comparing total rentals.
+
+##### + Functioning day
+
+```{r}
+# Calculate summary statistics for hourly bike rentals by functioning day
+bike_data |>
+  group_by(functioning_day) |>
+  summarise(
+    observations = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+Next we examined bike rental activity based on whether the bike-sharing system was functioning. Of the 8,760 hourly observations, 295 were classified as non-functioning, and all recorded zero rentals. During functioning periods, the system averaged approximately 729 rentals per hour, with a median of 542 and a total of approximately 6.17 million rentals.
+
+Because the zero rentals during non-functioning periods reflect the system being unavailable rather than necessarily indicating a lack of demand, we have decided to exclude these observations from our analysis. This leaves 8,465 hourly observations for the next stage.
+
+```{r}
+# Excluding nonfunctioning hourly observations from the dataset 
+bike_data <- bike_data |>
+  filter(functioning_day == "Yes")
+
+# Verify the number of remaining observations
+nrow(bike_data)
+```
+
+### 7) Converting to daily dataset
+
+To simplify the remaining analysis we aggregate hourly observations into daily totals.
+
+```{r}
+# Aggregate hourly observations into daily observations
+bike_daily <- bike_data |>
+  group_by(date, seasons, holiday) |> # group_by() organizes observations into desired groups
+  summarise(
+    # Calculate daily totals
+    bike_count = sum(bike_count),
+    rainfall = sum(rainfall),
+    snowfall = sum(snowfall), 
+
+    # Calculate daily averages for weather variables
+    temp = mean(temp),
+    humidity = mean(humidity),
+    wind_speed = mean(wind_speed),
+    visibility = mean(visibility),
+    dew_point_temp = mean(dew_point_temp),
+    solar_radiation = mean(solar_radiation),
+
+    # Remove grouping after summarizing
+    .groups = "drop"
+  )
+
+# Inspect the new daily dataset
+glimpse(bike_daily)
+
+```
+
+Hourly observations were aggregated into a new daily dataset called `bike_daily` by grouping the data by date, season, and holiday status. We then calculated daily totals for bike rentals, rainfall, and snowfall, while taking the average of the remaining weather variables. After excluding nonfunctioning hours (295 hrs = 24 x 12 non-functioning days + 7 additional hours during functioning days), the resulting dataset contains **353 daily observations across 12 variables**, compared with the original 8,760 hourly observations across 14 variables. This daily dataset will be used for the remainder of our analysis.
+
+### 8) Summarizing daily stats
+
+#### - Numeric variables
+
+```{r}
+# Generate summary statistics for our daily dataset
+summary(bike_daily)
+```
+
+The daily dataset now contains 353 observations, with an average of 17,485 bike rentals per day. Daily rentals ranged from a minimum of 977 to a maximum of 36,149. The median of 18,563 is slightly higher than the mean, suggesting that some lower-rental days may be pulling the average down. The dataset includes 17 holidays and 336 non-holidays. The weather variables are also summarized.
+
+#### - Categorical variables
+
+##### + Seasons
+
+```{r}
+# Calculate summary statistics for daily bike rentals by season
+bike_daily |>
+  group_by(seasons) |>
+  summarise(
+    days = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+##### + Holidays
+
+```{r}
+# Calculate summary statistics for daily bike rentals by holiday status
+bike_daily |>
+  group_by(holiday) |>
+  summarise(
+    days = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+Next we calculated summary statistics for daily bike rentals by season and holiday status.
+
+Summer had the highest average with approximately 24,818 rentals per day, followed by autumn (22,099), spring (17,910), and winter (5,413). This suggests strong seasonality with substantially fewer rentals as the months get colder.
+
+We also found that bike rentals were lower on holidays, averaging about 12,700 per day compared with 17,727 on non-holidays. The number of holiday observations was relatively small (17 days), compared with 336 non-holidays.
+
+#### - Graphical summaries
+
+##### + Boxplots
+
+```{r}
+# Compare the distribution of daily bike rentals across seasons
+ggplot(bike_daily, aes(x = seasons, y = bike_count)) +
+  geom_boxplot() +
+  labs(
+    title = "Daily Bike Rentals by Season",
+    x = "Season",
+    y = "Daily Bike Rentals"
+  )
+
+# Compare the distribution of daily bike rentals on holidays and non-holidays
+ggplot(bike_daily, aes(x = holiday, y = bike_count)) +
+  geom_boxplot() +
+  labs(
+    title = "Daily Bike Rentals by Holiday Status",
+    x = "Holiday Status",
+    y = "Daily Bike Rentals"
+  )
+
+```
+
+The boxplots confirm bike rentals vary considerably by season and holiday status, consistent with the differences observed in our summary statistics above.
+
+Summer has the highest median rentals, followed by autumn, spring, and winter. We notice that winter has a noticeably smaller spread, while summer has a few unusually low observations.
+
+The holiday boxplot also shows that median daily rentals are much lower on holidays than on non-holidays. That said, it does appear that both groups have substantial variation.
+
+##### + Scatterplots
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+#| out-width: "100%"
+
+# Select all numerical variables from our daily dataset
+bike_numeric <- bike_daily |>
+  select(where(is.numeric))
+
+# Create a scatterplot matrix using all numerical variables
+# Display only the upper triangle to avoid duplicate plots
+pairs(
+  bike_numeric,
+  lower.panel = NULL,
+  main = "Scatterplot Matrix of Daily Bike Variables",
+  pch = 16,
+  cex = 0.3,
+  cex.labels = 1.2
+)
+```
+
+##### + Correlation matrix and heat map
+
+```{r}
+# Select all numerical variables from our daily dataset
+bike_numeric <- bike_daily |>
+  select(where(is.numeric))
+
+# Calculate the correlation matrix
+cor_matrix <- cor(bike_numeric)
+
+# Display the correlations rounded to two decimal places
+round(cor_matrix, 2)
+
+# Convert correlation matrix to a data frame
+cor_data <- as.data.frame(as.table(cor_matrix))
+
+# Set the variable order to match the scatterplot matrix
+var_order <- colnames(cor_matrix)
+
+cor_data$Var1 <- factor(cor_data$Var1, levels = var_order)
+cor_data$Var2 <- factor(cor_data$Var2, levels = var_order)
+
+# Keep only the upper-right triangle, including the diagonal
+cor_data <- cor_data |>
+  filter(as.numeric(Var1) <= as.numeric(Var2))
+
+# Create the heatmap
+ggplot(cor_data, aes(x = Var2, y = Var1, fill = Freq)) +
+  geom_tile() +
+  scale_y_discrete(limits = rev(var_order)) +
+  scale_fill_gradient2(
+    low = "yellow",
+    mid = "orange",
+    high = "red",
+    midpoint = 0,
+    limits = c(-1, 1)
+  ) +
+  labs(
+    title = "Correlation Heatmap of Daily Bike Variables",
+    x = NULL,
+    y = NULL,
+    fill = "Correlation"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+)
+
+```
+
+The correlation matrix helps us understand the linear relationship, or lack thereof, between all the numerical variables. To further illustrate we use a scatterplot matrix and correlation heatmap. Since the relationships are mirrored, we displayed only the upper-right half of the matrix. Important to note that a scatterplot also helps us identify non-linear relationships.
+
+Bike rentals have relatively strong positive correlations with temperature (0.75), solar radiation (0.74), and dew point temperature (0.65). Rainfall (-0.24) and snowfall (-0.27) have weaker negative correlations, while humidity (0.04) shows almost no linear relationship with bike rentals.
+
+We also notice a very strong correlation between temperature and dew point temperature (0.96), suggesting potential multicollinearity in our regression models. The scatterplots also suggest that some relationships, particularly between bike rentals and temperature, may not be entirely linear.
 
 
 ## IV. Splitting the Data
