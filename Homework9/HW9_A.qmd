@@ -63,7 +63,7 @@ We have 8,760 observations across 14 variables (columns). Of these 10 are numeri
 
 Each observation represents one hour of bike rental activity, rather than an individual rental. The `Hour` variable identifies the hour of the day (0–23), while `Rented Bike Count` represents the number of bikes rented during that hour. The dataset covers 365 days, with 24 hourly observations per day, so there are a total of 8,760 observations.
 
-### 3) Convert \`Date' column to actual date format
+### 3) Convert Date column to actual date format
 
 ```{r}
 

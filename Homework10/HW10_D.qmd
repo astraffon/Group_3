@@ -1,0 +1,111 @@
+---
+title: "HW10 - Modeling Practice"
+execute:
+  warning: false 
+  message: false
+format: html
+---
+
+## I. Introduction
+
+In this assignment, we continue using the Seoul Bike Sharing dataset from HW9 to predict daily bicycle rentals with the tidymodels framework.
+
+We begin with our previous data preparation and EDA, then use cross-validation to compare three multiple linear regression models and tune three tree-based models. We compare their performance using RMSE and MAE and refit the best model on the full dataset.
+
+## II. Reading in the Data
+THIS SECTION SHOULD BE UNCHANGED FROM HW9... REUSE
+
+
+## III. Exploratory data analysis
+THIS SECTION SHOULD BE UNCHANGED FROM HW9... REUSE
+
+
+## IV. Splitting the Data
+
+### 1) Create a 75/25 training and test split stratified by season
+
+### 2) Create 10-fold cross-validation splits on the training set
+
+
+## V. Fitting Multiple Linear Regression Models with tidymodels
+
+### 1) Recipe 1: Main effects
+
+#### - Create weekday/weekend factor from the date variable
+
+#### - Standardize numeric predictors
+
+#### - Create dummy variables for seasons, holiday, and day type
+
+### 2) Recipe 2: Main effects and interactions
+
+#### - Interaction between seasons and holiday
+
+#### - Interaction between seasons and temperature
+
+#### - Interaction between temperature and rainfall
+
+### 3) Recipe 3: Interactions and quadratic terms
+
+#### - Quadratic term for standardized temperature
+
+#### - Quadratic term for standardized humidity
+
+### 4) Specify the linear regression model with the lm engine
+
+### 5) Create workflows for Models 1, 2, and 3
+
+### 6) Fit all three models using 10-fold cross-validation
+
+### 7) Compare cross-validation errors and select the best MLR model
+
+### 8) Fit the selected MLR model on the training set
+
+
+## VI. Fitting Other Models
+
+### 1) Regression Tree
+
+#### - Specify the regression tree and tuning parameters
+
+#### - Tune using the training-set cross-validation folds
+
+#### - Select the best regression tree and finalize the workflow
+
+### 2) Bagged Tree
+
+#### - Specify the bagged tree and tuning parameters
+
+#### - Tune using the training-set cross-validation folds
+
+#### - Select the best bagged tree and finalize the workflow
+
+### 3) Random Forest
+
+#### - Specify the random forest and tuning parameters
+
+#### - Tune using the training-set cross-validation folds
+
+#### - Select the best random forest and finalize the workflow
+
+
+## VII. Comparing Final Models on the Test Set
+
+### 1) Compare test-set RMSE and MAE for all four final models
+
+### 2) Report the final MLR coefficient table
+
+### 3) Plot the final regression tree
+
+### 4) Plot variable importance for the bagged tree
+
+### 5) Plot variable importance for the random forest
+
+### 6) Select the overall best-performing model
+
+
+## VIII. Fitting the Overall Best Model on the Entire Dataset
+
+### 1) Fit the selected model using all 353 daily observations
+
+### 2) Report the final model
