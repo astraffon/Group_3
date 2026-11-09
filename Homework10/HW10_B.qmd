@@ -387,88 +387,671 @@ We also notice a very strong correlation between temperature and dew point tempe
 
 ### 1) Create a 75/25 training and test split stratified by season
 
+We split the daily observations into approximately 75% training data
+and 25% test data. Stratifying by season keeps the proportions of
+spring, summer, autumn, and winter similar in both sets.
+```{r}
+library(tidyverse); library(lubridate); library(tidymodels); library(baguette)
+```
+
+```{r}
+set.seed(558)
+
+bike_split <- initial_split(
+  bike_daily,
+  prop = 0.75,
+  strata = seasons
+)
+
+bike_train <- training(bike_split)
+bike_test <- testing(bike_split)
+
+bind_rows(
+  bike_train |> count(seasons, name = "days") |> mutate(dataset = "Training"),
+  bike_test |> count(seasons, name = "days") |> mutate(dataset = "Test")
+) |>
+  select(dataset, seasons, days) |>
+  knitr::kable(caption = "Number of days by season in each dataset")
+```
+The training set contains 263 days (74.5%), and the test set contains 90 days (25.5%). Each season has a similar share of days in both sets, with 60–69 days per season in training and 21–23 in testing. We use the training set to fit and tune the models and reserve the test set to compare their prediction accuracy.
+
 ### 2) Create 10-fold cross-validation splits on the training set
 
+We divide the training data into 10 folds, again stratifying by season.
+In each round, we fit the model using nine folds and evaluate it on
+the remaining fold. Each training observation is used for validation
+once.
+
+```{r}
+set.seed(559)
+
+bike_folds <- vfold_cv(
+  bike_train,
+  v = 10,
+  strata = seasons
+)
+
+bike_folds
+```
+
+We created 10 season-stratified folds from the 263 training days. Each row represents one round of cross-validation, with nine folds used to fit the model and the remaining fold used to evaluate it. Each training day is used for validation once. We reuse the same folds across all models so their validation errors are based on the same days.
 
 ## V. Fitting Multiple Linear Regression Models with tidymodels
 
 ### 1) Recipe 1: Main effects
 
-#### - Create weekday/weekend factor from the date variable
+#### Create a weekday/weekend factor from the date variable
 
-#### - Standardize numeric predictors
+We use the date to classify each observation as a weekday or weekend. With
+Monday numbered 1, Saturday and Sunday are numbered 6 and 7. After creating
+`day_type`, we remove the original date from the predictors.
 
-#### - Create dummy variables for seasons, holiday, and day type
+```{r}
+rec_day_type <- recipe(bike_count ~ ., data = bike_train) |>
+  step_mutate(
+    day_type = factor(
+      if_else(
+        lubridate::wday(date, week_start = 1) >= 6,
+        "Weekend",
+        "Weekday"
+      ),
+      levels = c("Weekday", "Weekend")
+    )
+  ) |>
+  step_rm(date)
+```
+
+#### Standardize numeric predictors
+
+We center and scale each numeric weather predictor by subtracting its mean
+and dividing by its standard deviation. The outcome, `bike_count`, stays
+in its original units. During cross-validation, the recipe estimates these
+values from the nine folds used for fitting and applies them to the
+remaining validation fold.
+
+```{r}
+rec_scaled <- rec_day_type |>
+  step_normalize(all_numeric_predictors())
+```
+
+#### Create dummy variables for season, holiday status, and day type
+
+We convert the three categorical predictors into dummy variables. Each
+predictor leaves out one reference category. For example, `day_type_Weekend`
+is 1 for weekends and 0 for weekdays, so weekdays are the reference group.
+
+```{r}
+rec1 <- rec_scaled |>
+  step_dummy(seasons, holiday, day_type)
+
+rec1
+```
+
+Recipe 1 defines the preprocessing for the main-effects model. Each
+predictor enters separately. In the next recipe, we build on `rec1` by
+adding interactions.
 
 ### 2) Recipe 2: Main effects and interactions
 
-#### - Interaction between seasons and holiday
+#### Interaction between season and holiday status
 
-#### - Interaction between seasons and temperature
+This interaction lets the difference in predicted rentals between holidays
+and non-holidays vary by season. Because Recipe 1 already created dummy
+variables, we use `starts_with()` to select the season and holiday columns.
 
-#### - Interaction between temperature and rainfall
+```{r}
+rec_season_holiday <- rec1 |>
+  step_interact(
+    terms = ~ starts_with("seasons_"):starts_with("holiday_")
+  )
+```
+
+#### Interaction between season and temperature
+
+This interaction lets the temperature slope vary by season. For example,
+a one-standard-deviation increase in temperature can be associated with
+a different change in predicted rentals in winter than in summer.
+
+```{r}
+rec_season_temp <- rec_season_holiday |>
+  step_interact(
+    terms = ~ starts_with("seasons_"):temp
+  )
+```
+
+#### Interaction between temperature and rainfall
+
+This interaction lets the temperature slope depend on how much rain falls.
+Both `temp` and `rainfall` are already standardized by Recipe 1, so the
+interaction multiplies their standardized values.
+
+```{r}
+rec2 <- rec1 |>
+  step_interact(
+    terms = ~ starts_with("seasons_"):starts_with("holiday_") +
+      starts_with("seasons_"):temp +
+      temp:rainfall
+  ) |>
+  step_zv(all_predictors()) |>
+  step_lincomb(all_numeric_predictors())
+rec2
+```
+
+We will compare the main-effects model and the interaction model using
+the same 10 cross-validation folds to see whether the added interactions
+improve predictions.
 
 ### 3) Recipe 3: Interactions and quadratic terms
 
-#### - Quadratic term for standardized temperature
+#### Quadratic term for standardized temperature
 
-#### - Quadratic term for standardized humidity
+We add the square of standardized temperature to let its relationship
+with predicted rentals curve. This means the predicted change in rentals
+for a one-unit increase in standardized temperature can depend on the
+starting temperature.
 
-### 4) Specify the linear regression model with the lm engine
+```{r}
+rec_temp_squared <- rec2 |>
+  step_mutate(temp_squared = temp^2)
+```
+
+#### Quadratic term for standardized humidity
+
+We also add the square of standardized humidity so its relationship with
+predicted rentals can curve. Recipe 3 keeps the original temperature and
+humidity terms and all the interactions from Recipe 2.
+
+```{r}
+rec3 <- rec_temp_squared |>
+  step_mutate(humidity_squared = humidity^2)
+
+rec3
+```
+
+### 4) Specify the linear regression model with the `lm` engine
+
+We use the same ordinary least squares model specification for all three
+workflows. The recipes determine which predictors enter each model.
+
+```{r}
+lm_spec <- linear_reg() |>
+  set_engine("lm")
+```
 
 ### 5) Create workflows for Models 1, 2, and 3
 
+Each workflow pairs one recipe with the linear regression specification.
+
+```{r}
+mlr_workflows <- list(
+  "MLR 1" = workflow() |>
+    add_recipe(rec1) |>
+    add_model(lm_spec),
+  "MLR 2" = workflow() |>
+    add_recipe(rec2) |>
+    add_model(lm_spec),
+  "MLR 3" = workflow() |>
+    add_recipe(rec3) |>
+    add_model(lm_spec)
+)
+```
+
 ### 6) Fit all three models using 10-fold cross-validation
+
+We fit each workflow using the same 10 folds. For each fold, the workflow
+estimates preprocessing values and model coefficients from the fitting
+portion, then predicts rentals for the validation days.
+
+```{r}
+bike_metrics <- yardstick::metric_set(yardstick::rmse, yardstick::mae)
+
+mlr_cv <- purrr::map(
+  mlr_workflows,
+  function(wf) {
+    fit_resamples(
+      wf,
+      resamples = bike_folds,
+      metrics = bike_metrics
+    )
+  }
+)
+```
 
 ### 7) Compare cross-validation errors and select the best MLR model
 
+We compare the mean RMSE and MAE across folds. Both are measured in daily
+rentals, and lower values indicate smaller prediction errors. We select
+the model with the lowest mean cross-validation RMSE.
+
+```{r}
+mlr_cv_table <- purrr::imap_dfr(
+  mlr_cv,
+  function(result, name) {
+    collect_metrics(result) |>
+      mutate(model = name)
+  }
+) |>
+  select(model, metric = .metric, mean, std_err)
+
+knitr::kable(
+  mlr_cv_table,
+  digits = 2,
+  caption = "Cross-validation errors for the three linear models"
+)
+
+mlr_best <- mlr_cv_table |>
+  filter(metric == "rmse") |>
+  slice_min(mean, n = 1, with_ties = FALSE)
+
+mlr_name <- mlr_best$model[[1]]
+mlr_final <- mlr_workflows[[mlr_name]]
+```
+
+MLR 3 had the lowest mean cross-validation RMSE (3,086.41 daily rentals) and MAE (2,306.43 daily rentals). Adding interactions reduced RMSE from 4,114.80 in MLR 1 to 3,098.14 in MLR 2. Adding quadratic terms in MLR 3 reduced RMSE by a further 11.73 rentals, a small improvement relative to the uncertainty in the cross-validation estimates. We selected MLR 3 because it had the lowest mean RMSE and will evaluate it on the held-out test set.
+
 ### 8) Fit the selected MLR model on the training set
+
+We use `last_fit()` to refit the selected workflow on all 263 training
+days and evaluate its predictions on the 90 held-out test days. We save
+the result for the later comparison with the tree models.
+
+```{r}
+mlr_test_fit <- last_fit(
+  mlr_final,
+  split = bike_split,
+  metrics = bike_metrics
+)
+```
 
 
 ## VI. Fitting Other Models
 
 ### 1) Regression Tree
 
-#### - Specify the regression tree and tuning parameters
+#### Specify the regression tree and tuning parameters
 
-#### - Tune using the training-set cross-validation folds
+A regression tree splits days into groups with similar rental counts.
+We tune `tree_depth`, which limits how deep the tree can grow, and
+`cost_complexity`, which controls how strongly the tree is pruned.
 
-#### - Select the best regression tree and finalize the workflow
+```{r}
+tree_spec <- decision_tree(
+  tree_depth = tune(),
+  cost_complexity = tune()
+) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+tree_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(tree_spec)
+```
+
+#### Tune using the training-set cross-validation folds
+
+```{r}
+tree_grid <- tidyr::crossing(
+  tree_depth = c(3L, 6L, 10L),
+  cost_complexity = c(0.001, 0.01, 0.05)
+)
+
+set.seed(560)
+
+tree_cv <- tune_grid(
+  tree_wf,
+  resamples = bike_folds,
+  grid = tree_grid,
+  metrics = bike_metrics
+)
+```
+
+#### Select the best regression tree and finalize the workflow
+
+```{r}
+tree_best <- select_best(tree_cv, metric = "rmse")
+tree_final <- finalize_workflow(tree_wf, tree_best)
+
+tree_top <- show_best(tree_cv, metric = "rmse", n = 1)
+
+tree_top |>
+  dplyr::select(tree_depth, cost_complexity, mean, std_err) |>
+  knitr::kable(digits = 3, caption = "Best regression tree by CV RMSE")
+```
+
+The best regression tree among the settings we tested had a maximum depth of 10 and a cost-complexity parameter of 0.001. Its mean cross-validation RMSE was 4,125.87 daily rentals (SE = 150.80). This was higher than MLR 3’s mean RMSE of 3,086.41 on the same folds. We’ll carry this tree forward to compare the final models on the held-out test set.
 
 ### 2) Bagged Tree
 
-#### - Specify the bagged tree and tuning parameters
+#### Specify the bagged tree and tuning parameters
 
-#### - Tune using the training-set cross-validation folds
+Bagging fits trees to different bootstrap samples and averages their
+predictions. We use 25 trees per fit and tune the maximum depth and
+`min_n`, the minimum number of observations a node needs before a
+split is attempted.
 
-#### - Select the best bagged tree and finalize the workflow
+```{r}
+library(baguette)
+
+bag_spec <- bag_tree(
+  tree_depth = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart", times = 25) |>
+  set_mode("regression")
+
+bag_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(bag_spec)
+```
+
+#### Tune using the training-set cross-validation folds
+
+```{r}
+bag_grid <- tidyr::crossing(
+  tree_depth = c(4L, 8L, 12L),
+  min_n = c(2L, 8L, 16L)
+)
+
+set.seed(561)
+
+bag_cv <- tune_grid(
+  bag_wf,
+  resamples = bike_folds,
+  grid = bag_grid,
+  metrics = bike_metrics
+)
+```
+
+#### Select the best bagged tree and finalize the workflow
+
+```{r}
+bag_best <- select_best(bag_cv, metric = "rmse")
+bag_final <- finalize_workflow(bag_wf, bag_best)
+
+bag_top <- show_best(bag_cv, metric = "rmse", n = 1)
+
+bag_top |>
+  dplyr::select(tree_depth, min_n, mean, std_err) |>
+  knitr::kable(digits = 3, caption = "Best bagged tree by CV RMSE")
+```
+
+The best bagged tree among the settings we tested had a maximum depth of 12 and required at least 2 observations in a node before attempting a split. Its mean cross-validation RMSE was 3,039.60 daily rentals (SE = 123.98). On the same folds, its RMSE was about 1,086 rentals lower than the single regression tree’s and 47 rentals lower than MLR 3’s. We’ll compare the selected models on the held-out test set next.
 
 ### 3) Random Forest
 
-#### - Specify the random forest and tuning parameters
+#### Specify the random forest and tuning parameters
 
-#### - Tune using the training-set cross-validation folds
+A random forest also averages predictions across trees. At each split,
+it considers a random subset of the predictors. We use 500 trees and
+tune `mtry`, the number of predictors considered at each split, and
+`min_n`, which controls the minimum node size for attempting a split.
+We enable permutation importance for the variable importance plot in
+Section VII.
 
-#### - Select the best random forest and finalize the workflow
+```{r}
+forest_spec <- rand_forest(
+  trees = 500,
+  mtry = tune(),
+  min_n = tune()
+) |>
+  set_engine("ranger", importance = "permutation", num.threads = 1) |>
+  set_mode("regression")
 
+forest_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(forest_spec)
+```
+
+#### Tune using the training-set cross-validation folds
+
+```{r}
+library(ranger)
+forest_grid <- tidyr::crossing(
+  mtry = c(3L, 6L, 10L),
+  min_n = c(2L, 8L, 16L)
+)
+
+set.seed(562)
+
+forest_cv <- tune_grid(
+  forest_wf,
+  resamples = bike_folds,
+  grid = forest_grid,
+  metrics = bike_metrics
+)
+```
+
+#### Select the best random forest and finalize the workflow
+
+```{r}
+forest_best <- select_best(forest_cv, metric = "rmse")
+forest_final <- finalize_workflow(forest_wf, forest_best)
+
+forest_top <- show_best(forest_cv, metric = "rmse", n = 1)
+
+forest_top |>
+  dplyr::select(mtry, min_n, mean, std_err) |>
+  knitr::kable(digits = 3, caption = "Best random forest by CV RMSE")
+```
+
+The selected random forest considered 10 candidate predictors at each split and required at least 2 observations in a node before attempting a split. Its mean cross-validation RMSE was 3,035.53 daily rentals (SE = 116.61), the lowest among the models we tested. It was only about 4 rentals lower than the bagged tree’s RMSE of 3,039.60, so the two ensembles performed similarly in cross-validation.
 
 ## VII. Comparing Final Models on the Test Set
 
 ### 1) Compare test-set RMSE and MAE for all four final models
 
+We fit each selected tree workflow on all 263 training days and evaluate
+its predictions on the same 90 test days used for MLR 3. Both metrics are
+measured in daily rentals. MAE measures the average absolute error, while
+RMSE gives more weight to larger errors.
+
+```{r}
+set.seed(563)
+
+tree_test_fit <- last_fit(
+  tree_final, split = bike_split, metrics = bike_metrics
+)
+
+bag_test_fit <- last_fit(
+  bag_final, split = bike_split, metrics = bike_metrics
+)
+
+forest_test_fit <- last_fit(
+  forest_final, split = bike_split, metrics = bike_metrics
+)
+
+test_fits <- list(
+  "MLR 3" = mlr_test_fit,
+  "Regression tree" = tree_test_fit,
+  "Bagged tree" = bag_test_fit,
+  "Random forest" = forest_test_fit
+)
+
+test_scores <- purrr::imap_dfr(
+  test_fits,
+  function(result, model_name) {
+    collect_metrics(result) |>
+      dplyr::transmute(
+        model = model_name,
+        metric = toupper(.metric),
+        error = .estimate
+      )
+  }
+) |>
+  tidyr::pivot_wider(names_from = metric, values_from = error) |>
+  dplyr::select(model, RMSE, MAE) |>
+  dplyr::arrange(RMSE)
+
+knitr::kable(
+  test_scores,
+  digits = 2,
+  caption = "Prediction errors on the 90 held-out test days"
+)
+```
+
+The random forest performed best on the 90 held-out test days, with the lowest RMSE (2,349.35 rentals) and MAE (1,909.33 rentals). The bagged tree came second on both metrics. The random forest’s RMSE was 109.12 rentals lower than the bagged tree’s and 710.00 rentals lower than MLR 3’s. The single regression tree had the highest error on both metrics.
+
 ### 2) Report the final MLR coefficient table
+
+```{r}
+mlr_fit <- mlr_test_fit |>
+  extract_workflow() |>
+  extract_fit_engine()
+
+broom::tidy(mlr_fit) |>
+  knitr::kable(
+    digits = 3,
+    caption = "MLR 3 coefficients estimated from the training data"
+  )
+```
+
+We used an autumn weekday holiday as the reference day. When all weather variables are at their training-set averages, the model predicts about **14,640 rentals** for that day. Holding the other predictors fixed, the model predicts about **2,425 fewer rentals on weekends** than on weekdays. A one-standard-deviation increase in solar radiation is associated with about **3,251 more rentals**.
+
+Some of the results depend on how the predictors interact. At average temperature, a one-standard-deviation increase in rainfall is associated with about **1,899 fewer rentals**. This decrease gets larger as temperature rises. The difference between holidays and non-holidays also varies by season. The model predicts about **8,719 more rentals on non-holidays** in autumn, compared with about **2,447 more** in spring.
+
+The squared humidity term suggests that the relationship between humidity and predicted rentals curves downward (*p* = .015). We found little evidence of curvature for temperature (*p* = .414). These results describe associations in the fitted model.
 
 ### 3) Plot the final regression tree
 
+```{r}
+#| fig-width: 12
+#| fig-height: 8
+
+tree_fit <- tree_test_fit |>
+  extract_workflow() |>
+  extract_fit_engine()
+
+rpart.plot::rpart.plot(
+  tree_fit,
+  roundint = FALSE,
+  main = "Final Regression Tree for Daily Bike Rentals"
+)
+```
+
+The regression tree first splits the training days by standardized temperature. About 39% of the days fell below −0.28, and those days averaged about 8,373 rentals. The remaining 61% averaged about 23,000 rentals. The cutoff of −0.28 means 0.28 standard deviations below the training-set mean temperature.
+
+The next splits show how other conditions matter within each temperature group. On the cooler side, the tree splits by whether the day was in winter. Cool winter days with higher wind speeds had the lowest prediction, at about 4,326 rentals. On the warmer side, the tree first splits by solar radiation. Warmer days with low solar radiation had a predicted 7,811 rentals, while the group with higher solar radiation averaged about 25,000. So even among warmer days, the tree predicted very different rental counts depending on the weather.
+
 ### 4) Plot variable importance for the bagged tree
+
+We shuffle one predictor at a time and measure how much the fitted
+model's training RMSE increases. We repeat each shuffle 20 times and
+average the increases. The recipe uses `date` only to derive weekday
+versus weekend, so we label the date's importance as `day_type`.
+
+```{r}
+bag_fitted_wf <- extract_workflow(bag_test_fit)
+
+bag_baseline <- yardstick::rmse_vec(
+  truth = bike_train$bike_count,
+  estimate = predict(bag_fitted_wf, new_data = bike_train)$.pred
+)
+
+bag_predictors <- setdiff(names(bike_train), "bike_count")
+
+set.seed(564)
+
+bag_importance <- tibble::tibble(
+  predictor = bag_predictors,
+  importance = purrr::map_dbl(bag_predictors, function(variable) {
+    mean(replicate(20, {
+      shuffled <- bike_train
+      shuffled[[variable]] <- sample(shuffled[[variable]])
+
+      shuffled_rmse <- yardstick::rmse_vec(
+        truth = bike_train$bike_count,
+        estimate = predict(bag_fitted_wf, new_data = shuffled)$.pred
+      )
+
+      shuffled_rmse - bag_baseline
+    }))
+  })
+) |>
+  dplyr::mutate(predictor = dplyr::recode(predictor, date = "day_type")) |>
+  dplyr::arrange(dplyr::desc(importance))
+
+ggplot(bag_importance, aes(x = importance, y = reorder(predictor, importance))) +
+  geom_col(fill = "steelblue") +
+  labs(
+    title = "Bagged Tree Variable Importance",
+    x = "Mean increase in training RMSE after shuffling",
+    y = NULL
+  ) +
+  theme_minimal()
+```
+
+Temperature was the most important predictor in our bagged tree model. When we shuffled the temperature values, the training RMSE increased by about **7,600 rentals**, more than for any other predictor. Solar radiation and season ranked second and third, followed by rainfall. Shuffling holiday status or weekday versus weekend had a much smaller effect, and snowfall had the smallest effect. This suggests that the model relied more on weather and season than on the type of day when predicting daily rentals.
 
 ### 5) Plot variable importance for the random forest
 
+The final random forest was fitted with `importance = "permutation"`.
+We extract the importance scores calculated by `ranger` using its
+out-of-bag observations.
+
+```{r}
+forest_fit <- forest_test_fit |>
+  extract_workflow() |>
+  extract_fit_engine()
+
+forest_importance <- tibble::enframe(
+  forest_fit$variable.importance,
+  name = "predictor",
+  value = "importance"
+) |>
+  dplyr::arrange(dplyr::desc(importance))
+
+ggplot(
+  forest_importance,
+  aes(x = importance, y = reorder(predictor, importance))
+) +
+  geom_col(fill = "darkgreen") +
+  labs(
+    title = "Random Forest Variable Importance",
+    x = "Out-of-bag permutation importance",
+    y = NULL
+  ) +
+  theme_minimal()
+```
+Temperature was the most important predictor in our random forest. Shuffling temperature produced the largest increase in out-of-bag prediction error, followed by solar radiation, the winter indicator, and rainfall. Shuffling the weekend and holiday indicators had much smaller effects, and snowfall contributed very little by this measure.
+
+Temperature and solar radiation also ranked first and second in the bagged tree. The random forest plot shows each season indicator separately, which lets us see that winter ranked highest among those indicators. We compare the rankings across the two plots because the importance scores were calculated on different scales.
+
 ### 6) Select the overall best-performing model
 
+```{r}
+best_test <- test_scores |>
+  dplyr::slice_min(RMSE, n = 1, with_ties = FALSE)
+
+best_mae <- test_scores |>
+  dplyr::slice_min(MAE, n = 1, with_ties = FALSE)
+
+final_workflows <- list(
+  "MLR 3" = mlr_final,
+  "Regression tree" = tree_final,
+  "Bagged tree" = bag_final,
+  "Random forest" = forest_final
+)
+
+overall_winner <- best_test$model[[1]]
+overall_workflow <- final_workflows[[overall_winner]]
+
+knitr::kable(best_test, digits = 2, caption = "Best model by test RMSE")
+```
+
+The random forest had the lowest RMSE (2,349.35 rentals) and MAE (1,909.33 rentals) on the 90 held-out days. Its predictions were off by about 1,909 rentals per day on average. We selected it for the final refit because it had the lowest test RMSE.
 
 ## VIII. Fitting the Overall Best Model on the Entire Dataset
 
 ### 1) Fit the selected model using all 353 daily observations
+```{r}
+set.seed(565)
+
+final_forest <- fit(overall_workflow, data = bike_daily)
+final_forest
+```
+
 
 ### 2) Report the final model
+We refit the selected random forest on all **353 days**. The final model used **500 trees** and **13 predictors** after preprocessing. At each split, the model considered **10 randomly selected predictors**, and we kept the selected minimum node size of **2**.
+
+The refitted model had an out-of-bag RMSE of about **2,718 daily rentals** and an out-of-bag \(R^2\) of **0.925**. These estimates use predictions from trees that did not train on the day being predicted. The test RMSE of **2,349.35 rentals** reported in Section VII came from the earlier model fitted on 263 training days and evaluated on 90 held-out days.
