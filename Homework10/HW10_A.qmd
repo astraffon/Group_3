@@ -441,8 +441,8 @@ bike_cv
 
 ### 1) Recipe 1: Main effects
 
-This first model includes only main effects, with no interactions or quadratic terms. The pre-processing
-steps are as follows:
+This first model includes only main effects, with no interactions or quadratic terms. 
+The pre-processing steps are as follows:
 
 - Create weekday/weekend factor from the date variable
 - Standardize numeric predictors
@@ -451,11 +451,14 @@ steps are as follows:
 ```{r}
 # Create Recipe 1 for our basic multiple linear regression model
 bike_rec_1 <- recipe(bike_count ~ ., data = bike_train) |>
-
-  # Extract the day of the week from the date variable
+  
+# Extract the day of the week from the date variable using step_date()
+  # step_date() defines a pre-processing operation within a recipe
+  # it extracts information from a date variable via the features argument
   step_date(date, features = "dow") |>
 
-  # Create a factor identifying weekdays and weekends
+  # Create a factor identifying weekdays and weekends using step_mutate()
+  # date_dow contains the day of the week created by step_date()
   step_mutate(
     day_type = factor(
       if_else(date_dow %in% c("Sat", "Sun"), "Weekend", "Weekday")
@@ -463,12 +466,17 @@ bike_rec_1 <- recipe(bike_count ~ ., data = bike_train) |>
   ) |>
 
   # Remove the original date and intermediate day-of-week variable
+  # step_rm() defines which variables to remove from the data
+  # these variables will not be used as predictors
   step_rm(date, date_dow) |>
 
   # Standardize numeric predictors, but not the response
+  # step_normalize() defines a standardization operation within a recipe
+  # it subtracts the mean and divides by the standard deviation
   step_normalize(all_numeric_predictors()) |>
 
-  # Create dummy variables for categorical predictors
+  # step_dummy() defines a dummy variable conversion within a recipe
+  # it converts categorical variables into numeric indicator variables
   step_dummy(seasons, holiday, day_type)
 
 # Display Recipe 1
@@ -476,12 +484,35 @@ bike_rec_1
 ```
 
 ### 2) Recipe 2: Main effects and interactions
+This second model includes main effects but also adds interactions. 
+The pre-processing steps are as follows:
 
-#### - Interaction between seasons and holiday
+- Interaction between seasons and holiday
+- Interaction between seasons and temperature
+- Interaction between temperature and rainfall
 
-#### - Interaction between seasons and temperature
+```{r}
+# Create Recipe 2 using the same preprocessing steps as Recipe 1
+bike_rec_2 <- bike_rec_1 |>
 
-#### - Interaction between temperature and rainfall
+  # step_interact() creates interaction terms between variables
+  # starts_with() selects dummy variables with a common prefix
+  step_interact(
+    terms = ~
+      # Interaction between seasons and holiday
+      starts_with("seasons_"):starts_with("holiday_") +
+
+      # Interaction between seasons and temperature
+      starts_with("seasons_"):temp +
+
+      # Interaction between temperature and rainfall
+      temp:rainfall
+  )
+
+# Display Recipe 2
+bike_rec_2
+```
+
 
 ### 3) Recipe 3: Interactions and quadratic terms
 
