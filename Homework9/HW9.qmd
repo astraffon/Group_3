@@ -1,6 +1,6 @@
 ---
 title: "HW9 - Basic Modeling Practice"
-author: "Group 3"
+author: "Alfonso Straffon, Daria Smyslova, Maya Szymborski & Michael Costello"
 format: html
 editor: source
 ---

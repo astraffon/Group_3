@@ -192,7 +192,7 @@ bike_train_std <- bike_train |>
     )
   )
 
-Must port those std vars from train into test somehow.
+#Must port those std vars from train into test somehow.
 bike_test_std
 ```
 ## Fitting a Model to the Data
