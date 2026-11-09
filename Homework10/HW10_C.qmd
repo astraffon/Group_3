@@ -19,6 +19,9 @@ We begin with our previous data preparation and EDA, then use cross-validation t
 library(tidyverse)
 library(lubridate)
 library(tidymodels)
+library(tree)
+library(baguette)
+
 
 # Read the locally saved Seoul Bike Sharing dataset
 # Specify Latin1 encoding to handle special characters
@@ -500,7 +503,7 @@ rbind(bike_fit1 |> collect_metrics() |> filter(.metric == "rmse"),
 ```
 ### 8) Fit the selected MLR model on the training set
 ```{r}
-bike_final <-  bike_wkfl2 |>
+bike_final <-  bike_wkfl3 |>  #Here it says 2, but html says 3.
   fit(bike_train) #??Am I supposed to use last_fit() here?
 tidy(bike_final)
 ```
@@ -510,52 +513,160 @@ tidy(bike_final)
 ### 1) Regression Tree
 
 #### - Specify the regression tree and tuning parameters
-```{r}
-
-```
 #### - Tune using the training-set cross-validation folds
 ```{r}
+tree_rec <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type)
+tree_rec
 
+tree_mod <- decision_tree(tree_depth = tune(),
+                          min_n = 20,
+                          cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+  
+tree_wkf <- workflow() |>
+  add_recipe(tree_rec) |>
+  add_model(tree_mod)
+
+temp <- tree_wkf |> 
+  tune_grid(resamples = bike_CV_folds) #uses defaults from dials
+temp |> 
+  collect_metrics()
+
+tree_grid <- grid_regular(cost_complexity(),
+                          tree_depth(),
+                          levels = c(10, 5))
+tree_fits <- tree_wkf |> 
+  tune_grid(resamples = bike_CV_folds,
+            grid = tree_grid)
+
+tree_fits |>
+  collect_metrics()
+
+tree_fits |>
+  collect_metrics() |>
+  mutate(tree_depth = factor(tree_depth)) |>
+  ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+  geom_line(size = 1.5, alpha = 0.6) +
+  geom_point(size = 2) +
+  facet_wrap(~ .metric, scales = "free", nrow = 2) +
+  scale_x_log10(labels = scales::label_number()) +
+  scale_color_viridis_d(option = "plasma", begin = .9, end = 0)
 ```
 #### - Select the best regression tree and finalize the workflow
 ```{r}
+tree_fits |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
 
+tree_best_params <- select_best(tree_fits, metric = "rmse")
+tree_best_params
+
+tree_final_wkf <- tree_wkf |>
+  finalize_workflow(tree_best_params)
+
+tree_final_fit <- tree_final_wkf |>
+  last_fit(bike_split)
+tree_final_fit
+
+tree_final_fit |>
+  collect_metrics()
+
+tree_final_model <- extract_workflow(tree_final_fit) 
+tree_final_model
+
+tree_final_model |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE)
 ```
+
 ### 2) Bagged Tree
 
 #### - Specify the bagged tree and tuning parameters
-```{r}
-
-```
 #### - Tune using the training-set cross-validation folds
 ```{r}
+bag_spec <- bag_tree(tree_depth = 5, min_n = 10, cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+bag_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(bag_spec)
+
+bag_fit <- bag_wkf |>
+  tune_grid(resamples = bike_CV_folds, 
+            grid = grid_regular(cost_complexity(),
+                                levels = 15),
+            metrics = metric_set(accuracy, mn_log_loss)) # the metrics we are using to assess.
+bag_fit
+
 
 ```
 #### - Select the best bagged tree and finalize the workflow
 ```{r}
+bag_fit |>
+  collect_metrics() |>
+  filter(.metric == "mn_log_loss") |> 
+arrange(mean)
 
+bag_best_params <- select_best(bag_fit, metric = "mn_log_loss")
+bag_best_params
+
+bag_final_wkf <- bag_wkf |>
+  finalize_workflow(bag_best_params)
+
+bag_final_fit <- bag_final_wkf |>
+  last_fit(heart_split, metrics = metric_set(accuracy, mn_log_loss))
 ```
 ### 3) Random Forest
-```{r}
-
-```
 #### - Specify the random forest and tuning parameters
 ```{r}
+rf_spec <- rand_forest(mtry = tune()) |>
+  set_engine("ranger") |>
+  set_mode("regression")
 
+rf_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(rf_spec)
 ```
 #### - Tune using the training-set cross-validation folds
 ```{r}
+rf_fit <- rf_wkf |>
+  tune_grid(resamples = bike_CV_folds, 
+            grid = 4,
+            metrics = metric_set(accuracy, mn_log_loss))
 
+rf_fit |>
+  collect_metrics() |>
+  filter(.metric == "mn_log_loss") |> 
+  arrange(mean)
 ```
 #### - Select the best random forest and finalize the workflow
 ```{r}
+rf_best_params <- select_best(rf_fit, metric = "mn_log_loss")
+rf_best_params
 
+rf_final_wkf <- rf_wkf |>
+  finalize_workflow(rf_best_params)
+
+rf_final_fit <- rf_final_wkf |>
+  last_fit(heart_split, metrics = metric_set(accuracy, mn_log_loss))
 ```
 
 ## VII. Comparing Final Models on the Test Set
 
 ### 1) Compare test-set RMSE and MAE for all four final models
 ```{r}
+bike_final     |> collect_metrics()
+tree_final_fit |> collect_metrics()
+bag_final_fit  |> collect_metrics()
+rf_final_fit   |> collect_metrics()
 
 ```
 ### 2) Report the final MLR coefficient table
