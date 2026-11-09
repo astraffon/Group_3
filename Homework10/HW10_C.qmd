@@ -218,6 +218,13 @@ bike_daily <- bike_data |>
 
     # Remove grouping after summarizing
     .groups = "drop"
+  ) |>
+  mutate(
+    #Create Weekend Variable
+    day_type = factor(
+      if_else(wday(date, week_start = 1) >= 6, "Weekend", "Weekday"),
+      levels = c("Weekday", "Weekend")
+    )
   )
 
 # Inspect the new daily dataset
@@ -389,13 +396,13 @@ We also notice a very strong correlation between temperature and dew point tempe
 ```{r}
 #Need to set up dependent var transformations BEFORE fitting:
 set.seed(682006)
-bike_split <- rsample::initial_split(bike_daily, prop = 0.75, strata = seasons)
-bike_train <- rsample::training(bike_split)
-bike_test  <- rsample::testing(bike_split)
+bike_split <- initial_split(bike_daily, prop = 0.75, strata = seasons)
+bike_train <- training(bike_split)
+bike_test  <- testing(bike_split)
 ```
 ### 2) Create 10-fold cross-validation splits on the training set
 ```{r}
-bike_CV_folds <- rsample::vfold_cv(bike_train, 10)
+bike_CV_folds <- vfold_cv(bike_train, 10)
 ```
 ## V. Fitting Multiple Linear Regression Models with tidymodels
 
@@ -405,14 +412,8 @@ bike_CV_folds <- rsample::vfold_cv(bike_train, 10)
 #### - Standardize numeric predictors
 #### - Create dummy variables for seasons, holiday, and day type
 ```{r}
-bike_rec1 <- recipe(bikeCount ~ ., data = bike_train) |>
+bike_rec1 <- recipe(bike_count ~ ., data = bike_train) |>
   update_role(date, new_role = "ID") |>
-  mutate(
-    day_type = factor(
-      if_else(wday(date, week_start = 1) >= 6, "Weekend", "Weekday"),
-      levels = c("Weekday", "Weekend")
-    )
-  )
   # don't normalize the outcome, but do the rest:
   step_normalize(all_numeric(), -all_outcomes()) |>
   # create dummys:
@@ -424,68 +425,68 @@ bike_rec1 <- recipe(bikeCount ~ ., data = bike_train) |>
 
 #### - Interaction between seasons and holiday, seasons and temperature, temperature and rainfall.
 ```{r}
-bike_rec2 <- recipe(bikeCount ~ . + season:day_type + seasons:temp + temp:rainfall, data = bike_train) |>
+bike_rec2 <- recipe(bike_count ~ ., data = bike_train) |>
   update_role(date, new_role = "ID") |>
-  mutate(
-    day_type = factor(
-      if_else(wday(date, week_start = 1) >= 6, "Weekend", "Weekday"),
-      levels = c("Weekday", "Weekend")
-    )
-  )
   # don't normalize the outcome, but do the rest:
   step_normalize(all_numeric(), -all_outcomes()) |>
   # create dummys:
-  step_dummy(seasons, holiday, day_type)
+  step_dummy(seasons, holiday, day_type) |>
+  step_interact(
+    terms = ~ starts_with("seasons"):starts_with("day_type") +
+              starts_with("seasons"):temp + 
+              starts_with("temp"):rainfall
+  )
 ```
 
 ### 3) Recipe 3: Interactions and quadratic terms
 
 #### - Quadratic terms for standardized temperature and standardized humidity
 ```{r}
-bike_rec3 <- recipe(bikeCount ~ . + season:day_type + seasons:temp + temp:rainfall + I(temp^2) + I(humidity^2), data = bike_train) |>
+bike_rec3 <- recipe(bike_count ~ ., data = bike_train) |>
   update_role(date, new_role = "ID") |>
-  mutate(
-    day_type = factor(
-      if_else(wday(date, week_start = 1) >= 6, "Weekend", "Weekday"),
-      levels = c("Weekday", "Weekend")
-    )
-  )
   # don't normalize the outcome, but do the rest:
   step_normalize(all_numeric(), -all_outcomes()) |>
   # create dummys:
-  step_dummy(seasons, holiday, day_type)
+  step_dummy(seasons, holiday, day_type) |>
+  step_interact(
+    terms = ~ starts_with("seasons"):starts_with("day_type") +
+              starts_with("seasons"):temp + 
+              starts_with("temp"):rainfall
+  ) |>
+  step_poly(temp, degree = 2, options = list(raw = TRUE)) |>
+  step_poly(humidity, degree = 2, options = list(raw = TRUE))
 ```
 
 ### 4) Specify the linear regression model with the lm engine
 ```{r}
-bike_mod <- linear_reg() %>% 
+bike_mod <- linear_reg() |> 
   set_engine("lm")
 ```
 ### 5) Create workflows for Models 1, 2, and 3
 ```{r}
-bike_wfl1 <- workflow() |>
+bike_wkfl1 <- workflow() |>
   add_recipe(bike_rec1) |>
   add_model(bike_mod)
-bike_wfl1
+bike_wkfl1
 
-bike_wfl2 <- workflow() |>
+bike_wkfl2 <- workflow() |>
   add_recipe(bike_rec2) |>
   add_model(bike_mod)
 
-bike_wfl3 <- workflow() |>
+bike_wkfl3 <- workflow() |>
   add_recipe(bike_rec3) |>
   add_model(bike_mod)
 ```
 ### 6) Fit all three models using 10-fold cross-validation
 ```{r}
 #Fit these models to our CV folds:
-bike_fit1 <- bike_wkf1 |>
+bike_fit1 <- bike_wkfl1 |>
   fit_resamples(bike_CV_folds)
 
-bike_fit2 <- bike_wkf2 |>
+bike_fit2 <- bike_wkfl2 |>
   fit_resamples(bike_CV_folds) 
 
-bike_fit3 <- bike_wkf3 |>
+bike_fit3 <- bike_wkfl3 |>
   fit_resamples(bike_CV_folds)
 ```
 ### 7) Compare cross-validation errors and select the best MLR model
@@ -499,8 +500,8 @@ rbind(bike_fit1 |> collect_metrics() |> filter(.metric == "rmse"),
 ```
 ### 8) Fit the selected MLR model on the training set
 ```{r}
-bike_final <-  bike_wkf# |>
-  fit(bike_train)
+bike_final <-  bike_wkfl2 |>
+  fit(bike_train) #??Am I supposed to use last_fit() here?
 tidy(bike_final)
 ```
 
