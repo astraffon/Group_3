@@ -384,21 +384,96 @@ We also notice a very strong correlation between temperature and dew point tempe
 
 
 ## IV. Splitting the Data
+Use functions from tidymodels to split the data into a training and test set (75/25 split). Use the
+strata argument to stratify the split on the seasons variable.
 
 ### 1) Create a 75/25 training and test split stratified by season
 
+Similar to what we did in HW9, just that this time we will use the training set
+for cross-validation. *Why?* Because cross-validation gives us a more reliable estimate 
+of prediction error by evaluating the model on different held-out groups rather 
+than relying on a single random split.
+
+```{r}
+# Set seed so the random split can be reproduced
+set.seed(123)
+
+# Split daily data into 75% training and 25% testing
+# Stratify by seasons to preserve the seasonal distribution
+bike_split <- initial_split(
+  bike_daily,
+  prop = 0.75, # designates the proportion for training
+  strata = seasons
+)
+
+# Create separate training and test datasets
+bike_train <- training(bike_split)
+bike_test <- testing(bike_split)
+
+# Verify the number of observations in each dataset
+nrow(bike_train)
+nrow(bike_test)
+
+# Check the number of observations by season in each dataset
+table(bike_train$seasons)
+table(bike_test$seasons)
+```
 ### 2) Create 10-fold cross-validation splits on the training set
 
+Here we use the `vfold_cv()` function to create 10 folds.
+```{r}
+# Set seed so the cross-validation folds are reproducible
+set.seed(123)
+
+# Create 10-fold cross-validation using only the training data
+bike_cv <- vfold_cv(
+  bike_train,
+  v = 10
+)
+
+# Display the cross-validation folds
+bike_cv
+```
 
 ## V. Fitting Multiple Linear Regression Models with tidymodels
 
+
+
 ### 1) Recipe 1: Main effects
 
-#### - Create weekday/weekend factor from the date variable
+This first model includes only main effects, with no interactions or quadratic terms. The pre-processing
+steps are as follows:
 
-#### - Standardize numeric predictors
+- Create weekday/weekend factor from the date variable
+- Standardize numeric predictors
+- Create dummy variables for seasons, holiday, and day type
 
-#### - Create dummy variables for seasons, holiday, and day type
+```{r}
+# Create Recipe 1 for our basic multiple linear regression model
+bike_rec_1 <- recipe(bike_count ~ ., data = bike_train) |>
+
+  # Extract the day of the week from the date variable
+  step_date(date, features = "dow") |>
+
+  # Create a factor identifying weekdays and weekends
+  step_mutate(
+    day_type = factor(
+      if_else(date_dow %in% c("Sat", "Sun"), "Weekend", "Weekday")
+    )
+  ) |>
+
+  # Remove the original date and intermediate day-of-week variable
+  step_rm(date, date_dow) |>
+
+  # Standardize numeric predictors, but not the response
+  step_normalize(all_numeric_predictors()) |>
+
+  # Create dummy variables for categorical predictors
+  step_dummy(seasons, holiday, day_type)
+
+# Display Recipe 1
+bike_rec_1
+```
 
 ### 2) Recipe 2: Main effects and interactions
 
