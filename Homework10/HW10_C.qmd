@@ -21,8 +21,6 @@ library(lubridate)
 library(tidymodels)
 library(tree)
 library(baguette)
-library(vip)
-
 
 # Read the locally saved Seoul Bike Sharing dataset
 # Specify Latin1 encoding to handle special characters
@@ -669,6 +667,8 @@ rf_final_fit   |> collect_metrics()
 bike_final_fit |> 
   extract_fit_parsnip() |> 
   tidy()
+#VS
+#tidy(bike_final)
 ```
 ### 3) Plot the final regression tree
 ```{r}
@@ -678,17 +678,19 @@ tree_final_model |>
 ```
 ### 4) Plot variable importance for the bagged tree
 ```{r}
-bag_final_model <- extract_workflow(bag_final_fit)
-bag_final_fit |> 
-  extract_fit_parsnip() |> 
-  vip::vip()
+bag_final_model$imp |>                                                 # $imp is the importance variable
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_bar(stat ="identity") +
+  coord_flip()
 ```
 ### 5) Plot variable importance for the random forest
 ```{r}
-rf_final_model <- extract_workflow(rf_final_fit)
-rf_final_fit |> 
-  extract_fit_parsnip() |> 
-  vip::vip()
+rf_final_model$imp |>                                                 # $imp is the importance variable
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_bar(stat ="identity") +
+  coord_flip()
 
 ```
 ### 6) Select the overall best-performing model
