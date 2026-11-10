@@ -21,6 +21,7 @@ library(lubridate)
 library(tidymodels)
 library(tree)
 library(baguette)
+library(vip)
 
 
 # Read the locally saved Seoul Bike Sharing dataset
@@ -503,12 +504,10 @@ rbind(bike_fit1 |> collect_metrics() |> filter(.metric == "rmse"),
 ```
 ### 8) Fit the selected MLR model on the training set
 ```{r}
-bike_final <-  bike_wkfl3 |>  #Here it says 2, but html says 3.
-  fit(bike_split)
 bike_final_fit <-  bike_wkfl3 |>  #Here it says 2, but html says 3.
   last_fit(split = bike_split) #??Am I supposed to use last_fit() here?
 bike_final_fit |> collect_metrics()
-tidy(bike_final)
+bike_final_fit |> extract_fit_parsnip() |> tidy()
 ```
 
 ## VI. Fitting Other Models
@@ -667,7 +666,9 @@ rf_final_fit   |> collect_metrics()
 ```
 ### 2) Report the final MLR coefficient table
 ```{r}
-tidy(bike_final)
+bike_final_fit |> 
+  extract_fit_parsnip() |> 
+  tidy()
 ```
 ### 3) Plot the final regression tree
 ```{r}
@@ -677,19 +678,17 @@ tree_final_model |>
 ```
 ### 4) Plot variable importance for the bagged tree
 ```{r}
-bag_final_model$imp |>                                                 # $imp is the importance variable
-  mutate(term = factor(term, levels = term)) |>
-  ggplot(aes(x = term, y = value)) + 
-  geom_bar(stat ="identity") +
-  coord_flip()
+bag_final_model <- extract_workflow(bag_final_fit)
+bag_final_fit |> 
+  extract_fit_parsnip() |> 
+  vip::vip()
 ```
 ### 5) Plot variable importance for the random forest
 ```{r}
-rf_final_model$imp |>                                                 # $imp is the importance variable
-  mutate(term = factor(term, levels = term)) |>
-  ggplot(aes(x = term, y = value)) + 
-  geom_bar(stat ="identity") +
-  coord_flip()
+rf_final_model <- extract_workflow(rf_final_fit)
+rf_final_fit |> 
+  extract_fit_parsnip() |> 
+  vip::vip()
 
 ```
 ### 6) Select the overall best-performing model
@@ -701,11 +700,10 @@ rf_final_model$imp |>                                                 # $imp is 
 
 ### 1) Fit the selected model using all 353 daily observations
 ```{r}
-final_model <- MLR_wkfl3 |>
-  fit(bike_data) 
-tidy(final_model)
+final_model <- bike_wkfl3 |>
+  fit(data = bike_daily) 
 ```
 ### 2) Report the final model
 ```{r}
-
+tidy(final_model)
 ```
