@@ -688,35 +688,35 @@ lm_model <- linear_reg() |>
   set_engine("lm")
 
 # create workflow for each models
-bike_wf1 <- workflow() |>
+bike_wkf1 <- workflow() |>
   add_recipe(bike_rec1) |>
   add_model(lm_model)
-bike_wf1
+bike_wkf1
 
-bike_wf2 <- workflow() |>
+bike_wkf2 <- workflow() |>
   add_recipe(bike_rec2) |>
   add_model(lm_model)
-bike_wf2
+bike_wkf2
 
-bike_wf3 <- workflow() |>
+bike_wkf3 <- workflow() |>
   add_recipe(bike_rec3) |>
   add_model(lm_model)
-bike_wf3
+bike_wkf3
 ```
 
 - `fit_resamples()` evaluates each workflow using the same 10 folds. 
 
 ```{r}
 # fit model 1 using cross-validation
-bike_fit1 <- bike_wf1 |>
+bike_fit1 <- bike_wkf1 |>
   fit_resamples(bike_folds)
 
 # fit model 2 using CV
-bike_fit2 <- bike_wf2 |>
+bike_fit2 <- bike_wkf2 |>
   fit_resamples(bike_folds)
 
 # fit model 3 using CV
-bike_fit3 <- bike_wf3 |>
+bike_fit3 <- bike_wkf3 |>
   fit_resamples(bike_folds)
 ```
 
@@ -750,7 +750,7 @@ Model 2 has lowest RMSE, so it is the best-performing MLR model (based on CV).
 
 ```{r}
 # fit the best model to the entire training data set
-final_lm <- bike_wf2 |>
+final_lm <- bike_wkf2 |>
   last_fit(split_bike)
 
 # examine test data set performance 
@@ -767,9 +767,183 @@ final_lm |>
 ## Fitting Other Models
 
 ### (Tuned) Regression Tree Model
+A **regression tree** divides the data into groups based on predictor values and makes predictions within those groups. 
+
+```{r}
+# set up the regression tree model 
+
+# use `tune()` bc we don't know which values will produce the best regression tree
+# aka tell tidymodels to test different values and determine which combo works best 
+
+tree_model <- decision_tree(
+  cost_complexity = tune(),
+  tree_depth = tune(),
+  min_n = tune(),
+) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+# create workflow to combine the first recipe with the regression tree model 
+tree_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(tree_model)
+
+# tune the regression tree using 10-fold CV
+set.seed(13)
+
+tree_tune <- tree_wkf |>
+  tune_grid(
+    resamples = bike_folds,
+    grid = 10
+  )
+
+# examine tuning results
+tree_tune |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+
+# select the best model based on RMSE
+best_tree <- select_best(
+  tree_tune, 
+  metric = "rmse")
+best_tree
+
+# finalize workflow with the best parameters 
+fin_tree_wkf <- tree_wkf |>
+  finalize_workflow(best_tree)
+
+# fit to the entire training data set
+fin_tree_fit <- fin_tree_wkf |>
+  last_fit(split_bike)
+fin_tree_fit
+
+# examine test data set performance 
+fin_tree_fit |>
+  collect_metrics() |>
+  select(
+    .metric, 
+    .estimator,
+    .estimate
+  )
+```
 
 ### (Tuned) Bagged Tree Model
+A **bagged tree* (aka *bootstrap aggregated decision tree*) fits multiple decision trees to different bootstrap samples of the training data, then combines their predictions. It helps reduce the variability that can come from relying on just one regression tree. 
+
+```{r}
+library(baguette)
+
+# set up the bagged tree model
+bag_model <-bag_tree(
+  cost_complexity = tune(),
+  tree_depth = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+# create workflow to combine the first recipe with the bagged tree model 
+bag_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(bag_model)
+
+# tune the bagged tree using 10-fold CV
+set.seed(18)
+
+bag_tune <- bag_wkf |>
+  tune_grid(
+    resamples = bike_folds,
+    grid = 10
+  )
+
+# examine tuning results
+bag_tune |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+
+# select the best model based on RMSE
+best_bag <- select_best(
+  bag_tune, 
+  metric = "rmse")
+best_bag
+
+# finalize workflow with the best parameters 
+fin_bag_wkf <- bag_wkf |>
+  finalize_workflow(best_bag)
+
+# fit to the entire training data set
+fin_bag_fit <- fin_bag_wkf |>
+  last_fit(split_bike)
+fin_bag_fit
+
+# examine test data set performance 
+fin_bag_fit |>
+  collect_metrics() |>
+  select(
+    .metric, 
+    .estimator,
+    .estimate
+  )
+```
 
 ### (Tuned) Random Forest Model
+A **random forest model** combines predictions from multiple decision trees, though at each split it randomly selects a subset of predictors.This makes individual trees less alike. 
+
+```{r}
+library(ranger)
+
+# set up the random forest model
+rf_model <- rand_forest(
+  mtry = tune()
+) |>
+  set_engine("ranger") |>
+  set_mode("regression")
+
+# create workflow to combine the first recipe with the random forest model 
+rf_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(rf_model)
+
+# tune the random forest using 10-fold CV
+set.seed(21)
+
+rf_tune <- rf_wkf |>
+  tune_grid(
+    resamples = bike_folds,
+    grid = 10
+  )
+
+# examine tuning results
+rf_tune |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+
+# select the best model based on RMSE
+best_rf <- select_best(
+  rf_tune, 
+  metric = "rmse")
+best_rf
+
+# finalize workflow with the best parameters 
+fin_rf_wkf <- rf_wkf |>
+  finalize_workflow(best_rf)
+
+# fit to the entire training data set
+fin_rf_fit <- fin_rf_wkf |>
+  last_fit(split_bike)
+fin_rf_fit
+
+# examine test data set performance 
+fin_rf_fit |>
+  collect_metrics() |>
+  select(
+    .metric, 
+    .estimator,
+    .estimate
+  )
+```
 
 ## Comparing Models on Test Sets
