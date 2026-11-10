@@ -751,7 +751,10 @@ Model 2 has lowest RMSE, so it is the best-performing MLR model (based on CV).
 ```{r}
 # fit the best model to the entire training data set
 final_lm <- bike_wkf2 |>
-  last_fit(split_bike)
+  last_fit(
+    split = split_bike,
+    metrics = metric_set(rmse,mae)
+    )
 
 # examine test data set performance 
 final_lm |>
@@ -814,12 +817,15 @@ fin_tree_wkf <- tree_wkf |>
   finalize_workflow(best_tree)
 
 # fit to the entire training data set
-fin_tree_fit <- fin_tree_wkf |>
-  last_fit(split_bike)
-fin_tree_fit
+final_tree <- fin_tree_wkf |>
+  last_fit(
+    split = split_bike,
+    metrics = metric_set(rmse,mae)
+    )
+final_tree
 
 # examine test data set performance 
-fin_tree_fit |>
+final_tree |>
   collect_metrics() |>
   select(
     .metric, 
@@ -874,12 +880,15 @@ fin_bag_wkf <- bag_wkf |>
   finalize_workflow(best_bag)
 
 # fit to the entire training data set
-fin_bag_fit <- fin_bag_wkf |>
-  last_fit(split_bike)
-fin_bag_fit
+final_bag <- fin_bag_wkf |>
+  last_fit(
+    split = split_bike,
+    metrics = metric_set(rmse,mae)
+    )
+final_bag
 
 # examine test data set performance 
-fin_bag_fit |>
+final_bag |>
   collect_metrics() |>
   select(
     .metric, 
@@ -932,12 +941,15 @@ fin_rf_wkf <- rf_wkf |>
   finalize_workflow(best_rf)
 
 # fit to the entire training data set
-fin_rf_fit <- fin_rf_wkf |>
-  last_fit(split_bike)
-fin_rf_fit
+final_rf <- fin_rf_wkf |>
+  last_fit(
+    split = split_bike,
+    metrics = metric_set(rmse,mae)
+    )
+final_rf
 
 # examine test data set performance 
-fin_rf_fit |>
+final_rf |>
   collect_metrics() |>
   select(
     .metric, 
@@ -946,4 +958,59 @@ fin_rf_fit |>
   )
 ```
 
-## Comparing Models on Test Sets
+## Comparing Final Models on Test Sets
+
+```{r}
+# compare test set performance
+model_comparison <- bind_rows(
+  final_lm |> 
+    collect_metrics() |> 
+    mutate(Model = "MLR"),
+  
+  final_tree |> 
+    collect_metrics() |> 
+    mutate(Model = "Regression Tree"),
+  
+  final_bag |> 
+    collect_metrics() |> 
+    mutate(Model = "Bagged Tree"),
+  
+  final_rf |> 
+    collect_metrics() |> 
+    mutate(Model = "Random Forest")
+) |>
+  filter(.metric %in% c("rmse", "mae")) |>
+  select(Model, .metric, .estimate) |>
+  pivot_wider(
+    names_from = .metric,
+    values_from = .estimate
+  ) |>
+  arrange(rmse)
+
+model_comparison
+```
+Both RMSE and MAE are lowest for the Random Forest Model, which means it has the best predictions overall. 
+
+### Extracting Final Model Fits 
+
+```{r}
+# MLR
+final_lm_fit <- final_lm |>
+  extract_workflow() |>
+  extract_fit_parsnip()
+
+# regression tree
+final_tree_fit <- final_tree |>
+  extract_workflow() |>
+  extract_fit_parsnip()
+
+# bagged tree
+final_bag_fit <- final_bag |>
+  extract_workflow() |>
+  extract_fit_parsnip()
+
+# random forest
+final_rf_fit <- final_rf |>
+  extract_workflow() |>
+  extract_fit_parsnip()
+```
