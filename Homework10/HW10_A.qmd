@@ -484,7 +484,7 @@ bike_rec_1
 ```
 
 ### 2) Recipe 2: Main effects and interactions
-This second model includes main effects but also adds interactions. 
+This second model includes main effects from Recipe 1 but also adds interactions. 
 The pre-processing steps are as follows:
 
 - Interaction between seasons and holiday
@@ -515,21 +515,171 @@ bike_rec_2
 
 
 ### 3) Recipe 3: Interactions and quadratic terms
+This third model takes Recipe 2 and adds the following quadratic terms:
 
-#### - Quadratic term for standardized temperature
+- Quadratic term for standardized temperature
+- Quadratic term for standardized humidity
 
-#### - Quadratic term for standardized humidity
+```{r}
+# Create Recipe 3 using the same preprocessing steps as Recipe 2
+bike_rec_3 <- bike_rec_2 |>
 
+  # step_mutate() creates quadratic terms for temp and humidity
+  # these variables were already standardized in Recipe 1
+  # squaring them allows for nonlinear relationships
+  step_mutate(
+    temp_sq = temp^2,
+    humidity_sq = humidity^2
+  )
+
+# Display Recipe 3
+bike_rec_3
+```
 ### 4) Specify the linear regression model with the lm engine
+Each of the recipes determines what information goes into a given model and how it's 
+prepared. At this stage of the exercise all three recipes will use multiple linear 
+regression (MLR) to make predictions.
+```{r}
+# Specify a multiple linear regression model using tidymodels
+# linear_reg() defines the model type as linear regression
+# set_engine() specifies which R function will fit the model
+# "lm" uses ordinary least squares regression from base R
+bike_lm <- linear_reg() |> # from the parsnip package within tidymodels
+  set_engine("lm")
+
+# Display the model specification
+bike_lm
+```
 
 ### 5) Create workflows for Models 1, 2, and 3
+Now that we have our three recipes (`bike_rec_1`, `bike_rec_2`, `bike_rec_3`) and 
+our linear regression specification (`bike_lm`), we'll combine them into workflows.
+
+
+```{r}
+# Create Workflow 1 using Recipe 1 and our linear regression model
+# workflow() creates a workflow object
+# add_recipe() adds the preprocessing instructions
+# add_model() adds the model specification
+bike_wfl_1 <- workflow() |>
+  add_recipe(bike_rec_1) |>
+  add_model(bike_lm)
+
+# Create Workflow 2 using Recipe 2 and the same regression model
+bike_wfl_2 <- workflow() |>
+  add_recipe(bike_rec_2) |>
+  add_model(bike_lm)
+
+# Create Workflow 3 using Recipe 3 and the same regression model
+bike_wfl_3 <- workflow() |>
+  add_recipe(bike_rec_3) |>
+  add_model(bike_lm)
+
+# Display the three workflows
+bike_wfl_1
+bike_wfl_2
+bike_wfl_3
+```
+
 
 ### 6) Fit all three models using 10-fold cross-validation
+When fitting a model, we can use different approaches. For example we could 
+choose to fit on the entire data set, do a single 75/25 split, or even do bootstrap 
+resampling. For this exercise we are choosing to do a 10-fold cross-validation, which 
+involved fitting the model multiple times on different subsets of the training data. 
+Recall the subsets were created above in section IV.2. 
+
+```{r}
+# Fit Model 1 using 10-fold cross-validation
+# fit_resamples() fits the model across the folds created in Section IV
+# metric_set() specifies RMSE and MAE as our evaluation metrics
+bike_cv_fit_1 <- bike_wfl_1 |>
+  fit_resamples(
+    resamples = bike_cv,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Fit Model 2 using the same 10 folds
+bike_cv_fit_2 <- bike_wfl_2 |>
+  fit_resamples(
+    resamples = bike_cv,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Fit Model 3 using the same 10 folds
+bike_cv_fit_3 <- bike_wfl_3 |>
+  fit_resamples(
+    resamples = bike_cv,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Display the cross-validation results
+bike_cv_fit_1
+bike_cv_fit_2
+bike_cv_fit_3
+```
 
 ### 7) Compare cross-validation errors and select the best MLR model
+Now we compare the average RMSE and MAE across the three models and select the 
+best-performing MLR model.
+
+```{r}
+# Collect the cross-validation metrics for all three models
+# collect_metrics() combines the prediction errors across the 10 folds
+bike_cv_comparison <- bind_rows(
+  collect_metrics(bike_cv_fit_1) |> mutate(model = "Model 1"),
+  collect_metrics(bike_cv_fit_2) |> mutate(model = "Model 2"),
+  collect_metrics(bike_cv_fit_3) |> mutate(model = "Model 3")
+) |>
+  # Keep the model name, metric, and average error
+  select(model, .metric, mean) |>
+
+  # Display RMSE and MAE as separate columns
+  pivot_wider(names_from = .metric, values_from = mean) |>
+
+  # Sort models from lowest to highest RMSE
+  arrange(rmse)
+
+# Display the comparison
+bike_cv_comparison
+
+# Select Model 2 based on the lowest cross-validation RMSE
+best_lm_workflow <- bike_wfl_2
+```
+Based on the cross-validation results, Model 2 had the lowest RMSE (3,127), followed 
+by Model 3 (3,165) and Model 1 (4,189). Overall, the results suggest that adding 
+interaction terms improved our predictions, while adding quadratic terms did not 
+further improve RMSE.
+
+We note that although Model 3 had a slightly lower MAE, we selected Model 2 based 
+on RMSE, because RMSE as a metric penalizes large prediction errors more heavily 
+than MAE (RMSE squares the errors before averaging), and so we are placing more 
+importance on avoiding large prediction errors.
 
 ### 8) Fit the selected MLR model on the training set
+Now that Model 2 has been selected based on its cross-validation RMSE, we proceed to 
+fit it using the entire 75% training dataset.
 
+```{r}
+# Fit selected MLR model using the original 75/25 split
+# last_fit() fits the model on the entire training set
+# it also evaluates predictions on the untouched test set
+best_lm_fit <- best_lm_workflow |>
+  last_fit(
+    split = bike_split,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Display the final MLR fit
+best_lm_fit
+# Display the test-set RMSE and MAE for our selected MLR model
+collect_metrics(best_lm_fit)
+
+```
+After selecting Model 2 based on the lowest cross-validation RMSE, we fitted it on 
+the entire training set and evaluated it on the test set. The resulting RMSE was 3,081 
+and the MAE was 2,357. The test-set RMSE was close to our cross-validation RMSE of 
+3,127, suggesting that the model performs reasonably consistently on unseen data.
 
 ## VI. Fitting Other Models
 
