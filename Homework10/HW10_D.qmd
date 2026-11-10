@@ -813,11 +813,11 @@ best_tree <- select_best(
 best_tree
 
 # finalize workflow with the best parameters 
-fin_tree_wkf <- tree_wkf |>
+final_tree_wkf <- tree_wkf |>
   finalize_workflow(best_tree)
 
 # fit to the entire training data set
-final_tree <- fin_tree_wkf |>
+final_tree <- final_tree_wkf |>
   last_fit(
     split = split_bike,
     metrics = metric_set(rmse,mae)
@@ -841,7 +841,7 @@ A **bagged tree* (aka *bootstrap aggregated decision tree*) fits multiple decisi
 library(baguette)
 
 # set up the bagged tree model
-bag_model <-bag_tree(
+bag_model <- bag_tree(
   cost_complexity = tune(),
   tree_depth = tune(),
   min_n = tune()
@@ -876,11 +876,11 @@ best_bag <- select_best(
 best_bag
 
 # finalize workflow with the best parameters 
-fin_bag_wkf <- bag_wkf |>
+final_bag_wkf <- bag_wkf |>
   finalize_workflow(best_bag)
 
 # fit to the entire training data set
-final_bag <- fin_bag_wkf |>
+final_bag <- final_bag_wkf |>
   last_fit(
     split = split_bike,
     metrics = metric_set(rmse,mae)
@@ -907,7 +907,10 @@ library(ranger)
 rf_model <- rand_forest(
   mtry = tune()
 ) |>
-  set_engine("ranger") |>
+  set_engine(
+    "ranger",
+    importance = "impurity"
+    ) |>
   set_mode("regression")
 
 # create workflow to combine the first recipe with the random forest model 
@@ -937,11 +940,11 @@ best_rf <- select_best(
 best_rf
 
 # finalize workflow with the best parameters 
-fin_rf_wkf <- rf_wkf |>
+final_rf_wkf <- rf_wkf |>
   finalize_workflow(best_rf)
 
 # fit to the entire training data set
-final_rf <- fin_rf_wkf |>
+final_rf <- final_rf_wkf |>
   last_fit(
     split = split_bike,
     metrics = metric_set(rmse,mae)
@@ -1013,4 +1016,114 @@ final_bag_fit <- final_bag |>
 final_rf_fit <- final_rf |>
   extract_workflow() |>
   extract_fit_parsnip()
+```
+
+### Summarizing Final Models
+
+#### MLR Coefficient Table
+
+```{r}
+# extract & display coefficient estimates
+
+lm_coef <- tidy(final_lm_fit)
+lm_coef
+```
+
+#### Regression Tree Plot
+
+```{r}
+library(rpart.plot)
+
+# extract the underlying rpart model
+tree_engine <- final_tree_fit |>
+  extract_fit_engine()
+
+# plot the regression tree 
+tree_plot <- rpart.plot(
+  tree_engine,
+  roundint = FALSE
+  )
+tree_plot
+```
+
+#### Bagged Tree Variable Importance Plot
+
+```{r}
+# extract the underlying bagged tree model
+bag_final_model <- extract_fit_engine(final_bag_fit)
+
+# extract & organize variable importance
+bag_vip <- bag_final_model$imp |>
+  mutate(
+    term = factor(
+      term, 
+      levels = term
+      )
+    )
+
+bag_plot <- ggplot(
+  bag_vip,
+  aes(
+    x = term, 
+    y = value
+    )) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Bagged Tree Variable Importance",
+    x = "Predictor",
+    y = "Importance"
+  ) +
+  theme_bw()
+
+bag_plot
+```
+
+#### Random Forest Variable Importance Plot
+
+```{r}
+# extract the underlying random forest model
+rf_final_model <- extract_fit_engine(final_rf_fit)
+
+# examine variable importance
+rf_final_model$variable.importance
+
+# convert into a tibble
+rf_vip <- tibble(
+  term = names(rf_final_model$variable.importance),
+  value = rf_final_model$variable.importance
+) |>
+  mutate(
+    term = factor(
+      term, 
+      levels = term
+      )
+    ) 
+
+# plot variable importance
+rf_plot <- ggplot(
+  rf_vip,
+  aes(
+    x = term, 
+    y = value
+    )) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Random Forest Variable Importance",
+    x = "Predictor",
+    y = "Importance"
+  ) +
+  theme_bw()
+rf_plot
+```
+
+## Fitting Overall Best Model
+
+```{r}
+# fit the best model (random forest) to the entire data set 
+best_model <- final_rf_wkf |>
+  fit(data = daily_bike)
+
+best_model
 ```
