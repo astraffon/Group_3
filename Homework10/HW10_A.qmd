@@ -683,48 +683,472 @@ and the MAE was 2,357. The test-set RMSE was close to our cross-validation RMSE 
 
 ## VI. Fitting Other Models
 
+We now move from multiple linear regression to tree-based models, including regression 
+trees, bagged trees, and random forests, which use different approaches to capture 
+relationships between predictors and improve prediction accuracy. For these models we 
+will use the 1st recipe from the MLR section above.
+
 ### 1) Regression Tree
 
-#### - Specify the regression tree and tuning parameters
+Divides the data into smaller groups based on predictor values and uses the average 
+response within each group to make predictions.The steps are as follows:
 
-#### - Tune using the training-set cross-validation folds
+- Specify the regression tree and tuning parameters
+```{r}
+# Specify a regression tree model using tidymodels
+# decision_tree() defines the model as a regression tree
+# tune() allows CV to select the best tuning parameter values
+# min_n = 20 requires at least 20 observations to split a node
+bike_tree_mod <- decision_tree(
+  tree_depth = tune(),
+  min_n = 20,
+  cost_complexity = tune()
+) |>
+  set_engine("rpart") |>
+  set_mode("regression")
 
-#### - Select the best regression tree and finalize the workflow
+# Display the model specification
+bike_tree_mod
+
+# Create a workflow using Recipe 1 and our regression tree model
+bike_tree_wfl <- workflow() |>
+  add_recipe(bike_rec_1) |>
+  add_model(bike_tree_mod)
+```
+
+- Tune using the training-set cross-validation folds
+```{r}
+# Set seed so the tuning process is reproducible
+set.seed(123)
+
+# Tune the regression tree using our 10-fold cross-validation
+# tune_grid() tests different combinations of tuning parameters
+# grid = 15 generates 15 combinations to evaluate
+bike_tree_tuned <- bike_tree_wfl |>
+  tune_grid(
+    resamples = bike_cv,
+    grid = 15,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Collect the cross-validation results
+# Arrange the results from lowest to highest RMSE
+bike_tree_tuned |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+```
+
+- Select the best regression tree and finalize the workflow
+```{r}
+# Select the best regression tree based on the lowest CV RMSE
+# select_best() identifies the best tuning parameter combination
+bike_tree_best <- select_best(
+  bike_tree_tuned,
+  metric = "rmse"
+)
+
+# Display the selected tuning parameters
+bike_tree_best
+
+# Finalize the workflow using the selected tuning parameters
+# finalize_workflow() replaces tune() with the selected values
+bike_tree_final_wfl <- bike_tree_wfl |>
+  finalize_workflow(bike_tree_best)
+
+# Fit the selected regression tree on the entire training set
+# fit() trains the model using all training observations
+bike_tree_train_fit <- bike_tree_final_wfl |>
+  fit(data = bike_train)
+
+# Display the fitted regression tree
+bike_tree_train_fit
+```
+Our selected regression tree was fitted using all 263 training observations. The first 
+split was based on temperature, separating days with lower average rentals (8,639) from 
+those with higher average rentals (23,422). The tree then continued splitting the 
+observations using other predictors, including season, rainfall, and visibility.
+
+The selected regression tree had a 10-fold cross-validation RMSE of 3,739, compared 
+with 3,127 for our best MLR model (Model 2), suggesting that MLR performed better 
+in predicting daily bicycle rentals.
+
 
 ### 2) Bagged Tree
 
-#### - Specify the bagged tree and tuning parameters
+*What is a bagged tree?* Instead of fitting a single regression tree, bagging fits 
+multiple trees using bootstrap samples of the training data and averages their predictions. 
+The goal is to reduce variability and potentially improve prediction accuracy.The steps 
+are as follows:
 
-#### - Tune using the training-set cross-validation folds
+- Specify the bagged tree and tuning parameters
+```{r}
+# Load the package needed to fit bagged tree models
+library(baguette)
 
-#### - Select the best bagged tree and finalize the workflow
+# Specify a bagged tree model using tidymodels
+# bag_tree() defines a model that combines multiple trees
+# tree_depth = 5 limits the maximum depth of each tree
+# min_n = 10 requires at least 10 observations to split a node
+# tune() allows CV to select the best cost complexity value
+bike_bag_mod <- bag_tree(
+  tree_depth = 5,
+  min_n = 10,
+  cost_complexity = tune()
+) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+# Display the model specification
+bike_bag_mod
+
+# Create a workflow using Recipe 1 and our bagged tree model
+bike_bag_wfl <- workflow() |>
+  add_recipe(bike_rec_1) |>
+  add_model(bike_bag_mod)
+
+# Display the workflow
+bike_bag_wfl
+```
+- Tune using the training-set cross-validation folds
+```{r}
+# Set seed so the tuning process is reproducible
+set.seed(123)
+
+# Tune the bagged tree using our 10-fold cross-validation
+# tune_grid() tests different values of cost complexity
+# grid = 15 generates 15 values to evaluate
+bike_bag_tuned <- bike_bag_wfl |>
+  tune_grid(
+    resamples = bike_cv,
+    grid = 15,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Collect the cross-validation results
+# Arrange the results from lowest to highest RMSE
+bike_bag_tuned |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+```
+- Select the best bagged tree and finalize the workflow
+```{r}
+# Select the best bagged tree based on the lowest CV RMSE
+# select_best() identifies the best tuning parameter value
+bike_bag_best <- select_best(
+  bike_bag_tuned,
+  metric = "rmse"
+)
+
+# Display the selected tuning parameter
+bike_bag_best
+
+# Finalize the workflow using the selected tuning parameter
+# finalize_workflow() replaces tune() with the selected value
+bike_bag_final_wfl <- bike_bag_wfl |>
+  finalize_workflow(bike_bag_best)
+
+# Fit the selected bagged tree on the entire training set
+# fit() trains the model using all training observations
+bike_bag_train_fit <- bike_bag_final_wfl |>
+  fit(data = bike_train)
+
+# Display the fitted bagged tree
+bike_bag_train_fit
+```
+The selected bagged tree was fitted using all 263 training observations. Its 
+lowest 10-fold cross-validation RMSE was 3,207, which was better than the single 
+regression tree (3,739) but still slightly worse than our best MLR model (3,127). 
+The variable importance output suggests that temperature, dew point temperature, 
+and solar radiation were among the most important predictors.
+
 
 ### 3) Random Forest
+*What is a random forest?* A random forest is similar to bagging in that it builds 
+multiple regression trees using bootstrap samples. The difference is that at each split, 
+it randomly selects a subset of predictors instead of considering all of them. This 
+helps make the trees less similar to each other and can improve the predictions. The 
+steps are as follows:
 
-#### - Specify the random forest and tuning parameters
+- Specify the random forest and tuning parameters
 
-#### - Tune using the training-set cross-validation folds
+```{r}
+# Specify a random forest model using tidymodels
+# rand_forest() defines a model that combines multiple randomized trees
+# mtry = tune() allows CV to select the number of predictors considered at each split
+# trees = 500 specifies the number of trees in the forest
+# min_n = 10 requires at least 10 observations to split a node
+bike_rf_mod <- rand_forest(
+  mtry = tune(),
+  trees = 500,
+  min_n = 10
+) |>
+  set_engine("ranger", importance = "permutation") |>
+  set_mode("regression")
 
-#### - Select the best random forest and finalize the workflow
+# Display the model specification
+bike_rf_mod
 
+# Create a workflow using Recipe 1 and our random forest model
+bike_rf_wfl <- workflow() |>
+  add_recipe(bike_rec_1) |>
+  add_model(bike_rf_mod)
+
+# Display the workflow
+bike_rf_wfl
+```
+- Tune using the training-set cross-validation folds
+
+```{r}
+# Set seed so the tuning process is reproducible
+set.seed(123)
+
+# Tune the random forest using our 10-fold cross-validation
+# tune_grid() tests different values of mtry
+# grid = 15 requests 15 candidate values to evaluate
+bike_rf_tuned <- bike_rf_wfl |>
+  tune_grid(
+    resamples = bike_cv,
+    grid = 15,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Collect the cross-validation results
+# Arrange the results from lowest to highest RMSE
+bike_rf_tuned |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+```
+
+
+- Select the best random forest and finalize the workflow
+```{r}
+# Select the best random forest based on the lowest CV RMSE
+# select_best() identifies the best tuning parameter value
+bike_rf_best <- select_best(
+  bike_rf_tuned,
+  metric = "rmse"
+)
+
+# Display the selected tuning parameter
+bike_rf_best
+
+# Finalize the workflow using the selected tuning parameter
+# finalize_workflow() replaces tune() with the selected value
+bike_rf_final_wfl <- bike_rf_wfl |>
+  finalize_workflow(bike_rf_best)
+
+# Fit the selected random forest on the entire training set
+# fit() trains the model using all training observations
+bike_rf_train_fit <- bike_rf_final_wfl |>
+  fit(data = bike_train)
+
+# Display the fitted random forest
+bike_rf_train_fit
+```
+We used 10-fold cross-validation to find the best random forest model. The best model 
+used an mtry value of 13, meaning all 13 predictors were considered at each split. It 
+had an RMSE of 2,970, which was lower than our other three models.
+
+We then fitted the selected model using all 263 training observations and 500 trees. 
+The model also reported an out-of-bag R-squared of 0.9154, meaning it explained about 
+91.5% of the variation in daily bike rentals based on the out-of-bag predictions.
 
 ## VII. Comparing Final Models on the Test Set
+Next we compare the four selected models using the test set data. We will calculate 
+RMSE and MAE for each model to see which one does the best job predicting daily bike 
+rentals on data that was not used for training. 
 
 ### 1) Compare test-set RMSE and MAE for all four final models
+```{r}
+# Evaluate our selected regression tree on the test set
+# last_fit() trains on the full training set and evaluates on the test set
+bike_tree_test_fit <- bike_tree_final_wfl |>
+  last_fit(
+    split = bike_split,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Evaluate our selected bagged tree on the test set
+bike_bag_test_fit <- bike_bag_final_wfl |>
+  last_fit(
+    split = bike_split,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Evaluate our selected random forest on the test set
+bike_rf_test_fit <- bike_rf_final_wfl |>
+  last_fit(
+    split = bike_split,
+    metrics = metric_set(rmse, mae)
+  )
+
+# Collect test-set RMSE and MAE for all four models
+# We already evaluated MLR in Section V using best_lm_fit
+bike_test_comparison <- bind_rows(
+  collect_metrics(best_lm_fit) |> mutate(model = "MLR"),
+  collect_metrics(bike_tree_test_fit) |> mutate(model = "Regression Tree"),
+  collect_metrics(bike_bag_test_fit) |> mutate(model = "Bagged Tree"),
+  collect_metrics(bike_rf_test_fit) |> mutate(model = "Random Forest")
+) |>
+  # Keep the model, metric, and test-set estimate
+  select(model, .metric, .estimate) |>
+
+  # Display RMSE and MAE in separate columns
+  pivot_wider(names_from = .metric, values_from = .estimate) |>
+
+  # Sort models from lowest to highest RMSE
+  arrange(rmse)
+
+# Display the test-set comparison table
+knitr::kable(
+  bike_test_comparison,
+  digits = 2,
+  caption = "Test-Set RMSE and MAE for All Four Models"
+)
+
+```
+We compared all four models using the 90 observations in our test set. As noted in 
+the above table, Random Forest had the lowest RMSE (2,754) and MAE (2,133), 
+followed by Bagged Tree, MLR, and Regression Tree. This is consistent with our 
+cross-validation results, where Random Forest also had the lowest prediction error.
 
 ### 2) Report the final MLR coefficient table
+We now report the estimated coefficients from our selected MLR model (Model 2), 
+which included main effects and interactions and was fitted using all 263 training 
+observation. See table below.
+
+```{r}
+# Fit our selected MLR model (Model 2) using the training set
+bike_lm_train_fit <- best_lm_workflow |>
+  fit(data = bike_train)
+
+# Extract the estimated coefficients from the fitted model
+# extract_fit_engine() retrieves the underlying lm model
+# coef() returns its estimated regression coefficients
+bike_lm_coefficients <- coef(
+  extract_fit_engine(bike_lm_train_fit)
+)
+
+# Create a table with coefficient names and estimates
+# Round the estimates to two decimal places
+bike_lm_coef_table <- data.frame(
+  Predictor = names(bike_lm_coefficients),
+  Estimate = round(as.numeric(bike_lm_coefficients), 2)
+)
+
+# Display the coefficients in a table on our webpage
+knitr::kable(
+  bike_lm_coef_table,
+  row.names = FALSE,
+  caption = "Estimated Regression Coefficients - Final MLR Model 2"
+  
+)
+
+```
+
 
 ### 3) Plot the final regression tree
+We now plot our selected regression tree to see how it splits the training observations 
+based on different predictors. Each final node shows the predicted average number of 
+daily bike rentals for observations that fall into that group.
+
+```{r}
+#| fig-width: 13
+#| fig-height: 9
+#| fig-cap: "Selected Regression Tree - Daily Bike Rentals"
+
+# Extract the fitted regression tree and plot it
+# extract_fit_engine() retrieves the underlying rpart model
+# roundint = FALSE keeps decimal values in the splitting rules
+bike_tree_train_fit |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE)
+```
 
 ### 4) Plot variable importance for the bagged tree
+We now plot the variable importance scores from our selected bagged tree model to 
+see which predictors contributed the most to predicting daily bike rentals.
+
+```{r}
+#| fig-cap: "Variable Importance - Bagged Tree"
+
+# Extract the fitted bagged tree model
+# extract_fit_engine() retrieves the underlying model
+bike_bag_final_model <- extract_fit_engine(bike_bag_train_fit)
+
+# Plot the variable importance scores
+# $imp contains the importance values for each predictor
+# geom_bar() creates the bars and coord_flip() makes them horizontal
+bike_bag_final_model$imp |>
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    x = "Predictor",
+    y = "Variable Importance"
+  )
+```
+
 
 ### 5) Plot variable importance for the random forest
+We now plot the variable importance scores from our selected random forest model 
+to see which predictors had the greatest influence on predicting daily bike rentals.
 
+```{r}
+#| fig-cap: "Variable Importance - Random Forest"
+
+# Extract the fitted random forest model
+# extract_fit_engine() retrieves the underlying ranger model
+bike_rf_final_model <- extract_fit_engine(bike_rf_train_fit)
+
+# Extract the variable importance scores
+# $variable.importance contains the permutation importance values
+bike_rf_importance <- tibble(
+  term = names(bike_rf_final_model$variable.importance),
+  value = as.numeric(bike_rf_final_model$variable.importance)
+)
+
+# Plot the variable importance scores
+# reorder() sorts predictors by importance
+# coord_flip() makes the bars horizontal
+bike_rf_importance |>
+  mutate(term = reorder(term, value)) |>
+  ggplot(aes(x = term, y = value)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    x = "Predictor",
+    y = "Variable Importance"
+  )
+```
 ### 6) Select the overall best-performing model
-
+Based on our test-set results, Random Forest was our best-performing model, with the 
+lowest RMSE (2,754) and MAE (2,133). We will select this model and refit it using the 
+entire dataset.
 
 ## VIII. Fitting the Overall Best Model on the Entire Dataset
+Since Random Forest had the lowest prediction errors on our test set, we will now 
+fit the selected model using all 353 daily observations rather than just the 263 
+training observations.
 
 ### 1) Fit the selected model using all 353 daily observations
+```{r}
+# Set seed so the final Random Forest fit is reproducible
+set.seed(123)
 
+# Fit our selected Random Forest model using the entire dataset
+bike_rf_full_fit <- bike_rf_final_wfl |>
+  fit(bike_daily)
+```
 ### 2) Report the final model
+```{r}
+bike_rf_full_fit
+```
+Our final Random Forest model was fitted using all 353 daily observations and consisted 
+of 500 trees. The model used all 13 predictors at each split and reported an out-of-bag 
+R-squared of 0.9219 meaning it accounted for approximately 92.2% of the variation in 
+daily bike rentals based on out-of-bag predictions.
