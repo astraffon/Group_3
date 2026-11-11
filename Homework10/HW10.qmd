@@ -20,6 +20,8 @@ We begin with our previous data preparation and EDA, then use cross-validation t
 library(tidyverse)
 library(lubridate)
 library(tidymodels)
+library(tree)
+library(baguette)
 
 # Read the locally saved Seoul Bike Sharing dataset
 # Specify Latin1 encoding to handle special characters
@@ -219,7 +221,7 @@ bike_daily <- bike_data |>
 
     # Remove grouping after summarizing
     .groups = "drop"
-  )  |>
+  ) |>
   mutate(
     #Create Weekend Variable
     day_type = factor(
@@ -227,6 +229,7 @@ bike_daily <- bike_data |>
       levels = c("Weekday", "Weekend")
     )
   )
+
 # Inspect the new daily dataset
 glimpse(bike_daily)
 
@@ -391,347 +394,337 @@ We also notice a very strong correlation between temperature and dew point tempe
 
 
 ## IV. Splitting the Data
-Use functions from tidymodels to split the data into a training and test set (75/25 split). Use the
-strata argument to stratify the split on the seasons variable.
 
 ### 1) Create a 75/25 training and test split stratified by season
-
-Similar to what we did in HW9, just that this time we will use the training set
-for cross-validation. *Why?* Because cross-validation gives us a more reliable estimate 
-of prediction error by evaluating the model on different held-out groups rather 
-than relying on a single random split.
-
 ```{r}
-# Set seed so the random split can be reproduced
-set.seed(123)
-
-# Split daily data into 75% training and 25% testing
-# Stratify by seasons to preserve the seasonal distribution
-bike_split <- initial_split(
-  bike_daily,
-  prop = 0.75, # designates the proportion for training
-  strata = seasons
-)
-
-# Create separate training and test datasets
+#Need to set up dependent var transformations BEFORE fitting:
+set.seed(682006)
+bike_split <- initial_split(bike_daily, prop = 0.75, strata = seasons)
 bike_train <- training(bike_split)
-bike_test <- testing(bike_split)
-
-# Verify the number of observations in each dataset
-nrow(bike_train)
-nrow(bike_test)
-
-# Check the number of observations by season in each dataset
-table(bike_train$seasons)
-table(bike_test$seasons)
+bike_test  <- testing(bike_split)
 ```
 ### 2) Create 10-fold cross-validation splits on the training set
-
-Here we use the `vfold_cv()` function to create 10 folds.
 ```{r}
-# Set seed so the cross-validation folds are reproducible
-set.seed(123)
-
-# Create 10-fold cross-validation using only the training data
-bike_cv <- vfold_cv(
-  bike_train,
-  v = 10
-)
-
-# Display the cross-validation folds
-bike_cv
+bike_CV_folds <- vfold_cv(bike_train, 10)
 ```
-
 ## V. Fitting Multiple Linear Regression Models with tidymodels
-
-
 
 ### 1) Recipe 1: Main effects
 
-This first model includes only main effects, with no interactions or quadratic terms. 
-The pre-processing steps are as follows:
-
-- Create weekday/weekend factor from the date variable
-- Standardize numeric predictors
-- Create dummy variables for seasons, holiday, and day type
-
+#### - Create weekday/weekend factor from the date variable
+#### - Standardize numeric predictors
+#### - Create dummy variables for seasons, holiday, and day type
 ```{r}
-# Create Recipe 1 for our basic multiple linear regression model
-bike_rec_1 <- recipe(bike_count ~ ., data = bike_train) |>
-  
-# Extract the day of the week from the date variable using step_date()
-  # step_date() defines a pre-processing operation within a recipe
-  # it extracts information from a date variable via the features argument
-  step_date(date, features = "dow") |>
-
-  # Create a factor identifying weekdays and weekends using step_mutate()
-  # date_dow contains the day of the week created by step_date()
-  step_mutate(
-    day_type = factor(
-      if_else(date_dow %in% c("Sat", "Sun"), "Weekend", "Weekday")
-    )
-  ) |>
-
-  # Remove the original date and intermediate day-of-week variable
-  # step_rm() defines which variables to remove from the data
-  # these variables will not be used as predictors
-  step_rm(date, date_dow) |>
-
-  # Standardize numeric predictors, but not the response
-  # step_normalize() defines a standardization operation within a recipe
-  # it subtracts the mean and divides by the standard deviation
-  step_normalize(all_numeric_predictors()) |>
-
-  # step_dummy() defines a dummy variable conversion within a recipe
-  # it converts categorical variables into numeric indicator variables
+bike_rec1 <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
   step_dummy(seasons, holiday, day_type)
 
-# Display Recipe 1
-bike_rec_1
 ```
 
 ### 2) Recipe 2: Main effects and interactions
-This second model includes main effects from Recipe 1 but also adds interactions. 
-The pre-processing steps are as follows:
 
-- Interaction between seasons and holiday
-- Interaction between seasons and temperature
-- Interaction between temperature and rainfall
-
+#### - Interaction between seasons and holiday, seasons and temperature, temperature and rainfall.
 ```{r}
-# Create Recipe 2 using the same preprocessing steps as Recipe 1
-bike_rec_2 <- bike_rec_1 |>
-
-  # step_interact() creates interaction terms between variables
-  # starts_with() selects dummy variables with a common prefix
+bike_rec2 <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type) |>
   step_interact(
-    terms = ~
-      # Interaction between seasons and holiday
-      starts_with("seasons_"):starts_with("holiday_") +
-
-      # Interaction between seasons and temperature
-      starts_with("seasons_"):temp +
-
-      # Interaction between temperature and rainfall
-      temp:rainfall
+    terms = ~ starts_with("seasons"):starts_with("day_type") +
+              starts_with("seasons"):temp + 
+              starts_with("temp"):rainfall
   )
-
-# Display Recipe 2
-bike_rec_2
 ```
-
 
 ### 3) Recipe 3: Interactions and quadratic terms
-This third model takes Recipe 2 and adds the following quadratic terms:
 
-- Quadratic term for standardized temperature
-- Quadratic term for standardized humidity
-
+#### - Quadratic terms for standardized temperature and standardized humidity
 ```{r}
-# Create Recipe 3 using the same preprocessing steps as Recipe 2
-bike_rec_3 <- bike_rec_2 |>
-
-  # step_mutate() creates quadratic terms for temp and humidity
-  # these variables were already standardized in Recipe 1
-  # squaring them allows for nonlinear relationships
-  step_mutate(
-    temp_sq = temp^2,
-    humidity_sq = humidity^2
-  )
-
-# Display Recipe 3
-bike_rec_3
+bike_rec3 <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type) |>
+  step_interact(
+    terms = ~ starts_with("seasons"):starts_with("day_type") +
+              starts_with("seasons"):temp + 
+              starts_with("temp"):rainfall
+  ) |>
+  step_poly(temp, degree = 2, options = list(raw = TRUE)) |>
+  step_poly(humidity, degree = 2, options = list(raw = TRUE))
 ```
+
 ### 4) Specify the linear regression model with the lm engine
-Each of the recipes determines what information goes into a given model and how it's 
-prepared. At this stage of the exercise all three recipes will use multiple linear 
-regression (MLR) to make predictions.
 ```{r}
-# Specify a multiple linear regression model using tidymodels
-# linear_reg() defines the model type as linear regression
-# set_engine() specifies which R function will fit the model
-# "lm" uses ordinary least squares regression from base R
-bike_lm <- linear_reg() |> # from the parsnip package within tidymodels
+bike_mod <- linear_reg() |> 
   set_engine("lm")
-
-# Display the model specification
-bike_lm
 ```
-
 ### 5) Create workflows for Models 1, 2, and 3
-Now that we have our three recipes (`bike_rec_1`, `bike_rec_2`, `bike_rec_3`) and 
-our linear regression specification (`bike_lm`), we'll combine them into workflows.
-
-
 ```{r}
-# Create Workflow 1 using Recipe 1 and our linear regression model
-# workflow() creates a workflow object
-# add_recipe() adds the preprocessing instructions
-# add_model() adds the model specification
-bike_wfl_1 <- workflow() |>
-  add_recipe(bike_rec_1) |>
-  add_model(bike_lm)
+bike_wkfl1 <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(bike_mod)
+bike_wkfl1
 
-# Create Workflow 2 using Recipe 2 and the same regression model
-bike_wfl_2 <- workflow() |>
-  add_recipe(bike_rec_2) |>
-  add_model(bike_lm)
+bike_wkfl2 <- workflow() |>
+  add_recipe(bike_rec2) |>
+  add_model(bike_mod)
 
-# Create Workflow 3 using Recipe 3 and the same regression model
-bike_wfl_3 <- workflow() |>
-  add_recipe(bike_rec_3) |>
-  add_model(bike_lm)
-
-# Display the three workflows
-bike_wfl_1
-bike_wfl_2
-bike_wfl_3
+bike_wkfl3 <- workflow() |>
+  add_recipe(bike_rec3) |>
+  add_model(bike_mod)
 ```
-
-
 ### 6) Fit all three models using 10-fold cross-validation
-When fitting a model, we can use different approaches. For example we could 
-choose to fit on the entire data set, do a single 75/25 split, or even do bootstrap 
-resampling. For this exercise we are choosing to do a 10-fold cross-validation, which 
-involved fitting the model multiple times on different subsets of the training data. 
-Recall the subsets were created above in section IV.2. 
-
 ```{r}
-# Fit Model 1 using 10-fold cross-validation
-# fit_resamples() fits the model across the folds created in Section IV
-# metric_set() specifies RMSE and MAE as our evaluation metrics
-bike_cv_fit_1 <- bike_wfl_1 |>
-  fit_resamples(
-    resamples = bike_cv,
-    metrics = metric_set(rmse, mae)
-  )
+#Fit these models to our CV folds:
+bike_fit1 <- bike_wkfl1 |>
+  fit_resamples(bike_CV_folds)
 
-# Fit Model 2 using the same 10 folds
-bike_cv_fit_2 <- bike_wfl_2 |>
-  fit_resamples(
-    resamples = bike_cv,
-    metrics = metric_set(rmse, mae)
-  )
+bike_fit2 <- bike_wkfl2 |>
+  fit_resamples(bike_CV_folds) 
 
-# Fit Model 3 using the same 10 folds
-bike_cv_fit_3 <- bike_wfl_3 |>
-  fit_resamples(
-    resamples = bike_cv,
-    metrics = metric_set(rmse, mae)
-  )
-
-# Display the cross-validation results
-bike_cv_fit_1
-bike_cv_fit_2
-bike_cv_fit_3
+bike_fit3 <- bike_wkfl3 |>
+  fit_resamples(bike_CV_folds)
 ```
-
 ### 7) Compare cross-validation errors and select the best MLR model
-Now we compare the average RMSE and MAE across the three models and select the 
-best-performing MLR model.
-
 ```{r}
-# Collect the cross-validation metrics for all three models
-# collect_metrics() combines the prediction errors across the 10 folds
-bike_cv_comparison <- bind_rows(
-  collect_metrics(bike_cv_fit_1) |> mutate(model = "Model 1"),
-  collect_metrics(bike_cv_fit_2) |> mutate(model = "Model 2"),
-  collect_metrics(bike_cv_fit_3) |> mutate(model = "Model 3")
-) |>
-  # Keep the model name, metric, and average error
-  select(model, .metric, mean) |>
-
-  # Display RMSE and MAE as separate columns
-  pivot_wider(names_from = .metric, values_from = mean) |>
-
-  # Sort models from lowest to highest RMSE
-  arrange(rmse)
-
-# Display the comparison
-bike_cv_comparison
-
-# Select Model 2 based on the lowest cross-validation RMSE
-best_lm_workflow <- bike_wfl_2
+#Combine results:
+rbind(bike_fit1 |> collect_metrics() |> filter(.metric == "rmse"),
+      bike_fit2 |> collect_metrics() |> filter(.metric == "rmse"),
+      bike_fit3 |> collect_metrics() |> filter(.metric == "rmse")) |> 
+  mutate(Model = c("Model 1", "Model 2", "Model 3")) |>
+  select(Model, mean, n, std_err)
 ```
-Based on the cross-validation results, Model 2 had the lowest RMSE (3,127), followed 
-by Model 3 (3,165) and Model 1 (4,189). Overall, the results suggest that adding 
-interaction terms improved our predictions, while adding quadratic terms did not 
-further improve RMSE.
 
-We note that although Model 3 had a slightly lower MAE, we selected Model 2 based 
-on RMSE, because RMSE as a metric penalizes large prediction errors more heavily 
-than MAE (RMSE squares the errors before averaging), and so we are placing more 
-importance on avoiding large prediction errors.
+Model 2 has lowest RMSE, so it is the best-performing MLR model (based on CV).
+
 
 ### 8) Fit the selected MLR model on the training set
-Now that Model 2 has been selected based on its cross-validation RMSE, we proceed to 
-fit it using the entire 75% training dataset.
-
 ```{r}
-# Fit selected MLR model using the original 75/25 split
-# last_fit() fits the model on the entire training set
-# it also evaluates predictions on the untouched test set
-best_lm_fit <- best_lm_workflow |>
-  last_fit(
-    split = bike_split,
-    metrics = metric_set(rmse, mae)
-  )
-
-# Display the final MLR fit
-best_lm_fit
-# Display the test-set RMSE and MAE for our selected MLR model
-collect_metrics(best_lm_fit)
-
+bike_final_fit <-  bike_wkfl3 |>  #Here it says 2, but html says 3.
+  last_fit(split = bike_split, metrics = metric_set(rmse, mae)) 
+bike_final_fit |> collect_metrics()
+bike_final_fit |> extract_fit_parsnip() |> tidy()
 ```
-After selecting Model 2 based on the lowest cross-validation RMSE, we fitted it on 
-the entire training set and evaluated it on the test set. The resulting RMSE was 3,081 
-and the MAE was 2,357. The test-set RMSE was close to our cross-validation RMSE of 
-3,127, suggesting that the model performs reasonably consistently on unseen data.
+- `last_fit()` fits the model on the entire training data set & evaluates its performance on the test data set. 
 
 ## VI. Fitting Other Models
 
 ### 1) Regression Tree
 
 #### - Specify the regression tree and tuning parameters
-
 #### - Tune using the training-set cross-validation folds
+```{r}
+tree_rec <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type)
+tree_rec
 
+tree_mod <- decision_tree(tree_depth = tune(),
+                          min_n = tune(),
+                          cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+  
+tree_wkf <- workflow() |>
+  add_recipe(tree_rec) |>
+  add_model(tree_mod)
+
+tree_grid <- grid_regular(cost_complexity(),
+                          tree_depth(),
+                          levels = c(10, 5))
+tree_fits <- tree_wkf |> 
+  tune_grid(resamples = bike_CV_folds,
+            grid = tree_grid)
+
+tree_fits |>
+  collect_metrics()
+
+tree_fits |>
+  collect_metrics() |>
+  mutate(tree_depth = factor(tree_depth)) |>
+  ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+  geom_line(size = 1.5, alpha = 0.6) +
+  geom_point(size = 2) +
+  facet_wrap(~ .metric, scales = "free", nrow = 2) +
+  scale_x_log10(labels = scales::label_number()) +
+  scale_color_viridis_d(option = "plasma", begin = .9, end = 0)
+```
 #### - Select the best regression tree and finalize the workflow
+```{r}
+tree_fits |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+
+tree_best_params <- select_best(tree_fits, metric = "rmse")
+tree_best_params
+
+tree_final_wkf <- tree_wkf |>
+  finalize_workflow(tree_best_params)
+
+tree_final_fit <- tree_final_wkf |>
+  last_fit(bike_split)
+tree_final_fit
+
+tree_final_fit |>
+  collect_metrics()
+
+tree_final_model <- extract_workflow(tree_final_fit) 
+tree_final_model
+
+tree_final_model |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE)
+```
 
 ### 2) Bagged Tree
+A **bagged tree* (aka *bootstrap aggregated decision tree*) fits multiple decision trees to different bootstrap samples of the training data, then combines their predictions. It helps reduce the variability that can come from relying on just one regression tree. 
 
 #### - Specify the bagged tree and tuning parameters
-
 #### - Tune using the training-set cross-validation folds
+```{r}
+bag_spec <- bag_tree(tree_depth = 5, min_n = 10, cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
 
+bag_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(bag_spec)
+
+bag_fit <- bag_wkf |>
+  tune_grid(resamples = bike_CV_folds, 
+            grid = grid_regular(cost_complexity(),
+                                levels = 15),
+            metrics = metric_set(rmse, mae)) # the metrics we are using to assess.
+bag_fit
+```
 #### - Select the best bagged tree and finalize the workflow
+```{r}
+bag_fit |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |> 
+arrange(mean)
 
+bag_best_params <- select_best(bag_fit, metric = "rmse")
+bag_best_params
+
+bag_final_wkf <- bag_wkf |>
+  finalize_workflow(bag_best_params)
+
+bag_final_fit <- bag_final_wkf |>
+  last_fit(bike_split, metrics = metric_set(rmse, mae))
+```
 ### 3) Random Forest
 
+A **random forest model** combines predictions from multiple decision trees, though at each split it randomly selects a subset of predictors.This makes individual trees less alike. 
+
 #### - Specify the random forest and tuning parameters
+```{r}
+rf_spec <- rand_forest(mtry = tune()) |>
+  set_engine("ranger", importance = "impurity") |>
+  set_mode("regression")
 
+rf_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(rf_spec)
+```
 #### - Tune using the training-set cross-validation folds
+```{r}
+rf_fit <- rf_wkf |>
+  tune_grid(resamples = bike_CV_folds, 
+            grid = 10,
+            metrics = metric_set(rmse))
 
+rf_fit |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |> 
+  arrange(mean)
+```
 #### - Select the best random forest and finalize the workflow
+```{r}
+rf_best_params <- select_best(rf_fit, metric = "rmse")
+rf_best_params
 
+rf_final_wkf <- rf_wkf |>
+  finalize_workflow(rf_best_params)
+
+rf_final_fit <- rf_final_wkf |>
+  last_fit(bike_split, metrics = metric_set(rmse, mae))
+```
 
 ## VII. Comparing Final Models on the Test Set
 
 ### 1) Compare test-set RMSE and MAE for all four final models
+```{r}
+bike_final_fit |> collect_metrics()
+tree_final_fit |> collect_metrics()
+bag_final_fit  |> collect_metrics()
+rf_final_fit   |> collect_metrics()
+
+```
 
 ### 2) Report the final MLR coefficient table
-
+```{r}
+bike_final_fit |> 
+  extract_fit_parsnip() |> 
+  tidy()
+#VS
+#tidy(bike_final)
+```
 ### 3) Plot the final regression tree
-
+```{r}
+tree_final_model |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE)
+```
 ### 4) Plot variable importance for the bagged tree
-
+```{r}
+bag_final_model$imp |>                                                 # $imp is the importance variable
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_bar(stat ="identity") +
+  coord_flip()
+```
 ### 5) Plot variable importance for the random forest
+```{r}
+rf_final_model$imp |>                                                 # $imp is the importance variable
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_bar(stat ="identity") +
+  coord_flip() +
+   labs(
+    title = "Bagged Tree Variable Importance",
+    x = "Predictor",
+    y = "Importance"
+  ) +
+  theme_bw()
 
+```
 ### 6) Select the overall best-performing model
-
+```{r}
+#NFC
+final_model <- rf_final_wkf |>
+  fit(data = bike_test) 
+```
 
 ## VIII. Fitting the Overall Best Model on the Entire Dataset
 
 ### 1) Fit the selected model using all 353 daily observations
-
+```{r}
+final_model <- rf_final_wkf |>
+  fit(data = bike_daily) 
+```
 ### 2) Report the final model
+```{r}
+tidy(final_model)
+```

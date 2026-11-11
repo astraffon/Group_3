@@ -604,7 +604,7 @@ bag_fit <- bag_wkf |>
   tune_grid(resamples = bike_CV_folds, 
             grid = grid_regular(cost_complexity(),
                                 levels = 15),
-            metrics = metric_set(rmse)) # the metrics we are using to assess.
+            metrics = metric_set(rmse, mae)) # the metrics we are using to assess.
 bag_fit
 ```
 #### - Select the best bagged tree and finalize the workflow
@@ -621,7 +621,7 @@ bag_final_wkf <- bag_wkf |>
   finalize_workflow(bag_best_params)
 
 bag_final_fit <- bag_final_wkf |>
-  last_fit(bike_split, metrics = metric_set(rmse))
+  last_fit(bike_split, metrics = metric_set(rmse, mae))
 ```
 ### 3) Random Forest
 
@@ -700,19 +700,27 @@ rf_final_model$imp |>                                                 # $imp is 
   mutate(term = factor(term, levels = term)) |>
   ggplot(aes(x = term, y = value)) + 
   geom_bar(stat ="identity") +
-  coord_flip()
+  coord_flip() +
+   labs(
+    title = "Bagged Tree Variable Importance",
+    x = "Predictor",
+    y = "Importance"
+  ) +
+  theme_bw()
 
 ```
 ### 6) Select the overall best-performing model
 ```{r}
 #NFC
+final_model <- rf_final_wkf |>
+  fit(data = bike_test) 
 ```
 
 ## VIII. Fitting the Overall Best Model on the Entire Dataset
 
 ### 1) Fit the selected model using all 353 daily observations
 ```{r}
-final_model <- bike_wkfl3 |>
+final_model <- rf_final_wkf |>
   fit(data = bike_daily) 
 ```
 ### 2) Report the final model
