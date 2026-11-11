@@ -541,7 +541,8 @@ tree_wkf <- workflow() |>
 
 tree_grid <- grid_regular(cost_complexity(),
                           tree_depth(),
-                          levels = c(10, 5))
+                          min_n(),
+                          levels = c(10, 5, 5))
 tree_fits <- tree_wkf |> 
   tune_grid(resamples = bike_CV_folds,
             grid = tree_grid)
@@ -593,7 +594,7 @@ A **bagged tree* (aka *bootstrap aggregated decision tree*) fits multiple decisi
 #### - Specify the bagged tree and tuning parameters
 #### - Tune using the training-set cross-validation folds
 ```{r}
-bag_spec <- bag_tree(tree_depth = 5, min_n = 10, cost_complexity = tune()) |>
+bag_spec <- bag_tree(tree_depth = 5, min_n = tune(), cost_complexity = tune()) |>
   set_engine("rpart") |>
   set_mode("regression")
 
@@ -604,7 +605,8 @@ bag_wkf <- workflow() |>
 bag_fit <- bag_wkf |>
   tune_grid(resamples = bike_CV_folds, 
             grid = grid_regular(cost_complexity(),
-                                levels = 15),
+                                min_n(),
+                                levels = c(10,5)),
             metrics = metric_set(rmse, mae)) # the metrics we are using to assess.
 bag_fit
 ```
@@ -623,6 +625,7 @@ bag_final_wkf <- bag_wkf |>
 
 bag_final_fit <- bag_final_wkf |>
   last_fit(bike_split, metrics = metric_set(rmse, mae))
+bag_final_model <- extract_workflow(bag_final_fit)
 ```
 ### 3) Random Forest
 
@@ -660,6 +663,7 @@ rf_final_wkf <- rf_wkf |>
 
 rf_final_fit <- rf_final_wkf |>
   last_fit(bike_split, metrics = metric_set(rmse, mae))
+rf_final_model <- extract_workflow(rf_final_fit)
 ```
 
 ## VII. Comparing Final Models on the Test Set
@@ -689,26 +693,37 @@ tree_final_model |>
 ```
 ### 4) Plot variable importance for the bagged tree
 ```{r}
-bag_final_model$imp |>                                                 # $imp is the importance variable
-  mutate(term = factor(term, levels = term)) |>
+bag_final_model |>
+  extract_fit_engine() |>
+  pluck("imp") |> 
+  mutate(term = fct_reorder(term, value)) |> 
   ggplot(aes(x = term, y = value)) + 
-  geom_bar(stat ="identity") +
-  coord_flip()
-```
-### 5) Plot variable importance for the random forest
-```{r}
-rf_final_model$imp |>                                                 # $imp is the importance variable
-  mutate(term = factor(term, levels = term)) |>
-  ggplot(aes(x = term, y = value)) + 
-  geom_bar(stat ="identity") +
+  geom_col() + 
   coord_flip() +
-   labs(
+  labs(
     title = "Bagged Tree Variable Importance",
     x = "Predictor",
     y = "Importance"
-  ) +
-  theme_bw()
+  )
+```
+### 5) Plot variable importance for the random forest
+```{r}
+rf_importance <- rf_final_model |>
+  extract_fit_engine() |>
+  pluck("variable.importance") |>
+  enframe(name = "term", value = "value")
 
+# Plot the data frame
+rf_importance |>
+  mutate(term = fct_reorder(term, value)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_col() + 
+  coord_flip() +
+  labs(
+    title = "Random Forest Variable Importance",
+    x = "Predictor",
+    y = "Importance"
+  )
 ```
 ### 6) Select the overall best-performing model
 ```{r}
@@ -726,5 +741,6 @@ final_model <- rf_final_wkf |>
 ```
 ### 2) Report the final model
 ```{r}
-tidy(final_model)
+final_model |>
+  extract_fit_engine()
 ```
