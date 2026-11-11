@@ -500,13 +500,18 @@ rbind(bike_fit1 |> collect_metrics() |> filter(.metric == "rmse"),
   mutate(Model = c("Model 1", "Model 2", "Model 3")) |>
   select(Model, mean, n, std_err)
 ```
+
+Model 2 has lowest RMSE, so it is the best-performing MLR model (based on CV).
+
+
 ### 8) Fit the selected MLR model on the training set
 ```{r}
 bike_final_fit <-  bike_wkfl3 |>  #Here it says 2, but html says 3.
-  last_fit(split = bike_split) #??Am I supposed to use last_fit() here?
+  last_fit(split = bike_split, metrics = metric_set(rmse, mae)) 
 bike_final_fit |> collect_metrics()
 bike_final_fit |> extract_fit_parsnip() |> tidy()
 ```
+- `last_fit()` fits the model on the entire training data set & evaluates its performance on the test data set. 
 
 ## VI. Fitting Other Models
 
@@ -524,7 +529,7 @@ tree_rec <- recipe(bike_count ~ ., data = bike_train) |>
 tree_rec
 
 tree_mod <- decision_tree(tree_depth = tune(),
-                          min_n = 20,
+                          min_n = tune(),
                           cost_complexity = tune()) |>
   set_engine("rpart") |>
   set_mode("regression")
@@ -582,6 +587,7 @@ tree_final_model |>
 ```
 
 ### 2) Bagged Tree
+A **bagged tree* (aka *bootstrap aggregated decision tree*) fits multiple decision trees to different bootstrap samples of the training data, then combines their predictions. It helps reduce the variability that can come from relying on just one regression tree. 
 
 #### - Specify the bagged tree and tuning parameters
 #### - Tune using the training-set cross-validation folds
@@ -618,10 +624,13 @@ bag_final_fit <- bag_final_wkf |>
   last_fit(bike_split, metrics = metric_set(rmse))
 ```
 ### 3) Random Forest
+
+A **random forest model** combines predictions from multiple decision trees, though at each split it randomly selects a subset of predictors.This makes individual trees less alike. 
+
 #### - Specify the random forest and tuning parameters
 ```{r}
 rf_spec <- rand_forest(mtry = tune()) |>
-  set_engine("ranger") |>
+  set_engine("ranger", importance = "impurity") |>
   set_mode("regression")
 
 rf_wkf <- workflow() |>
@@ -632,7 +641,7 @@ rf_wkf <- workflow() |>
 ```{r}
 rf_fit <- rf_wkf |>
   tune_grid(resamples = bike_CV_folds, 
-            grid = 4,
+            grid = 10,
             metrics = metric_set(rmse))
 
 rf_fit |>
@@ -649,7 +658,7 @@ rf_final_wkf <- rf_wkf |>
   finalize_workflow(rf_best_params)
 
 rf_final_fit <- rf_final_wkf |>
-  last_fit(bike_split, metrics = metric_set(rmse))
+  last_fit(bike_split, metrics = metric_set(rmse, mae))
 ```
 
 ## VII. Comparing Final Models on the Test Set
@@ -661,4 +670,52 @@ tree_final_fit |> collect_metrics()
 bag_final_fit  |> collect_metrics()
 rf_final_fit   |> collect_metrics()
 
+```
+
+### 2) Report the final MLR coefficient table
+```{r}
+bike_final_fit |> 
+  extract_fit_parsnip() |> 
+  tidy()
+#VS
+#tidy(bike_final)
+```
+### 3) Plot the final regression tree
+```{r}
+tree_final_model |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE)
+```
+### 4) Plot variable importance for the bagged tree
+```{r}
+bag_final_model$imp |>                                                 # $imp is the importance variable
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_bar(stat ="identity") +
+  coord_flip()
+```
+### 5) Plot variable importance for the random forest
+```{r}
+rf_final_model$imp |>                                                 # $imp is the importance variable
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_bar(stat ="identity") +
+  coord_flip()
+
+```
+### 6) Select the overall best-performing model
+```{r}
+#NFC
+```
+
+## VIII. Fitting the Overall Best Model on the Entire Dataset
+
+### 1) Fit the selected model using all 353 daily observations
+```{r}
+final_model <- bike_wkfl3 |>
+  fit(data = bike_daily) 
+```
+### 2) Report the final model
+```{r}
+tidy(final_model)
 ```
