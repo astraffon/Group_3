@@ -1,0 +1,746 @@
+---
+title: "HW10 - Modeling Practice"
+author: "Alfonso Straffon, Daria Smyslova, Maya Szymborski & Michael Costello"
+execute:
+  warning: false 
+  message: false
+format: html
+---
+
+## I. Introduction
+
+In this assignment, we continue using the Seoul Bike Sharing dataset from HW9 to predict daily bicycle rentals with the tidymodels framework.
+
+We begin with our previous data preparation and EDA, then use cross-validation to compare three multiple linear regression models and tune three tree-based models. We compare their performance using RMSE and MAE and refit the best model on the full dataset.
+
+## II. Reading in the Data
+
+```{r}
+# Load the packages needed for data manipulation and exploration
+library(tidyverse)
+library(lubridate)
+library(tidymodels)
+library(tree)
+library(baguette)
+
+# Read the locally saved Seoul Bike Sharing dataset
+# Specify Latin1 encoding to handle special characters
+bike_data <- read_csv(
+  "data/SeoulBikeData.csv",
+  locale = locale(encoding = "Latin1")
+)
+```
+
+## III. Exploratory data analysis
+
+### 1) Checking for missing values
+
+```{r}
+# Count missing values in each column
+colSums(is.na(bike_data))
+```
+
+There are no missing values in the data.
+
+### 2) Check column types and values within the columns
+
+```{r}
+# Examine the structure of the dataset
+# glimpse() tells us the number of rows, columns, variable names, data types, and 
+#sample values
+glimpse(bike_data)
+
+# head() lets us see the first six observations
+head(bike_data)
+
+# provides min, max, quartiles, median and mean for numeric variables
+summary(bike_data)
+
+# unique() lets us inspect the unique values of the categorical variables.
+unique(bike_data$Seasons)
+unique(bike_data$Holiday)
+unique(bike_data$"Functioning Day")
+```
+
+We have 8,760 observations across 14 variables (columns). Of these 10 are numeric and 4 are character variables. Three of the character variables are categorical (`Seasons`, `Holiday`, `Functioning Day`) while the `Date` variable needs to be converted to the proper date format.
+
+Each observation represents one hour of bike rental activity, rather than an individual rental. The `Hour` variable identifies the hour of the day (0–23), while `Rented Bike Count` represents the number of bikes rented during that hour. The dataset covers 365 days, with 24 hourly observations per day, so there are a total of 8,760 observations.
+
+### 3) Convert Date column to actual date format
+
+```{r}
+
+# Convert Date from character to Date format (day/month/year)
+# Use dmy() function from the lubridate package
+bike_data$Date <- dmy(bike_data$Date)
+
+# confirm conversion
+class(bike_data$Date)
+```
+
+### 4) Convert the character variables into factors using factor()
+
+After converting the character variables to factors using the `factor()` function, we used the `levels` function to identify the unique values for each one.
+
+```{r}
+# Convert Seasons from character to factor
+bike_data$Seasons <- factor(bike_data$Seasons)
+# Display the factor's levels
+levels(bike_data$Seasons)
+
+# Convert Holiday from character to factor
+bike_data$Holiday <- factor(bike_data$Holiday)
+# Display the factor's levels
+levels(bike_data$Holiday)
+
+# Convert Functioning Day from character to factor
+bike_data$"Functioning Day" <- factor(bike_data$"Functioning Day")
+# Display the factor's levels
+levels(bike_data$"Functioning Day")
+```
+
+### 5) Rename variables
+
+```{r}
+# Rename variables using lower snake case for easier reference
+bike_data <- bike_data |>
+  rename(
+    date = Date,
+    bike_count = `Rented Bike Count`,
+    hour = Hour,
+    temp = `Temperature(°C)`,
+    humidity = `Humidity(%)`,
+    wind_speed = `Wind speed (m/s)`,
+    visibility = `Visibility (10m)`,
+    dew_point_temp = `Dew point temperature(°C)`, # backticks are needed because of spaces in original name
+    solar_radiation = `Solar Radiation (MJ/m2)`,
+    rainfall = `Rainfall(mm)`,
+    snowfall = `Snowfall (cm)`,
+    seasons = Seasons,
+    holiday = Holiday,
+    functioning_day = `Functioning Day`
+  )
+
+# Verify the new column names
+names(bike_data)
+```
+
+### 6) Create summary statistics
+
+#### - Numeric variables
+
+```{r}
+# Generate summary statistics for all numerical variables
+bike_data |>
+  select(where(is.numeric)) |>
+  summary()
+```
+
+#### - Categorical variables
+
+##### + Seasons
+
+```{r}
+# Calculate summary statistics for hourly bike rentals by season
+bike_data |>
+  group_by(seasons) |>
+  summarise(
+    observations = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+We grouped the observations by season to examine differences in hourly bike rentals. Summer had the highest average, with approximately 1,034 rentals per hour, followed by autumn (820), spring (730), and winter (226). Total rentals were also highest during summer, at about 2.28 million, compared with just 487,000 during winter. These results suggest strong seasonality in bike rental activity, with much higher demand during warmer months.
+
+##### + Holidays
+
+```{r}
+# Calculate summary statistics for hourly bike rentals by holiday status
+bike_data |>
+  group_by(holiday) |>
+  summarise(
+    observations = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+We also examined hourly bike rentals based on whether a day was classified as a `holiday`. Non-holidays averaged approximately 715 rentals per hour, compared with 500 on holidays. Median rentals were also considerably higher on non-holidays (524.5) than on holidays (240). This suggests that bike rental activity tends to be lower during holidays. However, there were substantially fewer holiday observations (432) than non-holiday observations (8,328), so comparing hourly averages is more informative than comparing total rentals.
+
+##### + Functioning day
+
+```{r}
+# Calculate summary statistics for hourly bike rentals by functioning day
+bike_data |>
+  group_by(functioning_day) |>
+  summarise(
+    observations = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+Next we examined bike rental activity based on whether the bike-sharing system was functioning. Of the 8,760 hourly observations, 295 were classified as non-functioning, and all recorded zero rentals. During functioning periods, the system averaged approximately 729 rentals per hour, with a median of 542 and a total of approximately 6.17 million rentals.
+
+Because the zero rentals during non-functioning periods reflect the system being unavailable rather than necessarily indicating a lack of demand, we have decided to exclude these observations from our analysis. This leaves 8,465 hourly observations for the next stage.
+
+```{r}
+# Excluding nonfunctioning hourly observations from the dataset 
+bike_data <- bike_data |>
+  filter(functioning_day == "Yes")
+
+# Verify the number of remaining observations
+nrow(bike_data)
+```
+
+### 7) Converting to daily dataset
+
+To simplify the remaining analysis we aggregate hourly observations into daily totals.
+
+```{r}
+# Aggregate hourly observations into daily observations
+bike_daily <- bike_data |>
+  group_by(date, seasons, holiday) |> # group_by() organizes observations into desired groups
+  summarise(
+    # Calculate daily totals
+    bike_count = sum(bike_count),
+    rainfall = sum(rainfall),
+    snowfall = sum(snowfall), 
+
+    # Calculate daily averages for weather variables
+    temp = mean(temp),
+    humidity = mean(humidity),
+    wind_speed = mean(wind_speed),
+    visibility = mean(visibility),
+    dew_point_temp = mean(dew_point_temp),
+    solar_radiation = mean(solar_radiation),
+
+    # Remove grouping after summarizing
+    .groups = "drop"
+  ) |>
+  mutate(
+    #Create Weekend Variable
+    day_type = factor(
+      if_else(wday(date, week_start = 1) >= 6, "Weekend", "Weekday"),
+      levels = c("Weekday", "Weekend")
+    )
+  )
+
+# Inspect the new daily dataset
+glimpse(bike_daily)
+
+```
+
+Hourly observations were aggregated into a new daily dataset called `bike_daily` by grouping the data by date, season, and holiday status. We then calculated daily totals for bike rentals, rainfall, and snowfall, while taking the average of the remaining weather variables. After excluding nonfunctioning hours (295 hrs = 24 x 12 non-functioning days + 7 additional hours during functioning days), the resulting dataset contains **353 daily observations across 12 variables**, compared with the original 8,760 hourly observations across 14 variables. This daily dataset will be used for the remainder of our analysis.
+
+### 8) Summarizing daily stats
+
+#### - Numeric variables
+
+```{r}
+# Generate summary statistics for our daily dataset
+summary(bike_daily)
+```
+
+The daily dataset now contains 353 observations, with an average of 17,485 bike rentals per day. Daily rentals ranged from a minimum of 977 to a maximum of 36,149. The median of 18,563 is slightly higher than the mean, suggesting that some lower-rental days may be pulling the average down. The dataset includes 17 holidays and 336 non-holidays. The weather variables are also summarized.
+
+#### - Categorical variables
+
+##### + Seasons
+
+```{r}
+# Calculate summary statistics for daily bike rentals by season
+bike_daily |>
+  group_by(seasons) |>
+  summarise(
+    days = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+##### + Holidays
+
+```{r}
+# Calculate summary statistics for daily bike rentals by holiday status
+bike_daily |>
+  group_by(holiday) |>
+  summarise(
+    days = n(),
+    mean_rentals = mean(bike_count),
+    median_rentals = median(bike_count),
+    total_rentals = sum(bike_count)
+  )
+```
+
+Next we calculated summary statistics for daily bike rentals by season and holiday status.
+
+Summer had the highest average with approximately 24,818 rentals per day, followed by autumn (22,099), spring (17,910), and winter (5,413). This suggests strong seasonality with substantially fewer rentals as the months get colder.
+
+We also found that bike rentals were lower on holidays, averaging about 12,700 per day compared with 17,727 on non-holidays. The number of holiday observations was relatively small (17 days), compared with 336 non-holidays.
+
+#### - Graphical summaries
+
+##### + Boxplots
+
+```{r}
+# Compare the distribution of daily bike rentals across seasons
+ggplot(bike_daily, aes(x = seasons, y = bike_count)) +
+  geom_boxplot() +
+  labs(
+    title = "Daily Bike Rentals by Season",
+    x = "Season",
+    y = "Daily Bike Rentals"
+  )
+
+# Compare the distribution of daily bike rentals on holidays and non-holidays
+ggplot(bike_daily, aes(x = holiday, y = bike_count)) +
+  geom_boxplot() +
+  labs(
+    title = "Daily Bike Rentals by Holiday Status",
+    x = "Holiday Status",
+    y = "Daily Bike Rentals"
+  )
+
+```
+
+The boxplots confirm bike rentals vary considerably by season and holiday status, consistent with the differences observed in our summary statistics above.
+
+Summer has the highest median rentals, followed by autumn, spring, and winter. We notice that winter has a noticeably smaller spread, while summer has a few unusually low observations.
+
+The holiday boxplot also shows that median daily rentals are much lower on holidays than on non-holidays. That said, it does appear that both groups have substantial variation.
+
+##### + Scatterplots
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+#| out-width: "100%"
+
+# Select all numerical variables from our daily dataset
+bike_numeric <- bike_daily |>
+  select(where(is.numeric))
+
+# Create a scatterplot matrix using all numerical variables
+# Display only the upper triangle to avoid duplicate plots
+pairs(
+  bike_numeric,
+  lower.panel = NULL,
+  main = "Scatterplot Matrix of Daily Bike Variables",
+  pch = 16,
+  cex = 0.3,
+  cex.labels = 1.2
+)
+```
+
+##### + Correlation matrix and heat map
+
+```{r}
+# Select all numerical variables from our daily dataset
+bike_numeric <- bike_daily |>
+  select(where(is.numeric))
+
+# Calculate the correlation matrix
+cor_matrix <- cor(bike_numeric)
+
+# Display the correlations rounded to two decimal places
+round(cor_matrix, 2)
+
+# Convert correlation matrix to a data frame
+cor_data <- as.data.frame(as.table(cor_matrix))
+
+# Set the variable order to match the scatterplot matrix
+var_order <- colnames(cor_matrix)
+
+cor_data$Var1 <- factor(cor_data$Var1, levels = var_order)
+cor_data$Var2 <- factor(cor_data$Var2, levels = var_order)
+
+# Keep only the upper-right triangle, including the diagonal
+cor_data <- cor_data |>
+  filter(as.numeric(Var1) <= as.numeric(Var2))
+
+# Create the heatmap
+ggplot(cor_data, aes(x = Var2, y = Var1, fill = Freq)) +
+  geom_tile() +
+  scale_y_discrete(limits = rev(var_order)) +
+  scale_fill_gradient2(
+    low = "yellow",
+    mid = "orange",
+    high = "red",
+    midpoint = 0,
+    limits = c(-1, 1)
+  ) +
+  labs(
+    title = "Correlation Heatmap of Daily Bike Variables",
+    x = NULL,
+    y = NULL,
+    fill = "Correlation"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+)
+
+```
+
+The correlation matrix helps us understand the linear relationship, or lack thereof, between all the numerical variables. To further illustrate we use a scatterplot matrix and correlation heatmap. Since the relationships are mirrored, we displayed only the upper-right half of the matrix. Important to note that a scatterplot also helps us identify non-linear relationships.
+
+Bike rentals have relatively strong positive correlations with temperature (0.75), solar radiation (0.74), and dew point temperature (0.65). Rainfall (-0.24) and snowfall (-0.27) have weaker negative correlations, while humidity (0.04) shows almost no linear relationship with bike rentals.
+
+We also notice a very strong correlation between temperature and dew point temperature (0.96), suggesting potential multicollinearity in our regression models. The scatterplots also suggest that some relationships, particularly between bike rentals and temperature, may not be entirely linear.
+
+
+## IV. Splitting the Data
+
+### 1) Create a 75/25 training and test split stratified by season
+```{r}
+#Need to set up dependent var transformations BEFORE fitting:
+set.seed(682006)
+bike_split <- initial_split(bike_daily, prop = 0.75, strata = seasons)
+bike_train <- training(bike_split)
+bike_test  <- testing(bike_split)
+```
+### 2) Create 10-fold cross-validation splits on the training set
+```{r}
+bike_CV_folds <- vfold_cv(bike_train, 10)
+```
+## V. Fitting Multiple Linear Regression Models with tidymodels
+
+### 1) Recipe 1: Main effects
+
+#### - Create weekday/weekend factor from the date variable
+#### - Standardize numeric predictors
+#### - Create dummy variables for seasons, holiday, and day type
+```{r}
+bike_rec1 <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type)
+
+```
+
+### 2) Recipe 2: Main effects and interactions
+
+#### - Interaction between seasons and holiday, seasons and temperature, temperature and rainfall.
+```{r}
+bike_rec2 <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type) |>
+  step_interact(
+    terms = ~ starts_with("seasons"):starts_with("day_type") +
+              starts_with("seasons"):temp + 
+              starts_with("temp"):rainfall
+  )
+```
+
+### 3) Recipe 3: Interactions and quadratic terms
+
+#### - Quadratic terms for standardized temperature and standardized humidity
+```{r}
+bike_rec3 <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type) |>
+  step_interact(
+    terms = ~ starts_with("seasons"):starts_with("day_type") +
+              starts_with("seasons"):temp + 
+              starts_with("temp"):rainfall
+  ) |>
+  step_poly(temp, degree = 2, options = list(raw = TRUE)) |>
+  step_poly(humidity, degree = 2, options = list(raw = TRUE))
+```
+
+### 4) Specify the linear regression model with the lm engine
+```{r}
+bike_mod <- linear_reg() |> 
+  set_engine("lm")
+```
+### 5) Create workflows for Models 1, 2, and 3
+```{r}
+bike_wkfl1 <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(bike_mod)
+bike_wkfl1
+
+bike_wkfl2 <- workflow() |>
+  add_recipe(bike_rec2) |>
+  add_model(bike_mod)
+
+bike_wkfl3 <- workflow() |>
+  add_recipe(bike_rec3) |>
+  add_model(bike_mod)
+```
+### 6) Fit all three models using 10-fold cross-validation
+```{r}
+#Fit these models to our CV folds:
+bike_fit1 <- bike_wkfl1 |>
+  fit_resamples(bike_CV_folds)
+
+bike_fit2 <- bike_wkfl2 |>
+  fit_resamples(bike_CV_folds) 
+
+bike_fit3 <- bike_wkfl3 |>
+  fit_resamples(bike_CV_folds)
+```
+### 7) Compare cross-validation errors and select the best MLR model
+```{r}
+#Combine results:
+rbind(bike_fit1 |> collect_metrics() |> filter(.metric == "rmse"),
+      bike_fit2 |> collect_metrics() |> filter(.metric == "rmse"),
+      bike_fit3 |> collect_metrics() |> filter(.metric == "rmse")) |> 
+  mutate(Model = c("Model 1", "Model 2", "Model 3")) |>
+  select(Model, mean, n, std_err)
+```
+
+Model 2 has lowest RMSE, so it is the best-performing MLR model (based on CV).
+
+
+### 8) Fit the selected MLR model on the training set
+```{r}
+bike_final_fit <-  bike_wkfl3 |>  #Here it says 2, but html says 3.
+  last_fit(split = bike_split, metrics = metric_set(rmse, mae)) 
+bike_final_fit |> collect_metrics()
+bike_final_fit |> extract_fit_parsnip() |> tidy()
+```
+- `last_fit()` fits the model on the entire training data set & evaluates its performance on the test data set. 
+
+## VI. Fitting Other Models
+
+### 1) Regression Tree
+
+#### - Specify the regression tree and tuning parameters
+#### - Tune using the training-set cross-validation folds
+```{r}
+tree_rec <- recipe(bike_count ~ ., data = bike_train) |>
+  update_role(date, new_role = "ID") |>
+  # don't normalize the outcome, but do the rest:
+  step_normalize(all_numeric(), -all_outcomes()) |>
+  # create dummys:
+  step_dummy(seasons, holiday, day_type)
+tree_rec
+
+tree_mod <- decision_tree(tree_depth = tune(),
+                          min_n = tune(),
+                          cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+  
+tree_wkf <- workflow() |>
+  add_recipe(tree_rec) |>
+  add_model(tree_mod)
+
+tree_grid <- grid_regular(cost_complexity(),
+                          tree_depth(),
+                          min_n(),
+                          levels = c(10, 5, 5))
+tree_fits <- tree_wkf |> 
+  tune_grid(resamples = bike_CV_folds,
+            grid = tree_grid)
+
+tree_fits |>
+  collect_metrics()
+
+tree_fits |>
+  collect_metrics() |>
+  mutate(tree_depth = factor(tree_depth)) |>
+  ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+  geom_line(size = 1.5, alpha = 0.6) +
+  geom_point(size = 2) +
+  facet_wrap(~ .metric, scales = "free", nrow = 2) +
+  scale_x_log10(labels = scales::label_number()) +
+  scale_color_viridis_d(option = "plasma", begin = .9, end = 0)
+```
+#### - Select the best regression tree and finalize the workflow
+```{r}
+tree_fits |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+
+tree_best_params <- select_best(tree_fits, metric = "rmse")
+tree_best_params
+
+tree_final_wkf <- tree_wkf |>
+  finalize_workflow(tree_best_params)
+
+tree_final_fit <- tree_final_wkf |>
+  last_fit(bike_split)
+tree_final_fit
+
+tree_final_fit |>
+  collect_metrics()
+
+tree_final_model <- extract_workflow(tree_final_fit) 
+tree_final_model
+
+tree_final_model |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE)
+```
+
+### 2) Bagged Tree
+A **bagged tree* (aka *bootstrap aggregated decision tree*) fits multiple decision trees to different bootstrap samples of the training data, then combines their predictions. It helps reduce the variability that can come from relying on just one regression tree. 
+
+#### - Specify the bagged tree and tuning parameters
+#### - Tune using the training-set cross-validation folds
+```{r}
+bag_spec <- bag_tree(tree_depth = 5, min_n = tune(), cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+bag_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(bag_spec)
+
+bag_fit <- bag_wkf |>
+  tune_grid(resamples = bike_CV_folds, 
+            grid = grid_regular(cost_complexity(),
+                                min_n(),
+                                levels = c(10,5)),
+            metrics = metric_set(rmse, mae)) # the metrics we are using to assess.
+bag_fit
+```
+#### - Select the best bagged tree and finalize the workflow
+```{r}
+bag_fit |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |> 
+arrange(mean)
+
+bag_best_params <- select_best(bag_fit, metric = "rmse")
+bag_best_params
+
+bag_final_wkf <- bag_wkf |>
+  finalize_workflow(bag_best_params)
+
+bag_final_fit <- bag_final_wkf |>
+  last_fit(bike_split, metrics = metric_set(rmse, mae))
+bag_final_model <- extract_workflow(bag_final_fit)
+```
+### 3) Random Forest
+
+A **random forest model** combines predictions from multiple decision trees, though at each split it randomly selects a subset of predictors.This makes individual trees less alike. 
+
+#### - Specify the random forest and tuning parameters
+```{r}
+rf_spec <- rand_forest(mtry = tune()) |>
+  set_engine("ranger", importance = "impurity") |>
+  set_mode("regression")
+
+rf_wkf <- workflow() |>
+  add_recipe(bike_rec1) |>
+  add_model(rf_spec)
+```
+#### - Tune using the training-set cross-validation folds
+```{r}
+rf_fit <- rf_wkf |>
+  tune_grid(resamples = bike_CV_folds, 
+            grid = 10,
+            metrics = metric_set(rmse))
+
+rf_fit |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |> 
+  arrange(mean)
+```
+#### - Select the best random forest and finalize the workflow
+```{r}
+rf_best_params <- select_best(rf_fit, metric = "rmse")
+rf_best_params
+
+rf_final_wkf <- rf_wkf |>
+  finalize_workflow(rf_best_params)
+
+rf_final_fit <- rf_final_wkf |>
+  last_fit(bike_split, metrics = metric_set(rmse, mae))
+rf_final_model <- extract_workflow(rf_final_fit)
+```
+
+## VII. Comparing Final Models on the Test Set
+
+### 1) Compare test-set RMSE and MAE for all four final models
+```{r}
+bike_final_fit |> collect_metrics()
+tree_final_fit |> collect_metrics()
+bag_final_fit  |> collect_metrics()
+rf_final_fit   |> collect_metrics()
+
+```
+
+### 2) Report the final MLR coefficient table
+```{r}
+bike_final_fit |> 
+  extract_fit_parsnip() |> 
+  tidy()
+#VS
+#tidy(bike_final)
+```
+### 3) Plot the final regression tree
+```{r}
+tree_final_model |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE)
+```
+### 4) Plot variable importance for the bagged tree
+```{r}
+bag_final_model |>
+  extract_fit_engine() |>
+  pluck("imp") |> 
+  mutate(term = fct_reorder(term, value)) |> 
+  ggplot(aes(x = term, y = value)) + 
+  geom_col() + 
+  coord_flip() +
+  labs(
+    title = "Bagged Tree Variable Importance",
+    x = "Predictor",
+    y = "Importance"
+  )
+```
+### 5) Plot variable importance for the random forest
+```{r}
+rf_importance <- rf_final_model |>
+  extract_fit_engine() |>
+  pluck("variable.importance") |>
+  enframe(name = "term", value = "value")
+
+# Plot the data frame
+rf_importance |>
+  mutate(term = fct_reorder(term, value)) |>
+  ggplot(aes(x = term, y = value)) + 
+  geom_col() + 
+  coord_flip() +
+  labs(
+    title = "Random Forest Variable Importance",
+    x = "Predictor",
+    y = "Importance"
+  )
+```
+### 6) Select the overall best-performing model
+```{r}
+#NFC
+final_model <- rf_final_wkf |>
+  fit(data = bike_test) 
+```
+
+## VIII. Fitting the Overall Best Model on the Entire Dataset
+
+### 1) Fit the selected model using all 353 daily observations
+```{r}
+final_model <- rf_final_wkf |>
+  fit(data = bike_daily) 
+```
+### 2) Report the final model
+```{r}
+final_model |>
+  extract_fit_engine()
+```
